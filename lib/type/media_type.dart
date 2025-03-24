@@ -1,14 +1,19 @@
-enum TMediaType {
-  multipartFormData("multipart/form-data"),
-  applicationJson("application/json"),
-  textPlain("text/plain"),
-  textJson("text/json"),
-  applicationPlusJson("application/*+json");
+import './property.dart';
 
-  final String value;
+class MediaTypeContent {
+  final IProperty? schema;
 
-  const TMediaType(this.value);
+  MediaTypeContent({this.schema});
+
+  factory MediaTypeContent.fromJson(Map<String, dynamic> json) {
+    return MediaTypeContent(
+      schema:
+          json["schema"] == null ? null : IProperty.fromJson(json["schema"]),
+    );
+  }
 
   @override
-  String toString() => value;
+  String toString() {
+    return 'MediaTypeContent{schema: $schema}';
+  }
 }

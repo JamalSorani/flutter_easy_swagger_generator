@@ -4,7 +4,7 @@ class Info {
   final String title;
   final String description;
   final String version;
-  final Contact contact;
+  final Contact? contact;
 
   Info({
     required this.title,
@@ -18,7 +18,8 @@ class Info {
       title: json['title'] as String,
       description: json['description'] as String,
       version: json['version'] as String,
-      contact: Contact.fromJson(json['contact'] as Map<String, dynamic>),
+      contact:
+          json['contact'] != null ? Contact.fromJson(json['contact']) : null,
     );
   }
 

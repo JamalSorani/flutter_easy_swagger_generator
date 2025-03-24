@@ -15,4 +15,14 @@ class IObjectProperty {
   String toString() {
     return 'IObjectProperty{ type: $type, properties: $properties, additionalProperties: $additionalProperties }';
   }
+
+  factory IObjectProperty.fromJson(Map<String, dynamic> json) {
+    return IObjectProperty(
+      type: "object",
+      properties: json["properties"] == null
+          ? null
+          : IPropertyProperties.fromJson(json["properties"]),
+      additionalProperties: json["additionalProperties"],
+    );
+  }
 }

@@ -1,0 +1,15 @@
+{
+  "input": "",
+  "output": "openapi-v3-typescript",
+  "apis": {
+    "enable": true,
+    "dataFetcher": "axios",
+    "enableConfig": true
+  },
+  "getControllerNameFromRoute": "(route) => route.split('/')[2]",
+  "apiNameConverter": "(apiName) => apiName",
+  "interfaceNameConverter": "(interfaceName) => interfaceName",
+  "includedControllers": [],
+  "excludedControllers": [],
+  "nullSafety": true
+}

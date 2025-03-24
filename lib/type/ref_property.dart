@@ -8,4 +8,8 @@ class IRefProperty {
   String toString() {
     return 'IRefProperty{ ref: $ref, type: $type }';
   }
+
+  factory IRefProperty.fromJson(Map<String, dynamic> json) {
+    return IRefProperty(json["\$ref"]);
+  }
 }

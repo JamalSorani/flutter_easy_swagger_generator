@@ -5,8 +5,11 @@ class Components {
 
   Components({required this.schemas});
 
-  @override
-  String toString() {
-    return 'Components{schemas: $schemas}';
+  factory Components.fromJson(Map<String, dynamic> json) {
+    return Components(
+      schemas: (json["schemas"] as Map<String, dynamic>).map(
+        (key, value) => MapEntry(key, IProperty.fromJson(value)),
+      ),
+    );
   }
 }

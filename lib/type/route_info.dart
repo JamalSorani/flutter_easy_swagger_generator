@@ -22,7 +22,7 @@ class RouteDetails {
   final List<String> hasPageParamInBody;
   final List<String> hasPageParamInQuery;
   final TMethodType methodType;
-  final TMediaType mediaType;
+  final MediaTypeContent mediaType;
   final List<IParameter> parametersInPath;
 
   RouteDetails({

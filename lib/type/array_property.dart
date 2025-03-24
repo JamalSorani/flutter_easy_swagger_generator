@@ -10,4 +10,10 @@ class IArrayProperty {
   String toString() {
     return 'IArrayProperty{ type: $type, items: $items }';
   }
+
+  factory IArrayProperty.fromJson(Map<String, dynamic> json) {
+    return IArrayProperty(
+      json["items"] == null ? null : IProperty.fromJson(json["items"]),
+    );
+  }
 }

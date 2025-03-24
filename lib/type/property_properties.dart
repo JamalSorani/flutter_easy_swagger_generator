@@ -9,4 +9,12 @@ class IPropertyProperties {
   String toString() {
     return 'IPropertyProperties{ properties: $properties }';
   }
+
+  factory IPropertyProperties.fromJson(Map<String, dynamic> json) {
+    return IPropertyProperties(
+      (json).map(
+        (key, value) => MapEntry(key, IProperty.fromJson(value)),
+      ),
+    );
+  }
 }

@@ -17,4 +17,19 @@ class TPrimitiveType {
   String toString() {
     return _stringValue ?? _numberTypeValue?.toString() ?? '';
   }
+
+  factory TPrimitiveType.fromJson(String? json) {
+    switch (json) {
+      case "boolean":
+        return TPrimitiveType.boolean;
+      case "string":
+        return TPrimitiveType.string;
+      case "integer":
+        return const TPrimitiveType.numberType(TNumberType.integer);
+      case "number":
+        return const TPrimitiveType.numberType(TNumberType.number);
+      default:
+        return TPrimitiveType.string;
+    }
+  }
 }

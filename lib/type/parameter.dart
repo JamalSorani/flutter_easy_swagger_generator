@@ -1,6 +1,6 @@
 import 'dart:core';
 
-import 'property.dart';
+import './property.dart';
 
 class IParameter {
   final String name; // The name of the parameter
@@ -20,5 +20,15 @@ class IParameter {
   @override
   String toString() {
     return 'IParameter{name: $name, in: $inn, schema: $schema, required: $required}';
+  }
+
+  factory IParameter.fromJson(Map<String, dynamic> json) {
+    return IParameter(
+      name: json["name"] ?? "",
+      inn: json["in"] ?? "query",
+      schema:
+          json["schema"] == null ? null : IProperty.fromJson(json["schema"]),
+      required: json["required"],
+    );
   }
 }

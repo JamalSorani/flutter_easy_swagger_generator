@@ -1,13 +1,15 @@
-import 'property.dart';
+import './media_type.dart';
 
 class IResponse {
   final ResponseDetails? response200;
 
   IResponse({this.response200});
 
-  @override
-  String toString() {
-    return 'IResponse{response200: $response200}';
+  factory IResponse.fromJson(Map<String, dynamic> json) {
+    return IResponse(
+      response200:
+          json["200"] == null ? null : ResponseDetails.fromJson(json["200"]),
+    );
   }
 }
 
@@ -22,16 +24,13 @@ class ResponseDetails {
   String toString() {
     return 'ResponseDetails{description: $description, content: $content}';
   }
-}
 
-class MediaTypeContent {
-  final IProperty
-      schema; // The schema representing the structure of the content
-
-  MediaTypeContent({required this.schema});
-
-  @override
-  String toString() {
-    return 'MediaTypeContent{schema: $schema}';
+  factory ResponseDetails.fromJson(Map<String, dynamic> json) {
+    return ResponseDetails(
+      description: json["description"],
+      content: (json["content"] as Map<String, dynamic>).map(
+        (key, value) => MapEntry(key, MediaTypeContent.fromJson(value)),
+      ),
+    );
   }
 }

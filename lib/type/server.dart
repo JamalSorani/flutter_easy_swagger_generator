@@ -4,6 +4,13 @@ class Server {
 
   Server({
     required this.url,
-    this.description,
+    required this.description,
   });
+
+  factory Server.fromJson(Map<String, dynamic> json) {
+    return Server(
+      url: json["url"],
+      description: json["description"],
+    );
+  }
 }
