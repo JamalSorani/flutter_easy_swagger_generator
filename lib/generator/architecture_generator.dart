@@ -8,13 +8,14 @@ class ModuleInfo {
   ModuleInfo({required this.name});
 }
 
-class FolderGenerator {
+class ArchitectureGenerator {
   final Map<String, Map<String, HttpMethodInfo>> paths;
-  FolderGenerator({required this.paths});
+  ArchitectureGenerator({
+    required this.paths,
+  });
 
   List<ModuleInfo> getModuleNames() {
     Set<String> tags = {};
-
     paths.forEach((path, methods) {
       methods.forEach((method, httpMethodInfo) {
         if (httpMethodInfo.tags.isNotEmpty) {
@@ -25,7 +26,6 @@ class FolderGenerator {
         }
       });
     });
-
     if (tags.isEmpty) {
       for (var path in paths.keys) {
         List<String> pathSegments = path.split('/');

@@ -21835,7 +21835,7 @@
           },
           "targetUsers": {
             "type": "array",
-            "items": { },
+            "items": {},
             "nullable": true
           }
         },
@@ -21858,7 +21858,7 @@
           },
           "targetUsers": {
             "type": "array",
-            "items": { },
+            "items": {},
             "nullable": true
           }
         },
@@ -23642,7 +23642,7 @@
           },
           "salesWindowManagers": {
             "type": "array",
-            "items": { },
+            "items": {},
             "nullable": true
           }
         },
@@ -24084,7 +24084,7 @@
           },
           "warehouseEmployees": {
             "type": "array",
-            "items": { },
+            "items": {},
             "nullable": true
           }
         },

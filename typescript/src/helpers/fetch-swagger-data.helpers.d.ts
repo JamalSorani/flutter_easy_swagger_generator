@@ -24,8 +24,8 @@ export type IArrayProperty = {
 
 export type IRefProperty = {
   $ref:
-    | `#/components/schemas/${string}`
-    | `#/components/schemas/${string}.Enums.${string}`;
+  | `#/components/schemas/${string}`
+  | `#/components/schemas/${string}.Enums.${string}`;
   type?: undefined;
 };
 
@@ -45,9 +45,9 @@ export type IProperty = (
   | IRefProperty
   | IObjectProperty
   | {
-      $ref: "#/components/schemas/System.TimeSpan";
-      type?: undefined;
-    }
+    $ref: "#/components/schemas/System.TimeSpan";
+    type?: undefined;
+  }
 ) & {
   nullable?: boolean;
   enum?: (number | string)[];

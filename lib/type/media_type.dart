@@ -11,9 +11,4 @@ class MediaTypeContent {
           json["schema"] == null ? null : IProperty.fromJson(json["schema"]),
     );
   }
-
-  @override
-  String toString() {
-    return 'MediaTypeContent{schema: $schema}';
-  }
 }

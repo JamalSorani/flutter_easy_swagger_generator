@@ -2,10 +2,10 @@ import 'media_type.dart';
 import 'method_type.dart';
 import 'parameter.dart';
 
-class TRouteInfo {
+class RouteInfo {
   final Map<String, RouteDetails> routes;
 
-  TRouteInfo({required this.routes});
+  RouteInfo({required this.routes});
 
   @override
   String toString() {

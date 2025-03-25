@@ -29,3 +29,7 @@ List<String> _removePrefix(List<String> parts) {
   }
   return parts;
 }
+
+String cleanPath(String path) {
+  return path.replaceAll('/api/', '').replaceAll('{', '').replaceAll('}', '');
+}
