@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter_easy_swagger_generator/type/http_method_info.dart';
@@ -44,9 +43,10 @@ ${formattedGroups.join('\n')}
       createFolder(folderPath);
       final outputFile = File("$folderPath/generated_routes.dart");
       outputFile.writeAsStringSync(generatedClass);
-      log('✅ Routes generated successfully: $folderPath/generated_routes.dart');
+      print(
+          '✅ Routes generated successfully: $folderPath/generated_routes.dart');
     } catch (e) {
-      log('Error while generating routes: $e');
+      print('Error while generating routes: $e');
     }
   }
 }
