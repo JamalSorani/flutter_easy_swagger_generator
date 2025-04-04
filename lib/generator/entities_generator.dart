@@ -45,13 +45,21 @@ class EntitiesGenerator {
           httpMethodInfo.requestBody?.content?.values.toList(), refSchemas);
     }
 
-    for (var refSchema in refSchemas) {
-      contents.add(generateRefClassContent(refSchema, classBuffer));
-    }
-
     final file = File(filePath);
+    List<String> contents2 = [];
     file.parent.createSync(recursive: true);
     for (var content in contents) {
+      file.writeAsStringSync(content);
+      for (var refSchema in refSchemas) {
+        for (var httpMethodInfo in path.values) {
+          contents2.add(generateRefClassContent(refSchema, classBuffer,
+              httpMethodInfo.parameters, httpMethodInfo.requestBody));
+        }
+      }
+    }
+
+    file.parent.createSync(recursive: true);
+    for (var content in contents2) {
       file.writeAsStringSync(content);
     }
   }
