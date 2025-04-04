@@ -6,6 +6,8 @@ import '../helpers/converters.dart';
 import '../helpers/dart_type.dart';
 import '../helpers/utils.dart';
 import '../classes/http_method_info.dart';
+import '../classes/dart_type_info.dart';
+import 'ref_class_generator.dart';
 
 class EntitiesGenerator {
   final List<String> moduleList;
@@ -31,14 +33,20 @@ class EntitiesGenerator {
     String filePath = 'lib/app/$moduleName/domain/entities/$fileName.dart';
 
     List<String> contents = [];
+    Set<String> refSchemas = {};
+    StringBuffer classBuffer = StringBuffer();
+
     for (var httpMethodInfo in path.values) {
-      contents.add(
-        _generateClassContent(
-          className,
-          httpMethodInfo.parameters,
-          httpMethodInfo.requestBody,
-        ),
-      );
+      String classContent = _generateClassContent(className,
+          httpMethodInfo.parameters, httpMethodInfo.requestBody, classBuffer);
+      contents.add(classContent);
+      _collectRefSchemas(httpMethodInfo.parameters, refSchemas);
+      _collectRefSchemas(
+          httpMethodInfo.requestBody?.content?.values.toList(), refSchemas);
+    }
+
+    for (var refSchema in refSchemas) {
+      contents.add(generateRefClassContent(refSchema, classBuffer));
     }
 
     final file = File(filePath);
@@ -48,12 +56,18 @@ class EntitiesGenerator {
     }
   }
 
-  String _generateClassContent(
-    String className,
-    List<IParameter>? parameters,
-    TRequestBody? requestBody,
-  ) {
-    StringBuffer classBuffer = StringBuffer();
+  void _collectRefSchemas(List<dynamic>? parameters, Set<String> refSchemas) {
+    if (parameters != null) {
+      for (var param in parameters) {
+        if (param?.schema?.ref != null) {
+          refSchemas.add(param.schema.ref);
+        }
+      }
+    }
+  }
+
+  String _generateClassContent(String className, List<IParameter>? parameters,
+      TRequestBody? requestBody, StringBuffer classBuffer) {
     classBuffer.writeln('class $className {');
 
     // Collecting parameter declarations and constructor parameters
@@ -67,7 +81,8 @@ class EntitiesGenerator {
             paramName == 'DebugMode') {
           continue;
         }
-        String paramType = getDartType(param.schema?.type ?? param.type);
+        DartTypeInfo dartTypeInfo = getDartType(param.schema);
+        String paramType = dartTypeInfo.className;
         if (paramName.contains(".")) {
           paramName = paramName.replaceAll('.', '');
         }
@@ -81,7 +96,9 @@ class EntitiesGenerator {
         if (requestBody.content![prop]?.schema == null || prop.contains("/")) {
           continue;
         }
-        String propType = getDartType(requestBody.content![prop]?.schema?.type);
+        DartTypeInfo dartTypeInfo =
+            getDartType(requestBody.content![prop]?.schema);
+        String propType = dartTypeInfo.className;
         if (prop.contains(".")) {
           prop = prop.replaceAll('.', '');
         }

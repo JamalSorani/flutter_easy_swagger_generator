@@ -6,11 +6,6 @@ class RouteInfo {
   final Map<String, RouteDetails> routes;
 
   RouteInfo({required this.routes});
-
-  @override
-  String toString() {
-    return 'TRouteInfo{routes: $routes}';
-  }
 }
 
 class RouteDetails {
@@ -37,9 +32,4 @@ class RouteDetails {
     required this.mediaType,
     required this.parametersInPath,
   });
-
-  @override
-  String toString() {
-    return 'RouteDetails{hasResponse: $hasResponse, hasBodyPayload: $hasBodyPayload, isArrayBodyPayload: $isArrayBodyPayload, hasQueryParams: $hasQueryParams, hasPathParams: $hasPathParams, hasPageParamInBody: $hasPageParamInBody, hasPageParamInQuery: $hasPageParamInQuery, methodType: $methodType, mediaType: $mediaType, parametersInPath: $parametersInPath}';
-  }
 }

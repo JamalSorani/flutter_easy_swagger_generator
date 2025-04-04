@@ -11,11 +11,6 @@ class IObjectProperty {
     this.additionalProperties,
   }) : assert(type == "object", 'Type must be "object"');
 
-  @override
-  String toString() {
-    return 'IObjectProperty{ type: $type, properties: $properties, additionalProperties: $additionalProperties }';
-  }
-
   factory IObjectProperty.fromJson(Map<String, dynamic> json) {
     return IObjectProperty(
       type: "object",

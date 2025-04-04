@@ -20,11 +20,6 @@ class ResponseDetails {
 
   ResponseDetails({this.description, this.content});
 
-  @override
-  String toString() {
-    return 'ResponseDetails{description: $description, content: $content}';
-  }
-
   factory ResponseDetails.fromJson(Map<String, dynamic> json) {
     return ResponseDetails(
       description: json["description"],

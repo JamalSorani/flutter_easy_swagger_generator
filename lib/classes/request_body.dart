@@ -6,11 +6,6 @@ class TRequestBody {
 
   TRequestBody({this.description, this.content});
 
-  @override
-  String toString() {
-    return 'IRequestBody{description: $description, content: $content}';
-  }
-
   factory TRequestBody.fromJson(Map<String, dynamic> json) {
     return TRequestBody(
       description: json["description"],

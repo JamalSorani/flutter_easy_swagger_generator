@@ -6,9 +6,6 @@ enum TNumberType {
 
   const TNumberType(this.value);
 
-  @override
-  String toString() => value;
-
   factory TNumberType.fromJson(String json) {
     switch (json) {
       case "integer":

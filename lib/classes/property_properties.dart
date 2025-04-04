@@ -5,11 +5,6 @@ class IPropertyProperties {
 
   IPropertyProperties(this.properties);
 
-  @override
-  String toString() {
-    return 'IPropertyProperties{ properties: $properties }';
-  }
-
   factory IPropertyProperties.fromJson(Map<String, dynamic> json) {
     return IPropertyProperties(
       (json).map(

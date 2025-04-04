@@ -19,11 +19,6 @@ class IParameter {
   }) : assert(inn == "query" || inn == "header" || inn == "path",
             'The "in" field must be either "query", "header", or "path"');
 
-  @override
-  String toString() {
-    return 'IParameter{name: $name, in: $inn, schema: $schema, required: $required}';
-  }
-
   factory IParameter.fromJson(Map<String, dynamic> json) {
     return IParameter(
       name: json["name"] ?? "",
