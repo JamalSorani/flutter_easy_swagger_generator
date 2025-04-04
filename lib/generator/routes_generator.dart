@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter_easy_swagger_generator/type/http_method_info.dart';
+import 'package:flutter_easy_swagger_generator/classes/http_method_info.dart';
 
 import '../helpers/create_folder.dart';
 import '../helpers/format_action_name.dart';
@@ -16,7 +16,7 @@ class RoutesGenerator {
       Map<String, List<String>> groupedRoutes = {};
       for (var path in paths.keys) {
         String actionName = formatActionName(path);
-        String category = PathUtils.getCategory(path);
+        String category = getCategory(path);
         String formattedRoute =
             "  static const String $actionName = '${path.replaceAll('/api/', '')}';";
         groupedRoutes.putIfAbsent(category, () => []).add(formattedRoute);

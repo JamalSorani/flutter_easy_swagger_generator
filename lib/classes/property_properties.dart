@@ -1,7 +1,7 @@
 import 'property.dart';
 
 class IPropertyProperties {
-  final Map<String, IProperty> properties;
+  final Map<String, TProperty> properties;
 
   IPropertyProperties(this.properties);
 
@@ -13,7 +13,7 @@ class IPropertyProperties {
   factory IPropertyProperties.fromJson(Map<String, dynamic> json) {
     return IPropertyProperties(
       (json).map(
-        (key, value) => MapEntry(key, IProperty.fromJson(value)),
+        (key, value) => MapEntry(key, TProperty.fromJson(value)),
       ),
     );
   }

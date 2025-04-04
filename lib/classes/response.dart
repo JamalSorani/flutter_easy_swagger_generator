@@ -1,4 +1,4 @@
-import './media_type.dart';
+import 'media_type.dart';
 
 class IResponse {
   final ResponseDetails? response200;

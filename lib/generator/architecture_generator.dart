@@ -1,22 +1,16 @@
 import 'dart:io';
 
-class ModuleInfo {
-  final String name;
-  ModuleInfo({required this.name});
-}
-
 class ArchitectureGenerator {
-  void generateFolders(List<ModuleInfo> moduleList) {
+  void generateFolders(List<String> moduleList) {
     final folder = Directory("lib/app/");
     if (!folder.existsSync()) {
       folder.createSync(recursive: true);
     }
 
     for (var module in moduleList) {
-      final moduleDirectory = Directory('lib/app/${module.name}');
+      final moduleDirectory = Directory('lib/app/$module');
       if (!moduleDirectory.existsSync()) {
         moduleDirectory.createSync();
-        print('Created module directory: ${moduleDirectory.path}');
       }
 
       final subfolders = [
@@ -26,14 +20,13 @@ class ArchitectureGenerator {
         'presentation'
       ];
 
-      final entitiesDirectory =
-          Directory('lib/app/${module.name}/domain/entities');
+      final entitiesDirectory = Directory('lib/app/$module/domain/entities');
       if (!entitiesDirectory.existsSync()) {
         entitiesDirectory.createSync(recursive: true);
       }
 
       for (var subfolder in subfolders) {
-        final subDirectory = Directory('lib/app/${module.name}/$subfolder');
+        final subDirectory = Directory('lib/app/$module/$subfolder');
         if (!subDirectory.existsSync()) {
           subDirectory.createSync(recursive: true);
         }

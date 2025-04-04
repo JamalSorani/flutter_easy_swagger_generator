@@ -1,4 +1,4 @@
-class PrimitiveProperty implements IProperty {
+class PrimitiveProperty implements TProperty {
   @override
   final String? type;
   @override
@@ -19,14 +19,14 @@ class PrimitiveProperty implements IProperty {
   }
 }
 
-class ArrayProperty implements IProperty {
+class ArrayProperty implements TProperty {
   @override
   final String? type;
   @override
   final String? ref;
   @override
   final bool? nullable;
-  final IProperty? items;
+  final TProperty? items;
 
   ArrayProperty({
     this.items,
@@ -39,12 +39,12 @@ class ArrayProperty implements IProperty {
     return ArrayProperty(
       items: json['items'] == null
           ? null
-          : IProperty.fromJson(json['items'] as Map<String, dynamic>),
+          : TProperty.fromJson(json['items'] as Map<String, dynamic>),
     );
   }
 }
 
-class RefProperty implements IProperty {
+class RefProperty implements TProperty {
   @override
   final String? type;
   @override
@@ -66,14 +66,14 @@ class RefProperty implements IProperty {
   }
 }
 
-class ObjectProperty implements IProperty {
+class ObjectProperty implements TProperty {
   @override
   final String? type;
   @override
   final String? ref;
   @override
   final bool? nullable;
-  final Map<String, IProperty>? properties;
+  final Map<String, TProperty>? properties;
   final dynamic additionalProperties;
 
   ObjectProperty(
@@ -88,7 +88,7 @@ class ObjectProperty implements IProperty {
       properties: (json['properties'] as Map<String, dynamic>?)?.map(
         (key, value) => MapEntry(
           key,
-          IProperty.fromJson(value as Map<String, dynamic>),
+          TProperty.fromJson(value as Map<String, dynamic>),
         ),
       ),
       additionalProperties: json['additionalProperties'],
@@ -96,18 +96,18 @@ class ObjectProperty implements IProperty {
   }
 }
 
-class IProperty {
+class TProperty {
   final String? type;
   final String? ref;
   final bool? nullable;
 
-  IProperty({
+  TProperty({
     this.type,
     this.ref,
     this.nullable,
   });
 
-  factory IProperty.fromJson(Map<String, dynamic> json) {
+  factory TProperty.fromJson(Map<String, dynamic> json) {
     if (json['type'] == 'array') {
       return ArrayProperty.fromJson(json);
     } else if (json['type'] == 'object') {

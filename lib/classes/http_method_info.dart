@@ -1,12 +1,12 @@
-import 'package:flutter_easy_swagger_generator/type/parameter.dart';
-import 'package:flutter_easy_swagger_generator/type/request_body.dart';
-import 'package:flutter_easy_swagger_generator/type/response.dart';
+import 'package:flutter_easy_swagger_generator/classes/parameter.dart';
+import 'package:flutter_easy_swagger_generator/classes/request_body.dart';
+import 'package:flutter_easy_swagger_generator/classes/response.dart';
 
 class HttpMethodInfo {
   final String? summary;
   final String? description;
   final List<IParameter>? parameters;
-  final IRequestBody? requestBody;
+  final TRequestBody? requestBody;
   final IResponse responses;
   final List<String> tags;
 
@@ -28,7 +28,7 @@ class HttpMethodInfo {
           .toList(),
       requestBody: json["requestBody"] == null
           ? null
-          : IRequestBody.fromJson(json["requestBody"]),
+          : TRequestBody.fromJson(json["requestBody"]),
       responses: IResponse.fromJson(json["responses"]),
       tags: (json["tags"] as List?)?.map((e) => e.toString()).toList() ?? [],
     );

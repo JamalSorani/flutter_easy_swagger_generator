@@ -1,7 +1,7 @@
-import './components.dart';
-import './http_method_info.dart';
-import './server.dart';
-import './info.dart';
+import 'components.dart';
+import 'http_method_info.dart';
+import 'server.dart';
+import 'info.dart';
 
 class IOpenApiJSON {
   final String openapi;

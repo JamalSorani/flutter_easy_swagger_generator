@@ -2,7 +2,7 @@ import 'property.dart';
 
 class IArrayProperty {
   final String type; // This will always be "array"
-  final IProperty? items; // This is optional
+  final TProperty? items; // This is optional
 
   const IArrayProperty(this.items) : type = "array";
 
@@ -13,7 +13,7 @@ class IArrayProperty {
 
   factory IArrayProperty.fromJson(Map<String, dynamic> json) {
     return IArrayProperty(
-      json["items"] == null ? null : IProperty.fromJson(json["items"]),
+      json["items"] == null ? null : TProperty.fromJson(json["items"]),
     );
   }
 }
