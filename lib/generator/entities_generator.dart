@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
+
 import '../classes/parameter.dart';
 import '../classes/request_body.dart';
 import '../helpers/converters.dart';
@@ -32,6 +34,9 @@ class EntitiesGenerator {
   void _generateEntityFile(String key, Map<String, HttpMethodInfo> path) {
     String routeName = getRouteName(key);
     String className = '${routeName}Param';
+    if (className == "CategoryAddParam") {
+      printP(key);
+    }
     String moduleName =
         key.split('/').firstWhere((p) => moduleList.contains(p.toLowerCase()));
     String fileName = getFileName(moduleName, routeName);
@@ -66,8 +71,9 @@ class EntitiesGenerator {
       String refClassName = _getRefClassName(refSchema);
       String refFilePath = _refDomainClassFilePath(moduleName, refClassName);
       String refContent = _generateRefClass(refSchema, refClassName);
-
-      File(refFilePath).writeAsStringSync(refContent);
+      if (refContent.isNotEmpty) {
+        File(refFilePath).writeAsStringSync(refContent);
+      }
     }
   }
 
@@ -77,16 +83,15 @@ class EntitiesGenerator {
 
   String _getRefClassName(String refSchema) {
     final ref = refSchema.split('/').last.split('.');
-    return ref.last.toString().toLowerCase() == "request"
+    String name = ref.last.toString().toLowerCase() == "request"
         ? ref[ref.length - 2]
         : ref.last;
+
+    return name;
   }
 
   String _generateRefClass(String refSchema, String className) {
     StringBuffer buffer = StringBuffer();
-
-    // Add imports
-    buffer.writeln();
 
     // Get schema from components
     final schema = components.schemas[refSchema.split('/').last];
@@ -100,9 +105,9 @@ class EntitiesGenerator {
         String propName = entry.key;
         TProperty prop = entry.value;
 
-        DartTypeInfo dartType = getDartType(prop);
+        DartTypeInfo dartType = getDartType(prop, components);
 
-        if (prop.ref != null) {
+        if (dartType.isRef) {
           String refClassName = _getRefClassName(prop.ref!);
           buffer
               .writeln('import \'${convertToSnakeCase(refClassName)}.dart\';');
@@ -198,8 +203,8 @@ class EntitiesGenerator {
             paramName == 'DebugMode') {
           continue;
         }
-        DartTypeInfo dartTypeInfo = getDartType(param.schema);
-        if (param.schema?.ref != null) {
+        DartTypeInfo dartTypeInfo = getDartType(param.schema, components);
+        if (dartTypeInfo.isRef) {
           String refClassName = _getRefClassName(param.schema!.ref!);
           classBuffer
               .writeln('import \'${convertToSnakeCase(refClassName)}.dart\';');
@@ -215,23 +220,42 @@ class EntitiesGenerator {
     }
     if (requestBody?.content != null) {
       for (var prop in requestBody!.content!.keys) {
-        if (requestBody.content![prop]?.schema == null || prop.contains("/")) {
-          continue;
+        bool isRef = false;
+        if (requestBody.content![prop]?.schema == null ||
+            (prop.contains("/"))) {
+          if (requestBody.content![prop]?.schema?.ref == null) {
+            continue;
+          } else {
+            if (className == "CategoryAddParam") {
+              printP((requestBody.content![prop]?.schema as RefProperty).ref);
+            }
+            if (prop == "application/json") {
+              isRef = true;
+            } else {
+              continue;
+            }
+          }
         }
         DartTypeInfo dartTypeInfo =
-            getDartType(requestBody.content![prop]?.schema);
-        if (requestBody.content![prop]?.schema?.ref != null) {
+            getDartType(requestBody.content![prop]?.schema, components);
+        if (dartTypeInfo.isRef) {
           String refClassName =
               _getRefClassName(requestBody.content![prop]!.schema!.ref!);
           classBuffer
               .writeln('import \'${convertToSnakeCase(refClassName)}.dart\';');
         }
+
         String propType = dartTypeInfo.className;
+        if (isRef && className == "CategoryAddParam") {
+          printO(requestBody.content![prop]?.schema!.ref);
+        }
         if (prop.contains(".")) {
           prop = prop.replaceAll('.', '');
         }
-        parameterDeclarations.add('  final $propType ${toCamelCase(prop)};');
-        requiredParams.add('required this.${toCamelCase(prop)}');
+        parameterDeclarations
+            .add('  final $propType ${toCamelCase(isRef ? propType : prop)};');
+        requiredParams
+            .add('required this.${toCamelCase(isRef ? propType : prop)}');
       }
     }
     classBuffer.writeln('class $className {');
@@ -244,37 +268,7 @@ class EntitiesGenerator {
     // Generate constructor
     _generateConstructure(classBuffer, className, requiredParams);
 
-    classBuffer.writeln('''
-  Map<String, dynamic> toJson() {
-    return {
-''');
-    if (parameters != null) {
-      for (var param in parameters) {
-        String paramName = param.name;
-        if (paramName == 'X-TimeZoneId' ||
-            paramName == 'lang' ||
-            paramName == 'DebugMode') {
-          continue;
-        }
-        String camelCaseName = toCamelCase(paramName.replaceAll('.', ''));
-        classBuffer.writeln('      \'$paramName\': $camelCaseName,');
-      }
-    }
-    if (requestBody?.content != null) {
-      for (var prop in requestBody!.content!.keys) {
-        if (requestBody.content![prop]?.schema == null || prop.contains("/")) {
-          continue;
-        }
-        String camelCaseName = toCamelCase(prop.replaceAll('.', ''));
-        classBuffer.writeln('      \'$prop\': $camelCaseName,');
-      }
-    }
-    classBuffer.writeln('''
-    };
-  }
-''');
-
-    classBuffer.writeln('}');
+    _genereateToJson(classBuffer, parameters, requestBody, className);
     return classBuffer.toString();
   }
 
@@ -285,5 +279,77 @@ class EntitiesGenerator {
       classBuffer.write(requiredParams.join(', '));
       classBuffer.writeln('});');
     }
+  }
+
+  _genereateToJson(
+    StringBuffer classBuffer,
+    List<IParameter>? parameters,
+    TRequestBody? requestBody,
+    String className,
+  ) {
+    bool isWritingStarted = false;
+    if (parameters != null) {
+      for (var param in parameters) {
+        String paramName = param.name;
+        if (paramName == 'X-TimeZoneId' ||
+            paramName == 'lang' ||
+            paramName == 'DebugMode') {
+          continue;
+        }
+        String camelCaseName = toCamelCase(paramName.replaceAll('.', ''));
+        if (!isWritingStarted) {
+          classBuffer.writeln('''
+  Map<String, dynamic> toJson() {
+    return {
+''');
+          isWritingStarted = true;
+        }
+        classBuffer.writeln('      \'$paramName\': $camelCaseName,');
+      }
+    }
+    if (requestBody?.content != null) {
+      for (var prop in requestBody!.content!.keys) {
+        bool isRef = false;
+        if (requestBody.content![prop]?.schema == null || prop.contains("/")) {
+          if (requestBody.content![prop]?.schema?.ref == null) {
+            continue;
+          } else {
+            if (className == "CategoryAddParam") {
+              printP((requestBody.content![prop]?.schema as RefProperty).ref);
+            }
+            if (prop == "application/json") {
+              isRef = true;
+            } else {
+              continue;
+            }
+          }
+        }
+        if (isRef) {
+          DartTypeInfo dartTypeInfo =
+              getDartType(requestBody.content![prop]?.schema, components);
+          String propType = dartTypeInfo.className;
+
+          classBuffer.write('''
+ Map<String, dynamic> toJson() {
+    return
+          ${toCamelCase(propType)}.toJson();
+          }    
+        }
+          ''');
+          return;
+        } else {
+          String camelCaseName = toCamelCase(prop.replaceAll('.', ''));
+          classBuffer.writeln('      \'$prop\': $camelCaseName,');
+        }
+      }
+    }
+    if (isWritingStarted) {
+      classBuffer.writeln('''
+    };
+  }
+''');
+    }
+
+    classBuffer.writeln('}');
   }
 }
