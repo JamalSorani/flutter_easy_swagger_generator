@@ -1,7 +1,11 @@
+import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
+
 import '../classes/property.dart';
 import '../classes/dart_type_info.dart';
 
 DartTypeInfo getDartType(TProperty? schema) {
+  printO(schema?.ref);
+  printP(schema?.type);
   if (schema?.ref != null) {
     // Extract schema name from $ref
     final ref = schema!.ref!.split('/').last.split('.');

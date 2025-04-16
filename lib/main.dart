@@ -22,6 +22,7 @@ void main() {
   EntitiesGenerator entitiesGenerator = EntitiesGenerator(
     moduleList: moduleList,
     paths: paths,
+    components: openApiJSON.components,
   );
 //***************************************************************/
 
