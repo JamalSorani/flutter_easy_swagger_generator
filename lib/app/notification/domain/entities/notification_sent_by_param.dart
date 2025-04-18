@@ -1,4 +1,0 @@
-enum NotificationSentBy {
-  fromMe,
-  fromAll,
-}
