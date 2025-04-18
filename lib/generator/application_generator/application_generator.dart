@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_easy_swagger_generator/classes/components.dart';
 import 'package:flutter_easy_swagger_generator/classes/http_method_info.dart';
 import 'package:flutter_easy_swagger_generator/helpers/converters.dart';
+import '../../helpers/printer.dart';
 import '../../helpers/utils.dart';
 
 class ApplicationGenerator {
@@ -33,7 +34,7 @@ class ApplicationGenerator {
         _generateApplicationForCategory(category, groupedPaths[category]!);
       }
     } catch (e) {
-      print('Error while generating application: $e');
+      printError('Error while generating application: $e');
     }
   }
 

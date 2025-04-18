@@ -1,4 +1,6 @@
 // Blue text
+import 'dart:io';
+
 void printB(Object? msg) {
   print('\x1B[34m$msg\x1B[0m');
 }
@@ -46,4 +48,23 @@ void printP(Object? msg) {
 // brown text
 void printBrown(Object? msg) {
   print('\x1B[38;5;130m$msg\x1B[0m');
+}
+
+// ANSI color codes
+const String _reset = '\x1B[0m';
+const String _red = '\x1B[31m';
+const String _green = '\x1B[32m';
+const String _yellow = '\x1B[33m';
+const String _blue = '\x1B[34m';
+const String _cyan = '\x1B[36m';
+void printSuccess(String message) => print('$_green$message$_reset');
+void printError(String message) => print('$_red$message$_reset');
+void printWarning(String message) => print('$_yellow$message$_reset');
+void printInfo(String message) => print('$_blue$message$_reset');
+void printProgress(String message) => stdout.write('$_cyan$message$_reset');
+
+/// Prompts the user for input and returns their response
+String promptUser(String question) {
+  stdout.write('$_yellow$question (y/n): $_reset');
+  return stdin.readLineSync()?.toLowerCase() ?? 'n';
 }

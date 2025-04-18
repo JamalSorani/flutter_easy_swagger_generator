@@ -33,7 +33,7 @@ class RepositoryGenerator {
         _generateRepositoryForCategory(category, groupedPaths[category]!);
       }
     } catch (e) {
-      print('Error while generating repositories: $e');
+      printError('Error while generating repositories: $e');
     }
   }
 
@@ -91,4 +91,6 @@ class RepositoryGenerator {
 
     file.writeAsStringSync(buffer.toString());
   }
+
+  void printError(String s) {}
 }

@@ -12,15 +12,12 @@ dependencies:
   either_dart: ^1.0.0
   flutter:
     sdk: flutter
-  http: ^0.13.6
   path: ^1.9.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  build_runner: ^2.4.13
-  json_serializable: ^6.9.0
   test: ^1.24.0
 
 # For information on the generic Dart part of this file, see the
