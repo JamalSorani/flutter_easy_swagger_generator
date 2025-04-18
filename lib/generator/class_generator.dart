@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
-
 import '../classes/components.dart';
 import '../classes/dart_type_info.dart';
 import '../classes/http_method_info.dart';
@@ -233,8 +231,22 @@ class ClassGenerator {
     };
   }
 ''');
+      } else {
+        buffer.writeln('''
+  factory $className.fromJson(Map<String,dynamic>json){
+  return $className(
+''');
+        for (var entry in schema.properties!.entries) {
+          String propName = entry.key;
+          String camelCaseFieldName = toCamelCase(propName.replaceAll('.', ''));
+          buffer.writeln('      $camelCaseFieldName : json["$propName"],');
+        }
+        buffer.writeln('''
+    );
+  }
+''');
       }
-    } else {}
+    }
     buffer.writeln('}');
     return buffer.toString();
   }

@@ -1,4 +1,0 @@
-enum InventoryStatusParam {
-  inventoried,
-  notInventoried,
-}

@@ -148,7 +148,7 @@ class ClassSerializerGenerator {
 ''');
           isWritingStarted = true;
         }
-        classBuffer.writeln('      \'$paramName\': $camelCaseName,');
+        classBuffer.writeln('      $camelCaseName: json["$paramName"] ,');
       }
     }
     if (requestBody?.content != null) {
@@ -189,7 +189,8 @@ class ClassSerializerGenerator {
               String fieldName = entry.key;
               String camelCaseFieldName = toCamelCase(
                   fieldName.replaceAll('.', '')..replaceAll('/', ""));
-              classBuffer.writeln('      \'$fieldName\': $camelCaseFieldName,');
+              classBuffer
+                  .writeln('      $camelCaseFieldName: json["$fieldName"] ,');
             }
           }
         } else if (isRef) {
@@ -200,7 +201,7 @@ class ClassSerializerGenerator {
           classBuffer.write('''
  factory $className.fromJson(Map<String, dynamic> json) {
     return $className(
-   ${toCamelCase(propType)}:       ${toCamelCase(propType)}.fromJson(json),
+   ${toCamelCase(propType)}:       $propType.fromJson(json),
           );
         }    
         }
@@ -216,13 +217,13 @@ class ClassSerializerGenerator {
 ''');
             isWritingStarted = true;
           }
-          classBuffer.writeln('      \'$prop\': $camelCaseName,');
+          classBuffer.writeln('      $camelCaseName: json["$prop"],');
         }
       }
     }
     if (isWritingStarted) {
       classBuffer.writeln('''
-    };
+    );
   }
 ''');
     }
