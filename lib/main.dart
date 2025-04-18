@@ -90,7 +90,6 @@ void main(List<String> arguments) {
   if (promptUser('Do you want to format the generated files?') == 'y') {
     printInfo('\nFormatting generated files...');
     formatDirectory('lib/app');
-    printSuccess('Formatting completed!\n');
   }
 //*******************************************************/
 }
