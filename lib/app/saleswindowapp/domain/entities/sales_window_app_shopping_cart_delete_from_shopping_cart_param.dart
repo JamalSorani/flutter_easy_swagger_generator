@@ -1,0 +1,13 @@
+
+class SalesWindowAppShoppingCartDeleteFromShoppingCartParam {
+  final String id;
+  final List<String> applicationjson;
+  SalesWindowAppShoppingCartDeleteFromShoppingCartParam({required this.id, required this.applicationjson});
+  Map<String, dynamic> toJson() {
+    return {
+
+      'id': id,
+    };
+  }
+
+}

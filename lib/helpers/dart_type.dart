@@ -3,9 +3,21 @@ import '../classes/property.dart';
 import '../classes/dart_type_info.dart';
 
 DartTypeInfo getDartType(TProperty? schema, Components components) {
-  if (schema?.ref != null) {
-    schema!;
+  if (schema == null) {
+    return DartTypeInfo(className: 'dynamic', schema: null);
+  }
 
+  // Handle array type first
+  if (schema is ArrayProperty) {
+    final itemType = getDartType(schema.items, components);
+    return DartTypeInfo(
+        className: 'List<${itemType.className}>',
+        schema: schema,
+        isRef: itemType.isRef);
+  }
+
+  // Handle ref type
+  if (schema.ref != null) {
     // Extract schema name from $ref
     final ref = schema.ref!.split('/').last.split('.');
     final schemaName = ref.last.toString().toLowerCase() == "request"
@@ -16,11 +28,11 @@ DartTypeInfo getDartType(TProperty? schema, Components components) {
     if (type != null && type != "object") {
       return _type(type, schema);
     }
-    // Convert to PascalCase
     return DartTypeInfo(className: schemaName, schema: schema, isRef: true);
   }
-  final swaggerType = schema?.type;
-  return _type(swaggerType, schema);
+
+  // Handle primitive types
+  return _type(schema.type, schema);
 }
 
 DartTypeInfo _type(String? type, dynamic schema) {

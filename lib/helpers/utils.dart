@@ -32,6 +32,11 @@ String getRouteName(String path) {
 }
 
 String getCategory(String path) {
+  // Handle shared types
+  if (path.contains('.Shared.')) {
+    return 'shared';
+  }
+
   path = cleanPath(path);
   List<String> parts = path.split('/');
   if (parts.isEmpty) return generalCategory;

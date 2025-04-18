@@ -1,0 +1,4 @@
+enum InventoryStatus {
+  inventoried,
+  notInventoried,
+}

@@ -1,0 +1,4 @@
+enum ActivationOptions {
+  active,
+  inactive,
+}

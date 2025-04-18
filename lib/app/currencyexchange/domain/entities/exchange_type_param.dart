@@ -1,0 +1,4 @@
+enum ExchangeType {
+  fixedRatio,
+  percentage,
+}

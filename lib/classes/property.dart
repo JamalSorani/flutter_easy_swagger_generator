@@ -5,16 +5,23 @@ class PrimitiveProperty implements TProperty {
   final String? ref;
   @override
   final bool? nullable;
-  @override
+  final String? format;
+  final List<String>? enumValues;
+
   PrimitiveProperty({
     this.type,
     this.ref,
     this.nullable,
+    this.format,
+    this.enumValues,
   });
 
   factory PrimitiveProperty.fromJson(Map<String, dynamic> json) {
     return PrimitiveProperty(
       type: json['type'] as String?,
+      format: json['format'] as String?,
+      enumValues:
+          (json['enum'] as List<dynamic>?)?.map((e) => e.toString()).toList(),
     );
   }
 }
