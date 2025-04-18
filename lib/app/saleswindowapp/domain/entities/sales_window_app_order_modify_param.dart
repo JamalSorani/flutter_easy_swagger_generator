@@ -1,7 +1,7 @@
-
-import 'order_status_param.dart';
+import '../../../order/domain/entities/order_status_param.dart';
 import 'order_product_dto_param.dart';
 import 'order_package_dto_param.dart';
+
 class SalesWindowAppOrderModifyParam {
   final String orderId;
   final String employeeId;
@@ -15,5 +15,17 @@ class SalesWindowAppOrderModifyParam {
   final List<OrderProductDto> products;
   final List<OrderPackageDto> packages;
   final String reasonForCancellation;
-  SalesWindowAppOrderModifyParam({required this.orderId, required this.employeeId, required this.status, required this.customerId, required this.customerPhoneNumber, required this.note, required this.discount, required this.modifyImagesFiles, required this.modifyImagesDeletedImageUrls, required this.products, required this.packages, required this.reasonForCancellation});
+  SalesWindowAppOrderModifyParam(
+      {required this.orderId,
+      required this.employeeId,
+      required this.status,
+      required this.customerId,
+      required this.customerPhoneNumber,
+      required this.note,
+      required this.discount,
+      required this.modifyImagesFiles,
+      required this.modifyImagesDeletedImageUrls,
+      required this.products,
+      required this.packages,
+      required this.reasonForCancellation});
 }

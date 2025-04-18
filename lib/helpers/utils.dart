@@ -1,3 +1,5 @@
+import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
+
 import '../classes/http_method_info.dart';
 import 'constants.dart';
 import 'converters.dart';
@@ -5,9 +7,9 @@ import 'format_action_name.dart';
 
 String getFileName(String moduleName, String routeName, bool isForEntities) {
   String snakeCaseRoute = convertToSnakeCase(routeName);
-  if (snakeCaseRoute.startsWith('${moduleName}_')) {
-    snakeCaseRoute = snakeCaseRoute.substring(moduleName.length + 1);
-  }
+  // if (snakeCaseRoute.startsWith('${moduleName}_')) {
+  //   snakeCaseRoute = snakeCaseRoute.substring(moduleName.length + 1);
+  // }
   return isForEntities ? '${snakeCaseRoute}_param' : '${snakeCaseRoute}_model';
 }
 
@@ -15,6 +17,9 @@ String getModelAndEntityFilePath(
     String moduleName, String routeName, bool isForEntities) {
   String fileName = getFileName(moduleName, routeName, isForEntities);
   String subPath = isForEntities ? 'domain/entities' : 'infrastructure/models';
+  if (fileName == "add_param") {
+    printR("siiiiiiiiiiiiiiiiiiiii");
+  }
   return 'lib/app/$moduleName/$subPath/$fileName.dart';
 }
 
@@ -33,8 +38,11 @@ String getRouteName(String path) {
 
 String getCategory(String path) {
   // Handle shared types
-  if (path.contains('.Shared.')) {
-    return 'shared';
+  final ref = path.split('/').last;
+  final refParts = ref.split('.');
+
+  if (refParts.contains('.Shared.')) {
+    return refParts.last;
   }
 
   path = cleanPath(path);

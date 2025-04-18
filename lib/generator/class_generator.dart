@@ -46,6 +46,27 @@ class ClassGenerator {
       refSchemas = _collectRefSchemas(httpMethodInfo.parameters, refSchemas);
       refSchemas = _collectRefSchemas(
           httpMethodInfo.requestBody?.content?.values.toList(), refSchemas);
+
+      // Special handling for OrderProductDto
+      if (httpMethodInfo.requestBody?.content != null) {
+        for (var contentType in httpMethodInfo.requestBody!.content!.keys) {
+          if (contentType == "multipart/form-data" &&
+              httpMethodInfo.requestBody!.content![contentType]?.schema
+                  is ObjectProperty) {
+            ObjectProperty schema = httpMethodInfo
+                .requestBody!.content![contentType]!.schema as ObjectProperty;
+            if (schema.properties != null) {
+              for (var prop in schema.properties!.values) {
+                if (prop is ArrayProperty && prop.items?.ref != null) {
+                  if (prop.items!.ref != null) {
+                    refSchemas.add(prop.items!.ref!);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     final file = File(filePath);
@@ -142,7 +163,7 @@ class ClassGenerator {
           String refClassName = _getRefClassName(prop.ref!);
           String fileName = convertToSnakeCase(refClassName);
           buffer.writeln(
-              'import \'${fileName}${isForEntities ? '_param' : '_model'}.dart\';');
+              'import \'$fileName${isForEntities ? '_param' : '_model'}.dart\';');
         }
 
         String propType = dartType.className;
@@ -151,7 +172,7 @@ class ClassGenerator {
             String itemRefClassName = _getRefClassName(prop.items!.ref!);
             String fileName = convertToSnakeCase(itemRefClassName);
             buffer.writeln(
-                'import \'${fileName}${isForEntities ? '_param' : '_model'}.dart\';');
+                'import \'$fileName${isForEntities ? '_param' : '_model'}.dart\';');
             propType = 'List<$itemRefClassName>';
           } else if (prop.items is PrimitiveProperty &&
               (prop.items as PrimitiveProperty).type == 'string' &&

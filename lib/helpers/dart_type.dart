@@ -19,12 +19,21 @@ DartTypeInfo getDartType(TProperty? schema, Components components) {
   // Handle ref type
   if (schema.ref != null) {
     // Extract schema name from $ref
-    final ref = schema.ref!.split('/').last.split('.');
-    final schemaName = ref.last.toString().toLowerCase() == "request"
-        ? ref[ref.length - 2]
-        : ref.last;
+    final ref = schema.ref!.split('/').last;
+    final refParts = ref.split('.');
 
-    String? type = components.schemas[schema.ref!.split('/').last]?.type;
+    // For shared types, keep the full name
+    if (ref.contains('.Shared.')) {
+      return DartTypeInfo(
+          className: refParts.last, schema: schema, isRef: true);
+    }
+
+    // For other types, handle request suffix
+    final schemaName = refParts.last.toString().toLowerCase() == "request"
+        ? refParts[refParts.length - 2]
+        : refParts.last;
+
+    String? type = components.schemas[ref]?.type;
     if (type != null && type != "object") {
       return _type(type, schema);
     }
