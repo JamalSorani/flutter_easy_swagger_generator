@@ -25,16 +25,13 @@ class ClassGenerator {
     String routeName = getRouteName(key);
     String className = '$routeName$endPoint';
 
-    String moduleName =
-        key.split('/').firstWhere((p) => moduleList.contains(p.toLowerCase()));
-    String fileName = getFileName(moduleName, routeName, true);
-    String filePath = 'lib/app/$moduleName/domain/entities/$fileName.dart';
-
+    String moduleName = getCategory(key);
+    String filePath =
+        getModelAndEntityFilePath(moduleName, routeName, isForEntities);
     List<String> contents = [];
     Set<String> refSchemas = {};
     StringBuffer classBuffer = StringBuffer();
 
-    // Add imports
     classBuffer.writeln();
 
     for (var httpMethodInfo in path.values) {
@@ -49,24 +46,19 @@ class ClassGenerator {
     final file = File(filePath);
     file.parent.createSync(recursive: true);
 
-    // Write main class content
     for (var content in contents) {
       file.writeAsStringSync(content);
     }
 
-    // Generate and write ref classes
     for (var refSchema in refSchemas) {
       String refClassName = _getRefClassName(refSchema);
-      String refFilePath = _refDomainClassFilePath(moduleName, refClassName);
+      String refFilePath =
+          getModelAndEntityFilePath(moduleName, refClassName, true);
       String refContent = _generateRefClass(refSchema, refClassName);
       if (refContent.isNotEmpty) {
         File(refFilePath).writeAsStringSync(refContent);
       }
     }
-  }
-
-  String _refDomainClassFilePath(String moduleName, String refClassName) {
-    return 'lib/app/$moduleName/domain/entities/${convertToSnakeCase(refClassName)}.dart';
   }
 
   String _getRefClassName(String refSchema) {
@@ -87,7 +79,6 @@ class ClassGenerator {
       return '';
     }
     List<String> properties = [];
-    // Generate properties
     if (schema is ObjectProperty && schema.properties != null) {
       for (var entry in schema.properties!.entries) {
         String propName = entry.key;
@@ -97,12 +88,11 @@ class ClassGenerator {
 
         if (dartType.isRef) {
           String refClassName = _getRefClassName(prop.ref!);
-          buffer
-              .writeln('import \'${convertToSnakeCase(refClassName)}.dart\';');
+          buffer.writeln(
+              'import \'${convertToSnakeCase(refClassName)}${isForEntities ? '_param' : '_model'}.dart\';');
         }
         String propType = dartType.className;
 
-        // Handle nullable properties
         String nullableSuffix = prop.nullable == true ? '?' : '';
 
         properties
@@ -113,7 +103,6 @@ class ClassGenerator {
     for (final prop in properties) {
       buffer.writeln(prop);
     }
-    // Generate constructor
     buffer.writeln();
     if (schema is ObjectProperty && schema.properties != null) {
       buffer.writeln('  $className({');
@@ -123,8 +112,6 @@ class ClassGenerator {
       }
       buffer.writeln('  });');
     }
-
-    // Generate fromJson and toJson methods
 
     buffer.writeln('''
   Map<String, dynamic> toJson() {
@@ -152,7 +139,6 @@ class ClassGenerator {
       for (var param in parameters) {
         if (param?.schema?.ref != null) {
           refSchemas.add(param.schema.ref);
-          // Also collect nested refs if it's an object property
           if (param.schema is ObjectProperty) {
             refSchemas =
                 _collectNestedRefs(param.schema as ObjectProperty, refSchemas);
@@ -180,7 +166,6 @@ class ClassGenerator {
 
   String _generateClassContent(String className, List<IParameter>? parameters,
       TRequestBody? requestBody, StringBuffer classBuffer) {
-    // Collecting parameter declarations and constructor parameters
     List<String> parameterDeclarations = [];
     List<String> requiredParams = [];
     if (parameters != null) {
@@ -194,8 +179,8 @@ class ClassGenerator {
         DartTypeInfo dartTypeInfo = getDartType(param.schema, components);
         if (dartTypeInfo.isRef) {
           String refClassName = _getRefClassName(param.schema!.ref!);
-          classBuffer
-              .writeln('import \'${convertToSnakeCase(refClassName)}.dart\';');
+          classBuffer.writeln(
+              'import \'${convertToSnakeCase(refClassName)}${isForEntities ? '_param' : '_model'}.dart\';');
         }
         String paramType = dartTypeInfo.className;
         if (paramName.contains(".")) {
@@ -226,8 +211,8 @@ class ClassGenerator {
         if (dartTypeInfo.isRef) {
           String refClassName =
               _getRefClassName(requestBody.content![prop]!.schema!.ref!);
-          classBuffer
-              .writeln('import \'${convertToSnakeCase(refClassName)}.dart\';');
+          classBuffer.writeln(
+              'import \'${convertToSnakeCase(refClassName)}${isForEntities ? '_param' : '_model'}.dart\';');
         }
 
         String propType = dartTypeInfo.className;
@@ -242,13 +227,10 @@ class ClassGenerator {
       }
     }
     classBuffer.writeln('class $className {');
-
-    // Write parameter declarations
     for (var declaration in parameterDeclarations) {
       classBuffer.writeln(declaration);
     }
 
-    // Generate constructor
     _generateConstructure(classBuffer, className, requiredParams);
 
     _genereateToJson(classBuffer, parameters, requestBody, className);

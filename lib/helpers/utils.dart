@@ -11,6 +11,13 @@ String getFileName(String moduleName, String routeName, bool isForEntities) {
   return isForEntities ? '${snakeCaseRoute}_param' : '${snakeCaseRoute}_model';
 }
 
+String getModelAndEntityFilePath(
+    String moduleName, String routeName, bool isForEntities) {
+  String fileName = getFileName(moduleName, routeName, isForEntities);
+  String subPath = isForEntities ? 'domain/entities' : 'infrastructure/models';
+  return 'lib/app/$moduleName/$subPath/$fileName.dart';
+}
+
 String getRouteName(String path) {
   path = cleanPath(path);
   List<String> parts = path.split('/');
