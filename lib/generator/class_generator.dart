@@ -91,7 +91,7 @@ class ClassGenerator {
     for (var refSchema in refSchemas) {
       String refClassName = _getRefClassName(refSchema);
       String refFilePath =
-          getModelAndEntityFilePath(moduleName, refClassName, true);
+          getModelAndEntityFilePath(moduleName, refClassName, isForEntities);
       String refContent = _generateRefClass(refSchema, refClassName);
       if (refContent.isNotEmpty) {
         File(refFilePath).writeAsStringSync(refContent);
@@ -110,8 +110,8 @@ class ClassGenerator {
           }
           for (var nestedRef in nestedRefs) {
             String nestedRefClassName = _getRefClassName(nestedRef);
-            String nestedRefFilePath =
-                getModelAndEntityFilePath(moduleName, nestedRefClassName, true);
+            String nestedRefFilePath = getModelAndEntityFilePath(
+                moduleName, nestedRefClassName, isForEntities);
             String nestedRefContent =
                 _generateRefClass(nestedRef, nestedRefClassName);
             if (nestedRefContent.isNotEmpty) {
@@ -133,8 +133,8 @@ class ClassGenerator {
     if (refSchema.contains('.Shared.')) {
       return name;
     }
-
-    return name;
+    String endPoint = isForEntities ? 'Param' : 'Model';
+    return name + endPoint;
   }
 
   String _generateRefClass(String refSchema, String className) {
@@ -168,7 +168,7 @@ class ClassGenerator {
         String propName = entry.key;
         TProperty prop = entry.value;
 
-        DartTypeInfo dartType = getDartType(prop, components);
+        DartTypeInfo dartType = getDartType(prop, components, isForEntities);
 
         if (dartType.isRef && prop.ref != null) {
           String refClassName = _getRefClassName(prop.ref!);
@@ -190,7 +190,8 @@ class ClassGenerator {
               (prop.items as PrimitiveProperty).format == 'binary') {
             propType = 'List<String>';
           } else {
-            propType = 'List<${getDartType(prop.items, components).className}>';
+            propType =
+                'List<${getDartType(prop.items, components, isForEntities).className}>';
           }
         }
 
@@ -285,7 +286,8 @@ class ClassGenerator {
             paramName == 'DebugMode') {
           continue;
         }
-        DartTypeInfo dartTypeInfo = getDartType(param.schema, components);
+        DartTypeInfo dartTypeInfo =
+            getDartType(param.schema, components, isForEntities);
         if (dartTypeInfo.isRef) {
           String refClassName = _getRefClassName(param.schema!.ref!);
           classBuffer.writeln(
@@ -348,11 +350,11 @@ class ClassGenerator {
                   fieldType = 'List<String>';
                 } else {
                   fieldType =
-                      'List<${getDartType(fieldSchema.items, components).className}>';
+                      'List<${getDartType(fieldSchema.items, components, isForEntities).className}>';
                 }
               } else {
                 DartTypeInfo fieldTypeInfo =
-                    getDartType(fieldSchema, components);
+                    getDartType(fieldSchema, components, isForEntities);
                 fieldType = fieldTypeInfo.className;
 
                 if (fieldSchema.ref != null) {
@@ -373,8 +375,8 @@ class ClassGenerator {
             }
           }
         } else {
-          DartTypeInfo dartTypeInfo =
-              getDartType(requestBody.content![prop]?.schema, components);
+          DartTypeInfo dartTypeInfo = getDartType(
+              requestBody.content![prop]?.schema, components, isForEntities);
           if (dartTypeInfo.isRef) {
             String refClassName =
                 _getRefClassName(requestBody.content![prop]!.schema!.ref!);

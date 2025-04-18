@@ -92,7 +92,7 @@ class ClassSerializerGenerator {
           }
         } else if (isRef) {
           DartTypeInfo dartTypeInfo =
-              getDartType(requestBody.content![prop]?.schema, components);
+              getDartType(requestBody.content![prop]?.schema, components, true);
           String propType = dartTypeInfo.className;
 
           classBuffer.write('''

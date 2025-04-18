@@ -2,14 +2,15 @@ import 'package:flutter_easy_swagger_generator/classes/components.dart';
 import '../classes/property.dart';
 import '../classes/dart_type_info.dart';
 
-DartTypeInfo getDartType(TProperty? schema, Components components) {
+DartTypeInfo getDartType(
+    TProperty? schema, Components components, bool isForEntities) {
   if (schema == null) {
     return DartTypeInfo(className: 'dynamic', schema: null);
   }
-
+  String endPoint = isForEntities ? 'Param' : 'Model';
   // Handle array type first
   if (schema is ArrayProperty) {
-    final itemType = getDartType(schema.items, components);
+    final itemType = getDartType(schema.items, components, isForEntities);
     return DartTypeInfo(
         className: 'List<${itemType.className}>',
         schema: schema,
@@ -25,7 +26,7 @@ DartTypeInfo getDartType(TProperty? schema, Components components) {
     // For shared types, keep the full name
     if (ref.contains('.Shared.')) {
       return DartTypeInfo(
-          className: refParts.last, schema: schema, isRef: true);
+          className: refParts.last + endPoint, schema: schema, isRef: true);
     }
 
     // For other types, handle request suffix
@@ -37,7 +38,8 @@ DartTypeInfo getDartType(TProperty? schema, Components components) {
     if (type != null && type != "object") {
       return _type(type, schema);
     }
-    return DartTypeInfo(className: schemaName, schema: schema, isRef: true);
+    return DartTypeInfo(
+        className: schemaName + endPoint, schema: schema, isRef: true);
   }
 
   // Handle primitive types

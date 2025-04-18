@@ -1,5 +1,3 @@
-import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
-
 import '../classes/http_method_info.dart';
 import 'constants.dart';
 import 'converters.dart';
@@ -17,9 +15,6 @@ String getModelAndEntityFilePath(
     String moduleName, String routeName, bool isForEntities) {
   String fileName = getFileName(moduleName, routeName, isForEntities);
   String subPath = isForEntities ? 'domain/entities' : 'infrastructure/models';
-  if (fileName == "add_param") {
-    printR("siiiiiiiiiiiiiiiiiiiii");
-  }
   return 'lib/app/$moduleName/$subPath/$fileName.dart';
 }
 
