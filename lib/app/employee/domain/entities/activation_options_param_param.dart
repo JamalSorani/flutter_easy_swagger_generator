@@ -1,4 +1,0 @@
-enum ActivationOptionsParam {
-  active,
-  inactive,
-}

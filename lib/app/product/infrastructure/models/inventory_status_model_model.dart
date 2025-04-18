@@ -1,4 +1,0 @@
-enum InventoryStatusModel {
-  inventoried,
-  notInventoried,
-}

@@ -1,4 +1,0 @@
-enum ExchangeTypeModel {
-  fixedRatio,
-  percentage,
-}

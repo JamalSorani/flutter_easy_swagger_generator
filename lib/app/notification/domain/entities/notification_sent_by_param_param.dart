@@ -1,4 +1,0 @@
-enum NotificationSentByParam {
-  fromMe,
-  fromAll,
-}
