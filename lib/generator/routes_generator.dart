@@ -16,7 +16,7 @@ class RoutesGenerator {
       Map<String, List<String>> groupedRoutes = {};
       for (var path in paths.keys) {
         String actionName = formatActionName(path);
-        String category = getRouteName(path);
+        String category = getCategory(path);
         String formattedRoute =
             "  static const String $actionName = '${path.replaceAll('/api/', '')}';";
         groupedRoutes.putIfAbsent(category, () => []).add(formattedRoute);
