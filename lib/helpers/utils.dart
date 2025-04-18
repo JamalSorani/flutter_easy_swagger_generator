@@ -3,20 +3,23 @@ import 'constants.dart';
 import 'converters.dart';
 import 'format_action_name.dart';
 
-String getFileName(String moduleName, String routeName) {
+String getFileName(String moduleName, String routeName, bool isForEntities) {
   String snakeCaseRoute = convertToSnakeCase(routeName);
   if (snakeCaseRoute.startsWith('${moduleName}_')) {
     snakeCaseRoute = snakeCaseRoute.substring(moduleName.length + 1);
   }
-  return '${snakeCaseRoute}_param';
+  return isForEntities ? '${snakeCaseRoute}_param' : '${snakeCaseRoute}_model';
 }
 
 String getRouteName(String path) {
   path = cleanPath(path);
   List<String> parts = path.split('/');
   if (parts.isEmpty) return generalCategory;
-  if (parts.first.toLowerCase() == 'dashboard') {
-    parts.removeAt(0);
+  for (var prefix in prefixesToRemove) {
+    if (parts.first.toLowerCase() == prefix) {
+      parts.removeAt(0);
+      break;
+    }
   }
   return parts.map((e) => e[0].toUpperCase() + e.substring(1)).join('');
 }
