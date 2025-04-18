@@ -6,6 +6,7 @@ import 'generator/infrastructure_generator/remote_generator.dart';
 import 'generator/domain_generator/entities_generator.dart';
 import 'generator/domain_generator/repository_generator.dart';
 import 'generator/infrastructure_generator/models_generator.dart';
+import 'generator/infrastructure_generator/repo_imp_generator.dart';
 import 'generator/network_generator/network_generator.dart';
 import 'classes/http_method_info.dart';
 import 'classes/open_api_json.dart';
@@ -44,6 +45,11 @@ void main() {
     components: components,
     moduleList: moduleList,
   );
+  RepoImpGenerator repoImpGenerator = RepoImpGenerator(
+    paths: paths,
+    components: components,
+    moduleList: moduleList,
+  );
 //***************************************************************/
 
 //********************* Generating **********************/
@@ -53,5 +59,6 @@ void main() {
   repositoryGenerator.generateRepository();
   networkGenerator.generateNetwork();
   remoteGenerator.generateRemote();
+  repoImpGenerator.generateRepository();
 //*******************************************************/
 }
