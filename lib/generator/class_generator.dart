@@ -120,7 +120,11 @@ class ClassGenerator {
         schema.enumValues != null) {
       buffer.writeln('enum $className {');
       for (var value in schema.enumValues!) {
-        buffer.writeln('  ${toCamelCase(value)},');
+        value = toCamelCase(value);
+        if (value == "new") {
+          value = "neww";
+        }
+        buffer.writeln('  $value,');
       }
       buffer.writeln('}');
       return buffer.toString();

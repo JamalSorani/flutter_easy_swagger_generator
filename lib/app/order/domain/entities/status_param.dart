@@ -1,5 +1,5 @@
 enum OrderStatus {
-  new,
+  neww,
   underPreparation,
   readyForDelivery,
   delivered,
