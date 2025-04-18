@@ -47,7 +47,7 @@ class ClassGenerator {
       refSchemas = _collectRefSchemas(
           httpMethodInfo.requestBody?.content?.values.toList(), refSchemas);
 
-      // Special handling for OrderProductDto
+      // Special handling for specific types
       if (httpMethodInfo.requestBody?.content != null) {
         for (var contentType in httpMethodInfo.requestBody!.content!.keys) {
           if (contentType == "multipart/form-data" &&
@@ -57,10 +57,21 @@ class ClassGenerator {
                 .requestBody!.content![contentType]!.schema as ObjectProperty;
             if (schema.properties != null) {
               for (var prop in schema.properties!.values) {
+                // Handle array properties with references
                 if (prop is ArrayProperty && prop.items?.ref != null) {
                   if (prop.items!.ref != null) {
                     refSchemas.add(prop.items!.ref!);
                   }
+                }
+
+                // Handle direct references
+                if (prop.ref != null) {
+                  refSchemas.add(prop.ref!);
+                }
+
+                // Special check for WholesalePriceType
+                if (prop.ref != null) {
+                  refSchemas.add(prop.ref!);
                 }
               }
             }

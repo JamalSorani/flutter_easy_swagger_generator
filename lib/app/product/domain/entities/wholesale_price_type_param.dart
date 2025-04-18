@@ -1,0 +1,4 @@
+enum WholesalePriceType {
+  fixedRatio,
+  percentage,
+}
