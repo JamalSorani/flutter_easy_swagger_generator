@@ -5,9 +5,7 @@ import 'format_action_name.dart';
 
 String getFileName(String moduleName, String routeName, bool isForEntities) {
   String snakeCaseRoute = convertToSnakeCase(routeName);
-  // if (snakeCaseRoute.startsWith('${moduleName}_')) {
-  //   snakeCaseRoute = snakeCaseRoute.substring(moduleName.length + 1);
-  // }
+
   return isForEntities ? '${snakeCaseRoute}_param' : '${snakeCaseRoute}_model';
 }
 

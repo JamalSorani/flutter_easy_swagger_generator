@@ -1,0 +1,4 @@
+enum StorageLocationsModel {
+  ground,
+  shelf,
+}

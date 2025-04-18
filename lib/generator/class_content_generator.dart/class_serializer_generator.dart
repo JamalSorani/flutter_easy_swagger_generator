@@ -1,9 +1,9 @@
-import '../classes/components.dart';
-import '../classes/dart_type_info.dart';
-import '../classes/parameter.dart';
-import '../classes/request_body.dart';
-import '../helpers/converters.dart';
-import '../helpers/dart_type.dart';
+import '../../classes/components.dart';
+import '../../classes/dart_type_info.dart';
+import '../../classes/parameter.dart';
+import '../../classes/request_body.dart';
+import '../../helpers/converters.dart';
+import '../../helpers/dart_type.dart';
 import 'package:flutter_easy_swagger_generator/classes/property.dart';
 
 class ClassSerializerGenerator {

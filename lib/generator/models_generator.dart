@@ -1,5 +1,5 @@
-import '../classes/components.dart';
-import '../classes/http_method_info.dart';
+import '../../classes/components.dart';
+import '../../classes/http_method_info.dart';
 import 'class_generator.dart';
 
 class ModelsGenerator {

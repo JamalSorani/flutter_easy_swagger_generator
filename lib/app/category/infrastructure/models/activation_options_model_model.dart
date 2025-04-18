@@ -1,0 +1,4 @@
+enum ActivationOptionsModel {
+  active,
+  inactive,
+}
