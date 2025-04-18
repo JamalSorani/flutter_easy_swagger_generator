@@ -1,0 +1,4 @@
+enum NotificationStatusParam {
+  read,
+  unread,
+}

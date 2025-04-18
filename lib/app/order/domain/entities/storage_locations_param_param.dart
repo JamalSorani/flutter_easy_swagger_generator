@@ -1,0 +1,4 @@
+enum StorageLocationsParam {
+  ground,
+  shelf,
+}

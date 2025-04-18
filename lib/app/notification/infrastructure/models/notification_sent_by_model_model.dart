@@ -1,0 +1,4 @@
+enum NotificationSentByModel {
+  fromMe,
+  fromAll,
+}

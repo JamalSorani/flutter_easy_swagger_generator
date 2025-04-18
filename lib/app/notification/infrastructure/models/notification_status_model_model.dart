@@ -1,0 +1,4 @@
+enum NotificationStatusModel {
+  read,
+  unread,
+}

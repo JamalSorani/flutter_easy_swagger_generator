@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
+
 import '../classes/components.dart';
 import '../classes/dart_type_info.dart';
 import '../classes/http_method_info.dart';
@@ -217,22 +219,22 @@ class ClassGenerator {
         buffer.writeln('    required this.$camelCaseFieldName,');
       }
       buffer.writeln('  });');
-
-      buffer.writeln('''
+      if (isForEntities) {
+        buffer.writeln('''
   Map<String, dynamic> toJson() {
     return {
 ''');
-      for (var entry in schema.properties!.entries) {
-        String propName = entry.key;
-        String camelCaseFieldName = toCamelCase(propName.replaceAll('.', ''));
-        buffer.writeln('      \'$propName\': $camelCaseFieldName,');
-      }
-      buffer.writeln('''
+        for (var entry in schema.properties!.entries) {
+          String propName = entry.key;
+          String camelCaseFieldName = toCamelCase(propName.replaceAll('.', ''));
+          buffer.writeln('      \'$propName\': $camelCaseFieldName,');
+        }
+        buffer.writeln('''
     };
   }
 ''');
-    }
-
+      }
+    } else {}
     buffer.writeln('}');
     return buffer.toString();
   }
@@ -413,7 +415,11 @@ class ClassGenerator {
 
     classSerializerGenerator.generateConstructure(requiredParams);
 
-    classSerializerGenerator.genereateToJson(parameters, requestBody);
+    if (isForEntities) {
+      classSerializerGenerator.genereateToJson(parameters, requestBody);
+    } else {
+      classSerializerGenerator.generateFromJson(parameters, requestBody);
+    }
     return classBuffer.toString();
   }
 }
