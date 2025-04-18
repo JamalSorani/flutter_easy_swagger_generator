@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_easy_swagger_generator/generator/network_generator/routes_generator.dart';
 import 'classes/components.dart';
+import 'generator/application_generator/application_generator.dart';
 import 'generator/infrastructure_generator/remote_generator.dart';
 import 'generator/domain_generator/entities_generator.dart';
 import 'generator/domain_generator/repository_generator.dart';
@@ -50,6 +51,11 @@ void main() {
     components: components,
     moduleList: moduleList,
   );
+  ApplicationGenerator applicationGenerator = ApplicationGenerator(
+    paths: paths,
+    components: components,
+    moduleList: moduleList,
+  );
 //***************************************************************/
 
 //********************* Generating **********************/
@@ -60,5 +66,6 @@ void main() {
   networkGenerator.generateNetwork();
   remoteGenerator.generateRemote();
   repoImpGenerator.generateRepository();
+  applicationGenerator.generateApplication();
 //*******************************************************/
 }
