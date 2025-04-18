@@ -1,6 +1,6 @@
 import '../../classes/components.dart';
 import '../../classes/http_method_info.dart';
-import '../class_content_generator.dart/class_generator.dart';
+import '../class_content_generator/class_generator.dart';
 
 class EntitiesGenerator {
   final List<String> moduleList;

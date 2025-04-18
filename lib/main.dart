@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_easy_swagger_generator/generator/routes_generator.dart';
 import 'classes/components.dart';
 import 'generator/architecture_generator.dart';
+import 'generator/data_source_generator/remote_generator.dart';
 import 'generator/domain_generator/entities_generator.dart';
 import 'generator/domain_generator/repository_generator.dart';
 import 'generator/infrastructure_generator/models_generator.dart';
@@ -38,6 +39,11 @@ void main() {
     components: components,
     moduleList: moduleList,
   );
+  RemoteGenerator remoteGenerator = RemoteGenerator(
+    paths: paths,
+    components: components,
+    moduleList: moduleList,
+  );
 //***************************************************************/
 
 //********************* Generating **********************/
@@ -46,5 +52,6 @@ void main() {
   entitiesGenerator.generateEntities();
   responseModelsGenerator.generateModels();
   repositoryGenerator.generateRepository();
+  remoteGenerator.generateRemote();
 //*******************************************************/
 }
