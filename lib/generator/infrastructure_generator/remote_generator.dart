@@ -21,12 +21,12 @@ class RemoteGenerator {
       Map<String, List<MapEntry<String, Map<String, HttpMethodInfo>>>>
           groupedPaths = {};
 
-      for (var path in paths.keys) {
-        String category = getCategory(path);
+      for (var path in paths.entries) {
+        String category = getCategory(path.key);
         if (!groupedPaths.containsKey(category)) {
           groupedPaths[category] = [];
         }
-        groupedPaths[category]!.add(MapEntry(path, paths[path]!));
+        groupedPaths[category]!.add(MapEntry(path.key, path.value));
       }
 
       for (var category in groupedPaths.keys) {
@@ -48,9 +48,10 @@ class RemoteGenerator {
     file.parent.createSync(recursive: true);
     final buffer = StringBuffer();
 
-    buffer.writeln("import 'package:either_dart/either.dart';");
     buffer.writeln("import 'package:dio/dio.dart';");
     buffer.writeln("import '../../../../generated_routes.dart';");
+    buffer.writeln(
+        "import '../../../../../common/network/exception/error_handler.dart';");
 
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.key);
@@ -87,11 +88,12 @@ class RemoteGenerator {
 
         String methodName =
             actionName[0].toLowerCase() + actionName.substring(1);
+        String requestType = method.key;
         buffer.writeln(
-            "  Future<Either<String, ${actionName}Model>> $methodName({required ${actionName}Param ${methodName}Param,}){");
+            "  Future<${actionName}Model> $methodName({required ${actionName}Param ${methodName}Param,}){");
         buffer.writeln("""
-                return throwDioException(() async {;
-                final response = await _dio.request(AppUrl.${actionName[0].toLowerCase() + actionName.substring(1)}, data: ${methodName}Param.toJson(),);
+                return throwDioException(() async {
+                final response = await _dio.$requestType(AppUrl.${actionName[0].toLowerCase() + actionName.substring(1)}, data: ${methodName}Param.toJson(),);
                 return ${actionName}Model.fromJson(response.data);
                 });
     }

@@ -1,5 +1,4 @@
 import '../../classes/components.dart';
-import '../../classes/dart_type_info.dart';
 import '../../classes/parameter.dart';
 import '../../classes/request_body.dart';
 import '../../helpers/converters.dart';
@@ -38,7 +37,8 @@ class ClassSerializerGenerator {
             paramName == 'DebugMode') {
           continue;
         }
-        String camelCaseName = toCamelCase(paramName.replaceAll('.', ''));
+        String camelCaseName =
+            convertToCamelCase(paramName.replaceAll('.', ''));
         if (!isWritingStarted) {
           classBuffer.writeln('''
   Map<String, dynamic> toJson() {
@@ -85,7 +85,7 @@ class ClassSerializerGenerator {
 
             for (var entry in schema.properties!.entries) {
               String fieldName = entry.key;
-              String camelCaseFieldName = toCamelCase(
+              String camelCaseFieldName = convertToCamelCase(
                   fieldName.replaceAll('.', '')..replaceAll('/', ""));
               classBuffer.writeln('      \'$fieldName\': $camelCaseFieldName,');
             }
@@ -98,14 +98,14 @@ class ClassSerializerGenerator {
           classBuffer.write('''
  Map<String, dynamic> toJson() {
     return
-          ${toCamelCase(propType)}.toJson();
+          ${convertToCamelCase(propType)}.toJson();
           }    
         }
           ''');
           return;
         } else {
           String camelCaseName =
-              toCamelCase(prop.replaceAll('.', '').replaceAll('/', ''));
+              convertToCamelCase(prop.replaceAll('.', '').replaceAll('/', ''));
           if (!isWritingStarted) {
             classBuffer.writeln('''
   Map<String, dynamic> toJson() {
@@ -140,7 +140,8 @@ class ClassSerializerGenerator {
             paramName == 'DebugMode') {
           continue;
         }
-        String camelCaseName = toCamelCase(paramName.replaceAll('.', ''));
+        String camelCaseName =
+            convertToCamelCase(paramName.replaceAll('.', ''));
         if (!isWritingStarted) {
           classBuffer.writeln('''
   factory $className.fromJson(Map<String, dynamic> json) {
@@ -187,7 +188,7 @@ class ClassSerializerGenerator {
 
             for (var entry in schema.properties!.entries) {
               String fieldName = entry.key;
-              String camelCaseFieldName = toCamelCase(
+              String camelCaseFieldName = convertToCamelCase(
                   fieldName.replaceAll('.', '')..replaceAll('/', ""));
               classBuffer
                   .writeln('      $camelCaseFieldName: json["$fieldName"] ,');
@@ -201,7 +202,7 @@ class ClassSerializerGenerator {
           classBuffer.write('''
  factory $className.fromJson(Map<String, dynamic> json) {
     return $className(
-   ${toCamelCase(propType)}:       $propType.fromJson(json),
+   ${convertToCamelCase(propType)}:       $propType.fromJson(json),
           );
         }    
         }
@@ -209,7 +210,7 @@ class ClassSerializerGenerator {
           return;
         } else {
           String camelCaseName =
-              toCamelCase(prop.replaceAll('.', '').replaceAll('/', ''));
+              convertToCamelCase(prop.replaceAll('.', '').replaceAll('/', ''));
           if (!isWritingStarted) {
             classBuffer.writeln('''
   factory $className.fromJson(Map<String, dynamic> json) {

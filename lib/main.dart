@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_easy_swagger_generator/generator/routes_generator.dart';
+import 'package:flutter_easy_swagger_generator/generator/network_generator/routes_generator.dart';
 import 'classes/components.dart';
-import 'generator/architecture_generator.dart';
-import 'generator/data_source_generator/remote_generator.dart';
+import 'generator/infrastructure_generator/remote_generator.dart';
 import 'generator/domain_generator/entities_generator.dart';
 import 'generator/domain_generator/repository_generator.dart';
 import 'generator/infrastructure_generator/models_generator.dart';
-import 'helpers/utils.dart';
+import 'generator/network_generator/network_generator.dart';
 import 'classes/http_method_info.dart';
 import 'classes/open_api_json.dart';
+import 'helpers/get_modules_names.dart';
 
 void main() {
 //********************* Variables *******************************/
@@ -22,7 +22,6 @@ void main() {
 //***************************************************************/
 
 //********************* Generators Objects **********************/
-  ArchitectureGenerator folderGenerator = ArchitectureGenerator();
   RoutesGenerator routesGenerator = RoutesGenerator(paths: paths);
   EntitiesGenerator entitiesGenerator = EntitiesGenerator(
     moduleList: moduleList,
@@ -39,6 +38,7 @@ void main() {
     components: components,
     moduleList: moduleList,
   );
+  NetworkGenerator networkGenerator = NetworkGenerator();
   RemoteGenerator remoteGenerator = RemoteGenerator(
     paths: paths,
     components: components,
@@ -48,10 +48,10 @@ void main() {
 
 //********************* Generating **********************/
   routesGenerator.generateRoutes();
-  folderGenerator.generateFolders(moduleList);
   entitiesGenerator.generateEntities();
   responseModelsGenerator.generateModels();
   repositoryGenerator.generateRepository();
+  networkGenerator.generateNetwork();
   remoteGenerator.generateRemote();
 //*******************************************************/
 }

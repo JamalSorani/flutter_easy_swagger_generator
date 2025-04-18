@@ -1,6 +1,5 @@
 import 'package:flutter_easy_swagger_generator/classes/components.dart';
 import '../classes/property.dart';
-import '../classes/dart_type_info.dart';
 
 DartTypeInfo getDartType(
     TProperty? schema, Components components, bool isForEntities) {
@@ -59,4 +58,13 @@ DartTypeInfo _type(String? type, dynamic schema) {
     default:
       return DartTypeInfo(className: 'dynamic', schema: schema);
   }
+}
+
+class DartTypeInfo {
+  final String className;
+  final dynamic schema;
+  final bool isRef;
+
+  DartTypeInfo(
+      {required this.className, required this.schema, this.isRef = false});
 }

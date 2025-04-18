@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import '../../classes/components.dart';
-import '../../classes/dart_type_info.dart';
 import '../../classes/http_method_info.dart';
 import '../../classes/parameter.dart';
 import '../../classes/property.dart';
@@ -152,7 +151,7 @@ class ClassGenerator {
         schema.enumValues != null) {
       buffer.writeln('enum $className {');
       for (var value in schema.enumValues!) {
-        value = toCamelCase(value);
+        value = convertToCamelCase(value);
         if (value == "new") {
           value = "neww";
         }
@@ -196,8 +195,8 @@ class ClassGenerator {
         }
 
         String nullableSuffix = prop.nullable == true ? '?' : '';
-        String camelCaseFieldName =
-            toCamelCase(propName.replaceAll('.', '').replaceAll("/", ""));
+        String camelCaseFieldName = convertToCamelCase(
+            propName.replaceAll('.', '').replaceAll("/", ""));
         properties.add('  final $propType$nullableSuffix $camelCaseFieldName;');
       }
     }
@@ -212,8 +211,8 @@ class ClassGenerator {
       buffer.writeln('  $className({');
       for (var entry in schema.properties!.entries) {
         String propName = entry.key;
-        String camelCaseFieldName =
-            toCamelCase(propName.replaceAll('.', '').replaceAll("/", ""));
+        String camelCaseFieldName = convertToCamelCase(
+            propName.replaceAll('.', '').replaceAll("/", ""));
         buffer.writeln('    required this.$camelCaseFieldName,');
       }
       buffer.writeln('  });');
@@ -224,7 +223,8 @@ class ClassGenerator {
 ''');
         for (var entry in schema.properties!.entries) {
           String propName = entry.key;
-          String camelCaseFieldName = toCamelCase(propName.replaceAll('.', ''));
+          String camelCaseFieldName =
+              convertToCamelCase(propName.replaceAll('.', ''));
           buffer.writeln('      \'$propName\': $camelCaseFieldName,');
         }
         buffer.writeln('''
@@ -238,7 +238,8 @@ class ClassGenerator {
 ''');
         for (var entry in schema.properties!.entries) {
           String propName = entry.key;
-          String camelCaseFieldName = toCamelCase(propName.replaceAll('.', ''));
+          String camelCaseFieldName =
+              convertToCamelCase(propName.replaceAll('.', ''));
           buffer.writeln('      $camelCaseFieldName : json["$propName"],');
         }
         buffer.writeln('''
@@ -312,9 +313,9 @@ class ClassGenerator {
           paramName = paramName.replaceAll('.', '');
         }
         parameterDeclarations.add(
-            '  final $paramType ${toCamelCase(paramName).replaceAll("/", "")};');
-        requiredParams
-            .add('required this.${toCamelCase(paramName).replaceAll("/", "")}');
+            '  final $paramType ${convertToCamelCase(paramName).replaceAll("/", "")};');
+        requiredParams.add(
+            'required this.${convertToCamelCase(paramName).replaceAll("/", "")}');
       }
     }
 
@@ -381,7 +382,7 @@ class ClassGenerator {
 
               String nullableSuffix = fieldSchema.nullable == true ? '?' : '';
               String camelCaseFieldName =
-                  toCamelCase(fieldName.replaceAll('.', ''));
+                  convertToCamelCase(fieldName.replaceAll('.', ''));
               parameterDeclarations.add(
                   '  final $fieldType$nullableSuffix ${camelCaseFieldName.replaceAll("/", "")};');
               requiredParams.add(
@@ -406,9 +407,9 @@ class ClassGenerator {
           }
 
           parameterDeclarations.add(
-              '  final $propType ${toCamelCase(isRef ? propType : propName).replaceAll("/", "")};');
+              '  final $propType ${convertToCamelCase(isRef ? propType : propName).replaceAll("/", "")};');
           requiredParams.add(
-              'required this.${toCamelCase(isRef ? propType : propName).replaceAll("/", "")}');
+              'required this.${convertToCamelCase(isRef ? propType : propName).replaceAll("/", "")}');
         }
       }
     }

@@ -22,13 +22,4 @@ class Info {
           json['contact'] != null ? Contact.fromJson(json['contact']) : null,
     );
   }
-
-  // Map<String, dynamic> toJson() {
-  //   return {
-  //     'title': title,
-  //     'description': description,
-  //     'version': version,
-  //     'contact': contact.toJson(),
-  //   };
-  // }
 }
