@@ -2,18 +2,18 @@ import '../classes/components.dart';
 import '../classes/http_method_info.dart';
 import 'class_generator.dart';
 
-class ResponseModelsGenerator {
+class ModelsGenerator {
   final List<String> moduleList;
   final Map<String, Map<String, HttpMethodInfo>> paths;
   final Components components;
 
-  ResponseModelsGenerator({
+  ModelsGenerator({
     required this.moduleList,
     required this.paths,
     required this.components,
   });
 
-  generateResponseModels() {
+  generateModels() {
     paths.forEach((path, methods) {
       methods.forEach((method, info) {
         // Skip if no responses

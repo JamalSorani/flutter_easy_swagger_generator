@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_easy_swagger_generator/generator/routes_generator.dart';
 import 'generator/architecture_generator.dart';
 import 'generator/entities_generator.dart';
-import 'generator/response_models_generator.dart';
+import 'generator/models_generator.dart';
 import 'helpers/utils.dart';
 import 'classes/http_method_info.dart';
 import 'classes/open_api_json.dart';
@@ -25,7 +25,7 @@ void main() {
     paths: paths,
     components: openApiJSON.components,
   );
-  ResponseModelsGenerator responseModelsGenerator = ResponseModelsGenerator(
+  ModelsGenerator responseModelsGenerator = ModelsGenerator(
     moduleList: moduleList,
     paths: paths,
     components: openApiJSON.components,
@@ -36,6 +36,6 @@ void main() {
   routesGenerator.generateRoutes();
   folderGenerator.generateFolders(moduleList);
   entitiesGenerator.generateEntities();
-  responseModelsGenerator.generateResponseModels();
+  responseModelsGenerator.generateModels();
 //*******************************************************/
 }
