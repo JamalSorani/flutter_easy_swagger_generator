@@ -37,8 +37,7 @@ class RoutesGenerator {
 ///
 /// This class contains all API route constants extracted from the Swagger JSON.
 class AppUrl {
-${formattedGroups.join('\n')}
-}
+${formattedGroups.join('\n')}}
 ''';
       String folderPath = 'lib/app';
       createFolder(folderPath);

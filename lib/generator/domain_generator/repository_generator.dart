@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_easy_swagger_generator/classes/components.dart';
 import 'package:flutter_easy_swagger_generator/classes/http_method_info.dart';
 import 'package:flutter_easy_swagger_generator/helpers/converters.dart';
+import '../../helpers/printer.dart';
 import '../../helpers/utils.dart';
 
 class RepositoryGenerator {
@@ -82,8 +83,11 @@ class RepositoryGenerator {
         String methodName =
             actionName[0].toLowerCase() + actionName.substring(1);
         buffer.writeln(
-            "  Future<Either<String, ${actionName}Model>> $methodName({required ${actionName}Param ${methodName}Param,});");
-        buffer.writeln();
+          """
+  Future<Either<String, ${actionName}Model>> $methodName({
+    required ${actionName}Param ${methodName}Param,
+  });""",
+        );
       }
     }
 
@@ -91,6 +95,4 @@ class RepositoryGenerator {
 
     file.writeAsStringSync(buffer.toString());
   }
-
-  void printError(String s) {}
 }

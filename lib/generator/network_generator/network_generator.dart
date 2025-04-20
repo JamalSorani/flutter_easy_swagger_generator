@@ -38,9 +38,7 @@ Future<T> throwDioException<T>(FutureOr<T> Function() call) async {
     log(e.toString(), stackTrace: s);
     throw AppException.unknown();
   }
-}
-
-""");
+}""");
     file.writeAsStringSync(buffer.toString());
   }
 
@@ -63,9 +61,7 @@ class AppException implements Exception {
 
   @override
   String toString() => "message : \$message, innerException: \$innerException";
-}
-
-""");
+}""");
     file.writeAsStringSync(buffer.toString());
   }
 }

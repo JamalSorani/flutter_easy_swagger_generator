@@ -70,9 +70,12 @@ class ApplicationGenerator {
     String className = category[0].toUpperCase() + category.substring(1);
 
     buffer.writeln("class ${className}Facade {");
-    buffer.writeln("final ${className}Repository _repository;");
+    buffer.writeln("  final ${className}Repository _repository;");
     buffer.writeln(
-        "${className}Facade({required ${className}Repository repository}):_repository = repository;");
+      """
+  ${className}Facade({required ${className}Repository repository})
+      : _repository = repository;""",
+    );
 
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.key);
@@ -86,9 +89,13 @@ class ApplicationGenerator {
         String methodName =
             actionName[0].toLowerCase() + actionName.substring(1);
         buffer.writeln(
-            "  Future<Either<String, ${actionName}Model>> $methodName({required ${actionName}Param ${methodName}Param,})");
-        buffer.writeln(
-            "  => _repository.$methodName(${methodName}Param: ${methodName}Param);");
+          """
+  Future<Either<String, ${actionName}Model>> $methodName({
+    required ${actionName}Param ${methodName}Param,
+  }) =>
+      _repository.$methodName(${methodName}Param: ${methodName}Param);
+""",
+        );
       }
     }
 

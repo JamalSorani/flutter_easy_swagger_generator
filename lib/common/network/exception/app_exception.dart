@@ -12,5 +12,3 @@ class AppException implements Exception {
   @override
   String toString() => "message : $message, innerException: $innerException";
 }
-
-

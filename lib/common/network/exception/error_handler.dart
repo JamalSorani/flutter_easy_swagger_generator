@@ -25,5 +25,3 @@ Future<T> throwDioException<T>(FutureOr<T> Function() call) async {
     throw AppException.unknown();
   }
 }
-
-

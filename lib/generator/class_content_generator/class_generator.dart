@@ -32,8 +32,6 @@ class ClassGenerator {
     Set<String> refSchemas = {};
     StringBuffer classBuffer = StringBuffer();
 
-    classBuffer.writeln();
-
     for (var httpMethodInfo in path.values) {
       String classContent = _generateClassContent(
         className: className,
@@ -162,6 +160,7 @@ class ClassGenerator {
     }
 
     List<String> properties = [];
+    bool withImport = false;
     if (schema is ObjectProperty && schema.properties != null) {
       for (var entry in schema.properties!.entries) {
         String propName = entry.key;
@@ -174,6 +173,7 @@ class ClassGenerator {
           String fileName = convertToSnakeCase(refClassName);
           buffer.writeln(
               'import \'$fileName${isForEntities ? '_param' : '_model'}.dart\';');
+          withImport = true;
         }
 
         String propType = dartType.className;
@@ -184,6 +184,7 @@ class ClassGenerator {
             buffer.writeln(
                 'import \'$fileName${isForEntities ? '_param' : '_model'}.dart\';');
             propType = 'List<$itemRefClassName>';
+            withImport = true;
           } else if (prop.items is PrimitiveProperty &&
               (prop.items as PrimitiveProperty).type == 'string' &&
               (prop.items as PrimitiveProperty).format == 'binary') {
@@ -200,7 +201,9 @@ class ClassGenerator {
         properties.add('  final $propType$nullableSuffix $camelCaseFieldName;');
       }
     }
-
+    if (withImport) {
+      buffer.writeln();
+    }
     buffer.writeln('class $className {');
     for (final prop in properties) {
       buffer.writeln(prop);
@@ -217,10 +220,11 @@ class ClassGenerator {
       }
       buffer.writeln('  });');
       if (isForEntities) {
-        buffer.writeln('''
+        buffer.writeln(
+          '''
   Map<String, dynamic> toJson() {
-    return {
-''');
+    return {''',
+        );
         for (var entry in schema.properties!.entries) {
           String propName = entry.key;
           String camelCaseFieldName =
@@ -229,23 +233,22 @@ class ClassGenerator {
         }
         buffer.writeln('''
     };
-  }
-''');
+  }''');
       } else {
-        buffer.writeln('''
-  factory $className.fromJson(Map<String,dynamic>json){
-  return $className(
-''');
+        buffer.writeln(
+          '''
+  factory $className.fromJson(Map<String, dynamic> json) {
+    return $className(''',
+        );
         for (var entry in schema.properties!.entries) {
           String propName = entry.key;
           String camelCaseFieldName =
               convertToCamelCase(propName.replaceAll('.', ''));
-          buffer.writeln('      $camelCaseFieldName : json["$propName"],');
+          buffer.writeln('      $camelCaseFieldName: json["$propName"],');
         }
         buffer.writeln('''
     );
-  }
-''');
+  }''');
       }
     }
     buffer.writeln('}');
@@ -318,7 +321,7 @@ class ClassGenerator {
             'required this.${convertToCamelCase(paramName).replaceAll("/", "")}');
       }
     }
-
+    bool withImport = false;
     // Process request body
     if (requestBody?.content != null) {
       for (var prop in requestBody!.content!.keys) {
@@ -339,7 +342,6 @@ class ClassGenerator {
           // Skip other content types without schema
           continue;
         }
-
         // For multipart/form-data, we need to handle the properties differently
         if (prop == "multipart/form-data" &&
             requestBody.content![prop]?.schema is ObjectProperty) {
@@ -357,6 +359,7 @@ class ClassGenerator {
                       _getRefClassName(fieldSchema.items!.ref!);
                   classBuffer.writeln(
                       'import \'${convertToSnakeCase(itemRefClassName)}${isForEntities ? '_param' : '_model'}.dart\';');
+                  withImport = true;
                   fieldType = 'List<$itemRefClassName>';
                 } else if (fieldSchema.items is PrimitiveProperty &&
                     (fieldSchema.items as PrimitiveProperty).type == 'string' &&
@@ -376,6 +379,7 @@ class ClassGenerator {
                   String refClassName = _getRefClassName(fieldSchema.ref!);
                   classBuffer.writeln(
                       'import \'${convertToSnakeCase(refClassName)}${isForEntities ? '_param' : '_model'}.dart\';');
+                  withImport = true;
                   fieldType = refClassName;
                 }
               }
@@ -397,6 +401,7 @@ class ClassGenerator {
                 _getRefClassName(requestBody.content![prop]!.schema!.ref!);
             classBuffer.writeln(
                 'import \'${convertToSnakeCase(refClassName)}${isForEntities ? '_param' : '_model'}.dart\';');
+            withImport = true;
           }
 
           String propType = dartTypeInfo.className;
@@ -413,7 +418,9 @@ class ClassGenerator {
         }
       }
     }
-
+    if (withImport) {
+      classBuffer.writeln();
+    }
     // Generate class
     classBuffer.writeln('class $className {');
     for (var declaration in parameterDeclarations) {

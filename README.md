@@ -11,29 +11,113 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/to/develop-packages).
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+# Flutter Easy Swagger Generator
+
+A Flutter package that automatically generates clean architecture code from Swagger/OpenAPI specifications.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- Generates complete clean architecture structure
+- Supports all OpenAPI 3.0 features
+- Generates models, repositories, and network layers
+- Handles complex data types and references
+- Supports multipart/form-data
+- Includes code formatting
+- Provides detailed progress feedback
 
-## Getting started
+## Installation
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add this package to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  flutter_easy_swagger_generator: ^1.0.0
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+### Basic Usage
 
 ```dart
-const like = 'sample';
+import 'package:flutter_easy_swagger_generator/main.dart';
+
+void main(List<String> arguments) async {
+  // Generate code from a local swagger file
+  await generateFromSwagger('path/to/swagger.json');
+}
 ```
 
-## Additional information
+### Command Line
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```bash
+dart run main.dart path/to/swagger.json
+```
+
+### Example
+
+See the `example` directory for a complete working example:
+
+```dart
+import 'package:flutter_easy_swagger_generator/main.dart';
+
+void main() async {
+  // Example 1: Generate from local swagger file
+  await generateFromSwagger('example/swagger.json');
+
+  // Example 2: Generate from remote swagger file
+  final tempFile = await downloadSwaggerFile('https://api.example.com/swagger.json');
+  await generateFromSwagger(tempFile.path);
+  tempFile.deleteSync();
+}
+```
+
+## Generated Structure
+
+The generator creates the following structure:
+
+```
+lib/
+  ├── app/
+  │   ├── domain/
+  │   │   ├── entities/
+  │   │   └── repositories/
+  │   ├── infrastructure/
+  │   │   ├── models/
+  │   │   ├── remote/
+  │   │   └── repositories/
+  │   └── network/
+  │       └── routes/
+```
+
+## Features
+
+### Entity Generation
+- Automatically generates Dart classes from OpenAPI schemas
+- Handles nested objects and arrays
+- Supports all primitive types
+- Generates proper null safety
+
+### Repository Generation
+- Creates repository interfaces
+- Generates repository implementations
+- Handles CRUD operations
+- Supports custom methods
+
+### Network Layer
+- Generates API clients
+- Handles authentication
+- Supports all HTTP methods
+- Manages request/response types
+
+### Code Formatting
+- Automatically formats generated code
+- Follows Dart style guidelines
+- Maintains consistent formatting
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

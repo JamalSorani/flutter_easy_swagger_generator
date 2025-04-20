@@ -17,7 +17,7 @@ class RepoImpGenerator {
     required this.moduleList,
   });
 
-  void generateRepository() {
+  void generateRepoImp() {
     try {
       Map<String, List<MapEntry<String, Map<String, HttpMethodInfo>>>>
           groupedPaths = {};
@@ -54,7 +54,7 @@ class RepoImpGenerator {
         "import '../../domain/repository/${category}_repository.dart';");
     buffer.writeln(
         "import '../../../../common/network/exception/error_handler.dart';");
-    buffer.writeln("import '../datasource/remote/${category}_remote.dart';");
+    buffer.writeln("import '../datasource/remote/${category}_api.dart';");
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.key);
       String actionName = convertToSnakeCase(routeName);
@@ -74,12 +74,13 @@ class RepoImpGenerator {
     String className = category[0].toUpperCase() + category.substring(1);
     buffer.writeln(
         "class ${className}RepoImp implements ${className}Repository {");
-    buffer.writeln("final ${className}Remote remote;");
-    buffer.writeln("${className}RepoImp({required this.remote});");
+    buffer.writeln("  final ${className}Api _api;");
+    buffer.writeln(
+        "  ${className}RepoImp({required ${className}Api api}) : _api = api;");
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.key);
       String actionName = routeName;
-
+      buffer.writeln();
       for (var method in path.value.entries) {
         HttpMethodInfo info = method.value;
 
@@ -88,17 +89,17 @@ class RepoImpGenerator {
         String methodName =
             actionName[0].toLowerCase() + actionName.substring(1);
         buffer.writeln("  @override");
-        buffer.writeln(
-            "  Future<Either<String, ${actionName}Model>> $methodName({required ${actionName}Param ${methodName}Param,}){");
         buffer.writeln("""
+  Future<Either<String, ${actionName}Model>> $methodName({
+    required ${actionName}Param ${methodName}Param,
+  }) {
     return throwAppException(() async {
-      final response = await remote.$methodName  (
+      final response = await _api.$methodName(
         ${methodName}Param: ${methodName}Param,
       );
       return response;
     });
-  }
-""");
+  }""");
       }
     }
 

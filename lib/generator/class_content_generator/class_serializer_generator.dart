@@ -42,8 +42,7 @@ class ClassSerializerGenerator {
         if (!isWritingStarted) {
           classBuffer.writeln('''
   Map<String, dynamic> toJson() {
-    return {
-''');
+    return {''');
           isWritingStarted = true;
         }
         classBuffer.writeln('      \'$paramName\': $camelCaseName,');
@@ -78,8 +77,7 @@ class ClassSerializerGenerator {
             if (!isWritingStarted) {
               classBuffer.writeln('''
   Map<String, dynamic> toJson() {
-    return {
-''');
+    return {''');
               isWritingStarted = true;
             }
 
@@ -96,12 +94,10 @@ class ClassSerializerGenerator {
           String propType = dartTypeInfo.className;
 
           classBuffer.write('''
- Map<String, dynamic> toJson() {
-    return
-          ${convertToCamelCase(propType)}.toJson();
-          }    
-        }
-          ''');
+  Map<String, dynamic> toJson() {
+    return ${convertToCamelCase(propType)}.toJson();
+  }    
+}''');
           return;
         } else {
           String camelCaseName =
@@ -120,8 +116,7 @@ class ClassSerializerGenerator {
     if (isWritingStarted) {
       classBuffer.writeln('''
     };
-  }
-''');
+  }''');
     }
 
     classBuffer.writeln('}');
@@ -143,10 +138,11 @@ class ClassSerializerGenerator {
         String camelCaseName =
             convertToCamelCase(paramName.replaceAll('.', ''));
         if (!isWritingStarted) {
-          classBuffer.writeln('''
-  factory $className.fromJson(Map<String, dynamic> json) {
-    return $className(
-''');
+          classBuffer.writeln(
+            '''
+    factory $className.fromJson(Map<String, dynamic> json) {
+    return $className (''',
+          );
           isWritingStarted = true;
         }
         classBuffer.writeln('      $camelCaseName: json["$paramName"] ,');
@@ -179,10 +175,11 @@ class ClassSerializerGenerator {
               requestBody.content![prop]!.schema as ObjectProperty;
           if (schema.properties != null) {
             if (!isWritingStarted) {
-              classBuffer.writeln('''
-  factory $className.fromJson(Map<String, dynamic> json) {
-    return $className(
-''');
+              classBuffer.writeln(
+                '''
+    factory $className.fromJson(Map<String, dynamic> json) {
+    return $className(''',
+              );
               isWritingStarted = true;
             }
 
@@ -200,13 +197,12 @@ class ClassSerializerGenerator {
           String propType = dartTypeInfo.className;
 
           classBuffer.write('''
- factory $className.fromJson(Map<String, dynamic> json) {
+  factory $className.fromJson(Map<String, dynamic> json) {
     return $className(
-   ${convertToCamelCase(propType)}:       $propType.fromJson(json),
-          );
-        }    
-        }
-          ''');
+      ${convertToCamelCase(propType)}: $propType.fromJson(json),
+    );
+  }    
+}''');
           return;
         } else {
           String camelCaseName =
@@ -214,8 +210,7 @@ class ClassSerializerGenerator {
           if (!isWritingStarted) {
             classBuffer.writeln('''
   factory $className.fromJson(Map<String, dynamic> json) {
-    return $className(
-''');
+    return $className(''');
             isWritingStarted = true;
           }
           classBuffer.writeln('      $camelCaseName: json["$prop"],');
@@ -225,8 +220,7 @@ class ClassSerializerGenerator {
     if (isWritingStarted) {
       classBuffer.writeln('''
     );
-  }
-''');
+  }''');
     }
 
     classBuffer.writeln('}');

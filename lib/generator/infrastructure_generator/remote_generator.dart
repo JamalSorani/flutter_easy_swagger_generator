@@ -43,7 +43,7 @@ class RemoteGenerator {
     List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
   ) {
     String filePath =
-        'lib/app/$category/infrastructure/datasource/remote/${category}_remote.dart';
+        'lib/app/$category/infrastructure/datasource/remote/${category}_api.dart';
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);
@@ -72,11 +72,11 @@ class RemoteGenerator {
     buffer.writeln();
 
     buffer.writeln(
-        "class ${(category[0].toUpperCase() + category.substring(1))}Remote {");
+        "class ${(category[0].toUpperCase() + category.substring(1))}Api {");
     buffer.writeln("  final Dio _dio;");
 
     buffer.writeln(
-        "  const ${(category[0].toUpperCase() + category.substring(1))}Remote(Dio dio) : _dio = dio;");
+        "  const ${(category[0].toUpperCase() + category.substring(1))}Api(Dio dio) : _dio = dio;");
 
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.key);
@@ -90,15 +90,19 @@ class RemoteGenerator {
         String methodName =
             actionName[0].toLowerCase() + actionName.substring(1);
         String requestType = method.key;
-        buffer.writeln(
-            "  Future<${actionName}Model> $methodName({required ${actionName}Param ${methodName}Param,}){");
         buffer.writeln("""
-                return throwDioException(() async {
-                final response = await _dio.$requestType(AppUrl.${actionName[0].toLowerCase() + actionName.substring(1)}, data: ${methodName}Param.toJson(),);
-                return ${actionName}Model.fromJson(response.data);
-                });
-    }
-    """);
+  Future<${actionName}Model> $methodName({
+    required ${actionName}Param ${methodName}Param,
+  }) {
+    return throwDioException(() async {
+      final response = await _dio.$requestType(
+        AppUrl.${actionName[0].toLowerCase() + actionName.substring(1)},
+        data: ${methodName}Param.toJson(),
+      );
+      return ${actionName}Model.fromJson(response.data);
+    });
+  }
+""");
       }
     }
 
