@@ -15,10 +15,41 @@ import 'infrastructure_generator/repo_imp_generator.dart';
 import 'network_generator/network_generator.dart';
 import 'network_generator/routes_generator.dart';
 
-/// Main function to generate code from a swagger file
+/// Generates clean architecture code from a Swagger/OpenAPI specification.
+///
+/// This function is the main entry point for code generation. It takes a path to a Swagger file
+/// or a URL to a Swagger specification and generates the following components:
+///
+/// * Routes - API route definitions and handlers
+/// * Entities - Domain entities representing your data models
+/// * Models - Data transfer objects and response models
+/// * Repositories - Abstract repository interfaces
+/// * Network - Network client and configuration
+/// * Remote - Remote data source implementations
+/// * Repository Implementations - Concrete repository implementations
+/// * Application - Use cases and application logic
+///
+/// The generated code follows clean architecture principles with clear separation of concerns.
+///
+/// Example:
+/// ```dart
+/// // Generate from local file
+/// await swaggerGenerator('path/to/swagger.json');
+///
+/// // Generate from remote URL
+/// await swaggerGenerator('https://api.example.com/swagger.json');
+///
+/// // Generate example code
+/// await swaggerGenerator('path/to/swagger.json', isExample: true);
+/// ```
+///
+/// Parameters:
+/// * [swaggerPath] - Path to the Swagger file or URL to the Swagger specification
+/// * [isExample] - Whether to generate example code (defaults to false)
 Future<void> swaggerGenerator(String swaggerPath,
     {bool isExample = false}) async {
   String mainPath = "${isExample ? 'example/' : ''}lib/app";
+
   // Check if swagger file exists
   if (!File(swaggerPath).existsSync()) {
     printError('Error: Swagger file not found at $swaggerPath');
