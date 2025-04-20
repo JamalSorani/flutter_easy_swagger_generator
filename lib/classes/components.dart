@@ -7,9 +7,10 @@ class Components {
 
   factory Components.fromJson(Map<String, dynamic> json) {
     return Components(
-      schemas: (json["schemas"] as Map<String, dynamic>).map(
-        (key, value) => MapEntry(key, TProperty.fromJson(value)),
-      ),
+      schemas: (json["schemas"] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(key, TProperty.fromJson(value)),
+          ) ??
+          {},
     );
   }
 }

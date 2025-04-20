@@ -14,11 +14,13 @@ class ClassGenerator {
   final List<String> moduleList;
   final Components components;
   final bool isForEntities;
+  final String mainPath;
 
   ClassGenerator(
       {required this.moduleList,
       required this.components,
-      required this.isForEntities});
+      required this.isForEntities,
+      required this.mainPath});
 
   void generateClass(String key, Map<String, HttpMethodInfo> path) {
     String endPoint = isForEntities ? 'Param' : 'Model';
@@ -26,8 +28,8 @@ class ClassGenerator {
     String className = '$routeName$endPoint';
 
     String moduleName = getCategory(key);
-    String filePath =
-        getModelAndEntityFilePath(moduleName, routeName, isForEntities);
+    String filePath = getModelAndEntityFilePath(
+        moduleName, routeName, isForEntities, mainPath);
     List<String> contents = [];
     Set<String> refSchemas = {};
     StringBuffer classBuffer = StringBuffer();
@@ -87,8 +89,8 @@ class ClassGenerator {
     // Generate referenced types
     for (var refSchema in refSchemas) {
       String refClassName = _getRefClassName(refSchema);
-      String refFilePath =
-          getModelAndEntityFilePath(moduleName, refClassName, isForEntities);
+      String refFilePath = getModelAndEntityFilePath(
+          moduleName, refClassName, isForEntities, mainPath);
       String refContent = _generateRefClass(refSchema, refClassName);
       if (refContent.isNotEmpty) {
         File(refFilePath).writeAsStringSync(refContent);
@@ -108,7 +110,7 @@ class ClassGenerator {
           for (var nestedRef in nestedRefs) {
             String nestedRefClassName = _getRefClassName(nestedRef);
             String nestedRefFilePath = getModelAndEntityFilePath(
-                moduleName, nestedRefClassName, isForEntities);
+                moduleName, nestedRefClassName, isForEntities, mainPath);
             String nestedRefContent =
                 _generateRefClass(nestedRef, nestedRefClassName);
             if (nestedRefContent.isNotEmpty) {

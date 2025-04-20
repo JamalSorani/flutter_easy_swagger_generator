@@ -10,11 +10,13 @@ class RemoteGenerator {
   final Map<String, Map<String, HttpMethodInfo>> paths;
   final Components components;
   final List<String> moduleList;
+  final String mainPath;
 
   RemoteGenerator({
     required this.paths,
     required this.components,
     required this.moduleList,
+    required this.mainPath,
   });
 
   void generateRemote() {
@@ -43,7 +45,7 @@ class RemoteGenerator {
     List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
   ) {
     String filePath =
-        'lib/app/$category/infrastructure/datasource/remote/${category}_api.dart';
+        '$mainPath/$category/infrastructure/datasource/remote/${category}_api.dart';
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);

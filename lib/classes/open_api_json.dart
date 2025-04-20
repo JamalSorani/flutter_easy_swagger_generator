@@ -22,7 +22,7 @@ class IOpenApiJSON {
 
   factory IOpenApiJSON.fromJson(Map<String, dynamic> json) {
     return IOpenApiJSON(
-      openapi: json["openapi"],
+      openapi: json["openapi"] ?? "",
       info: Info.fromJson(json["info"]),
       tags: (json["tags"] as List?)?.map((e) => e.toString()).toList(),
       servers:
@@ -35,7 +35,7 @@ class IOpenApiJSON {
           }),
         );
       }),
-      components: Components.fromJson(json["components"]),
+      components: Components.fromJson(json["components"] ?? {}),
     );
   }
 }

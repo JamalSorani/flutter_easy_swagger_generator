@@ -1,13 +1,16 @@
 import 'dart:io';
 
 class NetworkGenerator {
+  final String mainPath;
+  NetworkGenerator({required this.mainPath});
   generateNetwork() {
     _generateErrorHandler();
     _generateAppException();
   }
 
   _generateErrorHandler() {
-    String filePath = "lib/common/network/exception/error_handler.dart";
+    String filePath =
+        "${mainPath.contains("example") ? "example/" : ""}lib/common/network/exception/error_handler.dart";
     final file = File(filePath);
     file.parent.createSync(recursive: true);
     final buffer = StringBuffer();
@@ -43,7 +46,8 @@ Future<T> throwDioException<T>(FutureOr<T> Function() call) async {
   }
 
   _generateAppException() {
-    String filePath = "lib/common/network/exception/app_exception.dart";
+    String filePath =
+        "${mainPath.contains("example") ? "example/" : ""}lib/common/network/exception/app_exception.dart";
     final file = File(filePath);
     file.parent.createSync(recursive: true);
     final buffer = StringBuffer();

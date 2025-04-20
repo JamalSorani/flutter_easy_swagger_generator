@@ -10,11 +10,13 @@ class RepoImpGenerator {
   final Map<String, Map<String, HttpMethodInfo>> paths;
   final Components components;
   final List<String> moduleList;
+  final String mainPath;
 
   RepoImpGenerator({
     required this.paths,
     required this.components,
     required this.moduleList,
+    required this.mainPath,
   });
 
   void generateRepoImp() {
@@ -43,7 +45,7 @@ class RepoImpGenerator {
     List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
   ) {
     String filePath =
-        'lib/app/$category/infrastructure/repo_imp/${category}_repo_imp.dart';
+        '$mainPath/$category/infrastructure/repo_imp/${category}_repo_imp.dart';
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);

@@ -6,10 +6,12 @@ class EntitiesGenerator {
   final List<String> moduleList;
   final Map<String, Map<String, HttpMethodInfo>> paths;
   final Components components;
+  final String mainPath;
   EntitiesGenerator({
     required this.moduleList,
     required this.paths,
     required this.components,
+    required this.mainPath,
   });
 
   generateEntities() {
@@ -19,6 +21,7 @@ class EntitiesGenerator {
           moduleList: moduleList,
           components: components,
           isForEntities: true,
+          mainPath: mainPath,
         ).generateClass(key, value);
         return MapEntry(key, value);
       },

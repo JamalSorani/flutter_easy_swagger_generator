@@ -10,11 +10,13 @@ class RepositoryGenerator {
   final Map<String, Map<String, HttpMethodInfo>> paths;
   final Components components;
   final List<String> moduleList;
+  final String mainPath;
 
   RepositoryGenerator({
     required this.paths,
     required this.components,
     required this.moduleList,
+    required this.mainPath,
   });
 
   void generateRepository() {
@@ -43,7 +45,7 @@ class RepositoryGenerator {
     List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
   ) {
     String filePath =
-        'lib/app/$category/domain/repository/${category}_repository.dart';
+        '$mainPath/$category/domain/repository/${category}_repository.dart';
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);

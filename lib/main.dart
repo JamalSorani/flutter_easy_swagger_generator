@@ -1,10 +1,6 @@
 import 'generator/swagger_generator.dart';
 
+/// Entry point for the application
 void main(List<String> arguments) async {
-  String swaggerPath = 'lib/swagger.json';
-  if (arguments.isNotEmpty) {
-    swaggerPath = arguments[0];
-  }
-
-  await swaggerGenerator(swaggerPath);
+  await swaggerGenerator(arguments[0]);
 }

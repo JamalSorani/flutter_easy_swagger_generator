@@ -6,11 +6,12 @@ class ModelsGenerator {
   final List<String> moduleList;
   final Map<String, Map<String, HttpMethodInfo>> paths;
   final Components components;
-
+  final String mainPath;
   ModelsGenerator({
     required this.moduleList,
     required this.paths,
     required this.components,
+    required this.mainPath,
   });
 
   generateModels() {
@@ -29,6 +30,7 @@ class ModelsGenerator {
               moduleList: moduleList,
               components: components,
               isForEntities: false,
+              mainPath: mainPath,
             ).generateClass(
               path,
               {method: info},

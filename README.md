@@ -24,6 +24,7 @@ A Flutter package that automatically generates clean architecture code from Swag
 - Supports multipart/form-data
 - Includes code formatting
 - Provides detailed progress feedback
+- Supports both local files and remote URLs
 
 ## Installation
 
@@ -43,14 +44,21 @@ import 'package:flutter_easy_swagger_generator/main.dart';
 
 void main(List<String> arguments) async {
   // Generate code from a local swagger file
-  await generateFromSwagger('path/to/swagger.json');
+  await swaggerGenerator('path/to/swagger.json');
+  
+  // Or generate from a remote URL
+  await swaggerGenerator('https://api.example.com/swagger.json');
 }
 ```
 
 ### Command Line
 
 ```bash
+# Generate from local file
 dart run main.dart path/to/swagger.json
+
+# Generate from remote URL
+dart run main.dart https://api.example.com/swagger.json
 ```
 
 ### Example
@@ -58,16 +66,14 @@ dart run main.dart path/to/swagger.json
 See the `example` directory for a complete working example:
 
 ```dart
-import 'package:flutter_easy_swagger_generator/main.dart';
+import 'package:flutter_easy_swagger_generator/generator/swagger_generator.dart';
 
 void main() async {
   // Example 1: Generate from local swagger file
-  await generateFromSwagger('example/swagger.json');
+  await swaggerGenerator('example/swagger.json');
 
-  // Example 2: Generate from remote swagger file
-  final tempFile = await downloadSwaggerFile('https://api.example.com/swagger.json');
-  await generateFromSwagger(tempFile.path);
-  tempFile.deleteSync();
+  // Example 2: Generate from remote swagger URL
+  await swaggerGenerator('https://petstore.swagger.io/v2/swagger.json');
 }
 ```
 

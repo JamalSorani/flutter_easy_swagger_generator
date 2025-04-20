@@ -7,8 +7,9 @@ import '../../helpers/printer.dart';
 import '../../helpers/utils.dart';
 
 class RoutesGenerator {
+  final String mainPath;
   Map<String, Map<String, HttpMethodInfo>> paths;
-  RoutesGenerator({required this.paths});
+  RoutesGenerator({required this.paths, required this.mainPath});
 
   /// 📌 Parses Swagger JSON and generates a Dart class with grouped API route constants.
   void generateRoutes() {
@@ -39,9 +40,8 @@ class RoutesGenerator {
 class AppUrl {
 ${formattedGroups.join('\n')}}
 ''';
-      String folderPath = 'lib/app';
-      createFolder(folderPath);
-      final outputFile = File("$folderPath/generated_routes.dart");
+      createFolder(mainPath);
+      final outputFile = File("$mainPath/generated_routes.dart");
       outputFile.writeAsStringSync(generatedClass);
     } catch (e) {
       printError('Error while generating routes: $e');

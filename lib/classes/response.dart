@@ -23,7 +23,7 @@ class ResponseDetails {
   factory ResponseDetails.fromJson(Map<String, dynamic> json) {
     return ResponseDetails(
       description: json["description"],
-      content: (json["content"] as Map<String, dynamic>).map(
+      content: (json["content"] as Map<String, dynamic>?)?.map(
         (key, value) => MapEntry(key, MediaTypeContent.fromJson(value)),
       ),
     );

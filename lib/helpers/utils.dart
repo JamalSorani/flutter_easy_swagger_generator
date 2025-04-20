@@ -8,10 +8,10 @@ String _getFileName(String moduleName, String routeName, bool isForEntities) {
 }
 
 String getModelAndEntityFilePath(
-    String moduleName, String routeName, bool isForEntities) {
+    String moduleName, String routeName, bool isForEntities, String mainPath) {
   String fileName = _getFileName(moduleName, routeName, isForEntities);
   String subPath = isForEntities ? 'domain/entities' : 'infrastructure/models';
-  return 'lib/app/$moduleName/$subPath/$fileName.dart';
+  return '$mainPath/$moduleName/$subPath/$fileName.dart';
 }
 
 String getRouteName(String path) {
@@ -20,11 +20,18 @@ String getRouteName(String path) {
   if (parts.isEmpty) return generalCategory;
   for (var prefix in prefixesToRemove) {
     if (parts.first.toLowerCase() == prefix) {
+      if (prefix == prefixesToRemove[0]) {
+        parts.add("Dash");
+      }
       parts.removeAt(0);
+
       break;
     }
   }
-  return parts.map((e) => e[0].toUpperCase() + e.substring(1)).join('');
+  if (parts.isEmpty) return generalCategory;
+  return parts
+      .map((e) => e.isEmpty ? "" : (e[0].toUpperCase() + e.substring(1)))
+      .join('');
 }
 
 String getCategory(String path) {

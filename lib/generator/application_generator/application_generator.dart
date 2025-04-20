@@ -10,11 +10,12 @@ class ApplicationGenerator {
   final Map<String, Map<String, HttpMethodInfo>> paths;
   final Components components;
   final List<String> moduleList;
-
+  final String mainPath;
   ApplicationGenerator({
     required this.paths,
     required this.components,
     required this.moduleList,
+    required this.mainPath,
   });
 
   void generateApplication() {
@@ -42,7 +43,7 @@ class ApplicationGenerator {
     String category,
     List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
   ) {
-    String filePath = 'lib/app/$category/application/${category}facade.dart';
+    String filePath = '$mainPath/$category/application/${category}facade.dart';
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);

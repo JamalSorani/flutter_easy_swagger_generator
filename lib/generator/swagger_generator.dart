@@ -16,7 +16,9 @@ import 'network_generator/network_generator.dart';
 import 'network_generator/routes_generator.dart';
 
 /// Main function to generate code from a swagger file
-Future<void> swaggerGenerator(String swaggerPath) async {
+Future<void> swaggerGenerator(String swaggerPath,
+    {bool isExample = false}) async {
+  String mainPath = "${isExample ? 'example/' : ''}lib/app";
   // Check if swagger file exists
   if (!File(swaggerPath).existsSync()) {
     printError('Error: Swagger file not found at $swaggerPath');
@@ -34,37 +36,48 @@ Future<void> swaggerGenerator(String swaggerPath) async {
   //***************************************************************/
 
   //********************* Generators Objects **********************/
-  RoutesGenerator routesGenerator = RoutesGenerator(paths: paths);
+  RoutesGenerator routesGenerator = RoutesGenerator(
+    paths: paths,
+    mainPath: mainPath,
+  );
   EntitiesGenerator entitiesGenerator = EntitiesGenerator(
     moduleList: moduleList,
     paths: paths,
     components: components,
+    mainPath: mainPath,
   );
   ModelsGenerator responseModelsGenerator = ModelsGenerator(
     moduleList: moduleList,
     paths: paths,
     components: components,
+    mainPath: mainPath,
   );
   RepositoryGenerator repositoryGenerator = RepositoryGenerator(
     paths: paths,
     components: components,
     moduleList: moduleList,
+    mainPath: mainPath,
   );
-  NetworkGenerator networkGenerator = NetworkGenerator();
+  NetworkGenerator networkGenerator = NetworkGenerator(
+    mainPath: mainPath,
+  );
   RemoteGenerator remoteGenerator = RemoteGenerator(
     paths: paths,
     components: components,
     moduleList: moduleList,
+    mainPath: mainPath,
   );
   RepoImpGenerator repoImpGenerator = RepoImpGenerator(
     paths: paths,
     components: components,
     moduleList: moduleList,
+    mainPath: mainPath,
   );
   ApplicationGenerator applicationGenerator = ApplicationGenerator(
     paths: paths,
     components: components,
     moduleList: moduleList,
+    mainPath: mainPath,
   );
   //***************************************************************/
 
@@ -86,7 +99,7 @@ Future<void> swaggerGenerator(String swaggerPath) async {
   //********************* Formatting **********************/
   // if (promptUser('Do you want to format the generated files?') == 'y') {
   //   printInfo('\nFormatting generated files...');
-  //   await formatDirectory('lib/app');
+  //   await formatDirectory('$mainPath');
   // }
   //*******************************************************/
 }
