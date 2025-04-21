@@ -1,6 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_easy_swagger_generator/generator/presentation_generator/bloc_generator.dart';
+import 'package:flutter_easy_swagger_generator/generator/presentation_generator/event_generator.dart';
+import 'package:flutter_easy_swagger_generator/generator/presentation_generator/state_generator.dart';
+import 'package:flutter_easy_swagger_generator/generator/result_builder_generator/result_builder_generator.dart';
+
 import '../classes/components.dart';
 import '../classes/http_method_info.dart';
 import '../classes/open_api_json.dart';
@@ -110,6 +115,25 @@ Future<void> swaggerGenerator(String swaggerPath,
     moduleList: moduleList,
     mainPath: mainPath,
   );
+  BlocGenerator blocGenerator = BlocGenerator(
+    paths: paths,
+    components: components,
+    moduleList: moduleList,
+    mainPath: mainPath,
+  );
+  EventGenerator eventGenerator = EventGenerator(
+    paths: paths,
+    components: components,
+    moduleList: moduleList,
+    mainPath: mainPath,
+  );
+  StateGenerator stateGenerator = StateGenerator(
+    paths: paths,
+    components: components,
+    moduleList: moduleList,
+    mainPath: mainPath,
+  );
+  ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator();
   //***************************************************************/
 
   //********************* Generating **********************/
@@ -123,6 +147,10 @@ Future<void> swaggerGenerator(String swaggerPath,
     Future(() => remoteGenerator.generateRemote()),
     Future(() => repoImpGenerator.generateRepoImp()),
     Future(() => applicationGenerator.generateApplication()),
+    Future(() => blocGenerator.generateBloc()),
+    Future(() => eventGenerator.generateEvent()),
+    Future(() => stateGenerator.generateState()),
+    Future(() => resultBuilderGenerator.generateResultBuilder()),
   ]);
   printSuccess('Code generation completed!\n');
   //*******************************************************/

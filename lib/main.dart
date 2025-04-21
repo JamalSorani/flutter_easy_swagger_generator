@@ -27,6 +27,9 @@
 /// ```
 ///
 /// For more information, see the [README](https://pub.dev/packages/flutter_easy_swagger_generator).
+library flutter_easy_swagger_generator;
+
+import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
 
 import 'generator/swagger_generator.dart';
 
@@ -46,7 +49,7 @@ import 'generator/swagger_generator.dart';
 /// ```
 void main(List<String> arguments) async {
   if (arguments.isEmpty) {
-    print('Usage: dart run main.dart [path_to_swagger.json]');
+    printWarning('Usage: dart run main.dart [path_to_swagger.json]');
     return;
   }
   await swaggerGenerator(arguments[0]);
