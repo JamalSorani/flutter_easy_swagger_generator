@@ -23,8 +23,10 @@ A Flutter package that automatically generates clean architecture code from Swag
 - Handles complex data types and references
 - Supports multipart/form-data
 - Includes code formatting
-- Provides detailed progress feedback
 - Supports both local files and remote URLs
+- Generates BLoC pattern for state management
+- Includes dependency injection setup
+- Creates result builders for better state mangment
 
 ## Installation
 
@@ -90,9 +92,16 @@ lib/
   │   ├── infrastructure/
   │   │   ├── models/
   │   │   ├── remote/
-  │   │   └── repositories/
-  │   └── network/
-  │       └── routes/
+  │   │   └── repositories_implementation/
+  │   ├── network/
+  │   │   └── routes/
+  │   ├── presentation/
+  │   │   ├── bloc/
+  │   │   ├── event/
+  │   │   └── state/
+  │   ├── application/
+  │   │   └── use_cases/
+  │   └── injection/
 ```
 
 ## Features
@@ -114,6 +123,27 @@ lib/
 - Handles authentication
 - Supports all HTTP methods
 - Manages request/response types
+
+### Presentation Layer
+- Generates BLoC pattern implementation
+- Creates events for user actions
+- Generates state classes for UI updates
+- Follows Flutter best practices
+
+### Application Layer
+- Generates use cases for business logic
+- Separates concerns between layers
+- Follows clean architecture principles
+
+### Dependency Injection
+- Sets up dependency injection
+- Configures service locators
+- Manages module dependencies
+
+### Result Handling
+- Generates result builders for error handling
+- Provides consistent error management
+- Supports all patterns for success/failure/loading
 
 ### Code Formatting
 - Automatically formats generated code

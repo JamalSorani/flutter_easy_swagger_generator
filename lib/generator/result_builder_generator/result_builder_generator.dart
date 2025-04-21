@@ -1,6 +1,8 @@
 import 'dart:io';
 
 class ResultBuilderGenerator {
+  final String mainPath;
+  ResultBuilderGenerator({required this.mainPath});
   generateResultBuilder() {
     _generateResult();
     _generateResultBuilder();
@@ -50,7 +52,8 @@ extension ResultExtension<T> on Result<T> {
 
 """,
     );
-    String filePath = "lib/core/result_builder/result.dart";
+    String filePath =
+        "${mainPath.contains("example") ? "example/" : ""}lib/core/result_builder/result.dart";
     final file = File(filePath);
     if (!file.existsSync()) {
       file.parent.createSync(recursive: true);
@@ -104,7 +107,8 @@ class ResultBuilder<T> extends StatelessWidget {
 }
 """);
 
-    String filePath = "lib/core/result_builder/result_builder.dart";
+    String filePath =
+        "${mainPath.contains("example") ? "example/" : ""}lib/core/result_builder/result_builder.dart";
     final file = File(filePath);
     if (!file.existsSync()) {
       file.parent.createSync(recursive: true);
@@ -745,7 +749,8 @@ abstract class _Error<T> implements Result<T> {
 }
 """);
 
-    String filePath = "lib/core/result_builder/result.freezed.dart";
+    String filePath =
+        "${mainPath.contains("example") ? "example/" : ""}lib/core/result_builder/result.freezed.dart";
     File file = File(filePath);
     if (!file.existsSync()) {
       file.parent.createSync(recursive: true);

@@ -17,6 +17,7 @@ import 'domain_generator/repository_generator.dart';
 import 'infrastructure_generator/models_generator.dart';
 import 'infrastructure_generator/remote_generator.dart';
 import 'infrastructure_generator/repo_imp_generator.dart';
+import 'injection_generator/injection_generator.dart';
 import 'network_generator/network_generator.dart';
 import 'network_generator/routes_generator.dart';
 
@@ -133,7 +134,13 @@ Future<void> swaggerGenerator(String swaggerPath,
     moduleList: moduleList,
     mainPath: mainPath,
   );
-  ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator();
+  ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator(
+    mainPath: mainPath,
+  );
+  InjectionGenerator injectionGenerator = InjectionGenerator(
+    mainPath: mainPath,
+    moduleList: moduleList,
+  );
   //***************************************************************/
 
   //********************* Generating **********************/
@@ -151,6 +158,7 @@ Future<void> swaggerGenerator(String swaggerPath,
     Future(() => eventGenerator.generateEvent()),
     Future(() => stateGenerator.generateState()),
     Future(() => resultBuilderGenerator.generateResultBuilder()),
+    Future(() => injectionGenerator.generateInjection()),
   ]);
   printSuccess('Code generation completed!\n');
   //*******************************************************/
