@@ -33,6 +33,7 @@ class ClassSerializerGenerator {
       for (var param in parameters) {
         String paramName = param.name;
         if (paramName == 'X-TimeZoneId' ||
+            paramName == 'tz-offset' ||
             paramName == 'lang' ||
             paramName == 'DebugMode') {
           continue;
@@ -131,6 +132,7 @@ class ClassSerializerGenerator {
       for (var param in parameters) {
         String paramName = param.name;
         if (paramName == 'X-TimeZoneId' ||
+            paramName == 'tz-offset' ||
             paramName == 'lang' ||
             paramName == 'DebugMode') {
           continue;
