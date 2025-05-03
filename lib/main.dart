@@ -31,7 +31,7 @@ library flutter_easy_swagger_generator;
 
 import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
 
-import 'generator/swagger_generator.dart';
+import 'flutter_easy_swagger_generator.dart';
 
 /// Entry point for the application.
 ///

@@ -1,3 +1,11 @@
+## 0.0.2
+
+* Added new parameters to `swaggerGenerator`:
+  * `category` for filtering generated code by API path category
+  * `prefixesToRemove` for removing specific prefixes from generated class and file names
+* Updated documentation and usage examples in README.md
+* Improved code generation flexibility and customization
+
 ## 0.0.1
 
 * Initial release of flutter_easy_swagger_generator
