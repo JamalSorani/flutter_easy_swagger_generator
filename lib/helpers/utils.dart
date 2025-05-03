@@ -17,10 +17,10 @@ String getModelAndEntityFilePath(
 String getRouteName(String path) {
   path = cleanPath(path);
   List<String> parts = path.split('/');
-  if (parts.isEmpty) return generalCategory;
-  for (var prefix in prefixesToRemove) {
-    if (parts.first.toLowerCase() == prefix) {
-      if (prefix == prefixesToRemove[0]) {
+  if (parts.isEmpty) return ConstantsHelper.generalCategory;
+  for (var prefix in ConstantsHelper.allPrefixesToRemove) {
+    if (parts.first.toLowerCase() == prefix.toLowerCase()) {
+      if (prefix == ConstantsHelper.allPrefixesToRemove[0]) {
         parts.add("Dash");
       }
       parts.removeAt(0);
@@ -28,7 +28,7 @@ String getRouteName(String path) {
       break;
     }
   }
-  if (parts.isEmpty) return generalCategory;
+  if (parts.isEmpty) return ConstantsHelper.generalCategory;
   return parts
       .map((e) => e.isEmpty ? "" : (e[0].toUpperCase() + e.substring(1)))
       .join('');
@@ -45,14 +45,16 @@ String getCategory(String path) {
 
   path = cleanPath(path);
   List<String> parts = path.split('/');
-  if (parts.isEmpty) return generalCategory;
-  for (var prefix in prefixesToRemove) {
-    if (parts.first.toLowerCase() == prefix) {
+  if (parts.isEmpty) return ConstantsHelper.generalCategory;
+  for (var prefix in ConstantsHelper.allPrefixesToRemove) {
+    if (parts.first.toLowerCase() == prefix.toLowerCase()) {
       parts.removeAt(0);
       break;
     }
   }
-  return parts.isNotEmpty ? parts.first.toLowerCase() : generalCategory;
+  return parts.isNotEmpty
+      ? parts.first.toLowerCase()
+      : ConstantsHelper.generalCategory;
 }
 
 String cleanPath(String path) {

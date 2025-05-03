@@ -1,2 +1,4 @@
-const List<String> prefixesToRemove = ['dashboard', 'mobile'];
-const String generalCategory = 'General';
+class ConstantsHelper {
+  static List<String> allPrefixesToRemove = ['dashboard', 'mobile'];
+  static String generalCategory = 'General';
+}

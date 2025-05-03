@@ -52,5 +52,9 @@ void main(List<String> arguments) async {
     printWarning('Usage: dart run main.dart [path_to_swagger.json]');
     return;
   }
-  await swaggerGenerator(arguments[0]);
+  await swaggerGenerator(
+    arguments[0],
+    category: "auth",
+    prefixesToRemove: ["warehouseApp"],
+  );
 }

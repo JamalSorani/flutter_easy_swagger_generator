@@ -42,7 +42,7 @@ dependencies:
 ### Basic Usage
 
 ```dart
-import 'package:flutter_easy_swagger_generator/main.dart';
+import 'package:flutter_easy_swagger_generator/flutter_easy_swagger_generator.dart';
 
 void main(List<String> arguments) async {
   // Generate code from a local swagger file
@@ -52,6 +52,11 @@ void main(List<String> arguments) async {
   await swaggerGenerator('https://api.example.com/swagger.json');
 }
 ```
+
+#### Parameters
+- `swaggerPath` (**String**): Path to the Swagger file or URL to the Swagger specification.
+- `category` (**String?**, optional): If provided, only generates code for API paths containing this category.
+- `prefixesToRemove` (**List<String>?**, optional): List of prefixes to remove from generated class and file names.
 
 ### Command Line
 

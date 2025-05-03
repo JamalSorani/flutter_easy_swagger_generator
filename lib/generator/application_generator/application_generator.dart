@@ -1,10 +1,4 @@
-import 'dart:io';
-
-import 'package:flutter_easy_swagger_generator/classes/components.dart';
-import 'package:flutter_easy_swagger_generator/classes/http_method_info.dart';
-import 'package:flutter_easy_swagger_generator/helpers/converters.dart';
-import '../../helpers/printer.dart';
-import '../../helpers/utils.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 class ApplicationGenerator {
   final Map<String, Map<String, HttpMethodInfo>> paths;
