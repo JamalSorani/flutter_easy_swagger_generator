@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
-import 'package:flutter_easy_swagger_generator/generator/swagger_generator.dart';
+import 'package:flutter_easy_swagger_generator/flutter_easy_swagger_generator.dart';
 
 /// Example demonstrating how to use the Flutter Easy Swagger Generator package.
 ///
@@ -36,7 +36,7 @@ void main(List<String> arguments) async {
     const localSwaggerPath = 'example/swagger.json';
     if (File(localSwaggerPath).existsSync()) {
       printInfo('Generating code from local swagger file...');
-      await swaggerGenerator(localSwaggerPath, isExample: true);
+      await swaggerGenerator(localSwaggerPath);
     } else {
       printWarning('Local swagger file not found. Skipping example 1.');
     }
@@ -47,7 +47,20 @@ void main(List<String> arguments) async {
 
     const remoteSwaggerUrl = 'https://petstore.swagger.io/v2/swagger.json';
     printInfo('Generating code from remote swagger URL...');
-    await swaggerGenerator(remoteSwaggerUrl, isExample: true);
+    await swaggerGenerator(remoteSwaggerUrl);
+
+    // Example 3: Generate code for a single category from a local swagger file
+    printInfo(
+        '\nExample 3: Generate code for a single category (e.g., "user")');
+    printInfo('----------------------------------------------------------');
+
+    if (File(localSwaggerPath).existsSync()) {
+      printInfo(
+          'Generating code for the "user" category from local swagger file...');
+      await swaggerSingleCategoryGenerator(localSwaggerPath, 'user');
+    } else {
+      printWarning('Local swagger file not found. Skipping example 3.');
+    }
   } else {
     // Use the provided source
     final source = arguments[0];
@@ -57,7 +70,7 @@ void main(List<String> arguments) async {
         '\nGenerating code from ${isUrl ? 'remote URL' : 'local file'}: $source');
     printInfo('-------------------------------------------');
 
-    await swaggerGenerator(source, isExample: true);
+    await swaggerGenerator(source);
   }
 
   printSuccess('\nExample completed!');

@@ -3,6 +3,9 @@
 * Added new parameters to `swaggerGenerator`:
   * `category` for filtering generated code by API path category
   * `prefixesToRemove` for removing specific prefixes from generated class and file names
+* Added `swaggerSingleCategoryGenerator` function to generate code for a single API category
+* Documented `swaggerSingleCategoryGenerator` in code and README
+* Added usage example for `swaggerSingleCategoryGenerator` in README and example
 * Updated documentation and usage examples in README.md
 * Improved code generation flexibility and customization
 

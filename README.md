@@ -84,6 +84,27 @@ void main() async {
 }
 ```
 
+### Generate Code for a Single Category
+
+You can generate code for only a specific category of API paths using `swaggerSingleCategoryGenerator`:
+
+```dart
+import 'package:flutter_easy_swagger_generator/flutter_easy_swagger_generator.dart';
+
+void main(List<String> arguments) async {
+  // Generate code for only the 'user' category
+  await swaggerSingleCategoryGenerator('path/to/swagger.json', 'user');
+
+  // Generate code for the 'order' category, removing specific prefixes
+  await swaggerSingleCategoryGenerator('path/to/swagger.json', 'order', prefixesToRemove: ['Api', 'Dto']);
+}
+```
+
+#### Parameters
+- `swaggerPath` (**String**): Path to the Swagger file or URL to the Swagger specification.
+- `category` (**String**): The category string to filter API paths.
+- `prefixesToRemove` (**List<String>?**, optional): List of prefixes to remove from generated class and file names.
+
 ## Generated Structure
 
 The generator creates the following structure:

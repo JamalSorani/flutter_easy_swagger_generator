@@ -54,7 +54,5 @@ void main(List<String> arguments) async {
   }
   await swaggerGenerator(
     arguments[0],
-    category: "auth",
-    prefixesToRemove: ["warehouseApp"],
   );
 }
