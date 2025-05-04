@@ -1,4 +1,4 @@
-## 0.0.2
+## 0.1.0
 
 * Added new parameters to `swaggerGenerator`:
   * `category` for filtering generated code by API path category

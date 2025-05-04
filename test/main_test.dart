@@ -17,7 +17,7 @@ void main(List<String> list) {
         'openapi': '3.0.0',
         'info': {
           'title': 'Test API',
-          'version': '1.0.0',
+          'version': '0.1.0',
         },
         'paths': {
           '/api/test': {
