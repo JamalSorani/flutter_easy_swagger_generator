@@ -1,4 +1,7 @@
-## 0.1.0
+## 0.0.3
+* fix LICENSE file error
+
+## 0.0.2
 
 * Added new parameters to `swaggerGenerator`:
   * `category` for filtering generated code by API path category
