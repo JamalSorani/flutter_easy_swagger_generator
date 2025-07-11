@@ -29,7 +29,11 @@ class ClassGenerator {
 
     String moduleName = getCategory(key);
     String filePath = getModelAndEntityFilePath(
-        moduleName, routeName, isForEntities, mainPath);
+      moduleName,
+      routeName,
+      isForEntities,
+      mainPath,
+    );
     List<String> contents = [];
     Set<String> refSchemas = {};
     StringBuffer classBuffer = StringBuffer();
@@ -198,9 +202,9 @@ class ClassGenerator {
         }
 
         String nullableSuffix = prop.nullable == true ? '?' : '';
-        String camelCaseFieldName = convertToCamelCase(
-            propName.replaceAll('.', '').replaceAll("/", ""));
-        properties.add('  final $propType$nullableSuffix $camelCaseFieldName;');
+        // String camelCaseFieldName = convertToCamelCase(
+        //     propName.replaceAll('.', '').replaceAll("/", ""));
+        properties.add('  final $propType$nullableSuffix $propName;');
       }
     }
     if (withImport) {
@@ -216,9 +220,9 @@ class ClassGenerator {
       buffer.writeln('  $className({');
       for (var entry in schema.properties!.entries) {
         String propName = entry.key;
-        String camelCaseFieldName = convertToCamelCase(
-            propName.replaceAll('.', '').replaceAll("/", ""));
-        buffer.writeln('    required this.$camelCaseFieldName,');
+        // String camelCaseFieldName = convertToCamelCase(
+        //     propName.replaceAll('.', '').replaceAll("/", ""));
+        buffer.writeln('    required this.$propName,');
       }
       buffer.writeln('  });');
       if (isForEntities) {
@@ -229,9 +233,7 @@ class ClassGenerator {
         );
         for (var entry in schema.properties!.entries) {
           String propName = entry.key;
-          String camelCaseFieldName =
-              convertToCamelCase(propName.replaceAll('.', ''));
-          buffer.writeln('      \'$propName\': $camelCaseFieldName,');
+          buffer.writeln('      \'$propName\': $propName,');
         }
         buffer.writeln('''
     };

@@ -1,6 +1,7 @@
+import 'package:flutter_easy_swagger_generator/generator/class_content_generator/model_class_generator.dart';
+
 import '../../classes/components.dart';
 import '../../classes/http_method_info.dart';
-import '../class_content_generator/class_generator.dart';
 
 class ModelsGenerator {
   final List<String> moduleList;
@@ -26,10 +27,9 @@ class ModelsGenerator {
             if (content.schema == null) return;
 
             // Generate model class
-            ClassGenerator(
+            ModelClassGenerator(
               moduleList: moduleList,
               components: components,
-              isForEntities: false,
               mainPath: mainPath,
             ).generateClass(
               path,

@@ -36,7 +36,7 @@ class InjectionGenerator {
 import 'package:dio/dio.dart';
 import '../../../app/$category/application/${category}_facade.dart';
 import '../../../app/$category/domain/repository/${category}_repository.dart';
-import '../../../app/$category/infrastructure/datasource/remote/${category}_api.dart';
+import '../../../app/$category/infrastructure/datasource/remote/${category}_remote.dart';
 import '../../../app/$category/infrastructure/repo_imp/${category}_repo_imp.dart';
 import '../../../app/$category/presentation/state/${category}_bloc.dart';
 import '../injection.dart';

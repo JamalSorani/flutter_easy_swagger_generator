@@ -56,7 +56,7 @@ class RepoImpGenerator {
         "import '../../domain/repository/${category}_repository.dart';");
     buffer.writeln(
         "import '../../../../common/network/exception/error_handler.dart';");
-    buffer.writeln("import '../datasource/remote/${category}_api.dart';");
+    buffer.writeln("import '../datasource/remote/${category}_remote.dart';");
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.key);
       String actionName = convertToSnakeCase(routeName);
@@ -76,9 +76,9 @@ class RepoImpGenerator {
     String className = category[0].toUpperCase() + category.substring(1);
     buffer.writeln(
         "class ${className}RepoImp implements ${className}Repository {");
-    buffer.writeln("  final ${className}Api _api;");
+    buffer.writeln("  final ${className}Api _remote;");
     buffer.writeln(
-        "  ${className}RepoImp({required ${className}Api api}) : _api = api;");
+        "  ${className}RepoImp({required ${className}Api api}) : _remote = api;");
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.key);
       String actionName = routeName;
@@ -96,7 +96,7 @@ class RepoImpGenerator {
     required ${actionName}Param ${methodName}Param,
   }) {
     return throwAppException(() async {
-      final response = await _api.$methodName(
+      final response = await _remote.$methodName(
         ${methodName}Param: ${methodName}Param,
       );
       return response;

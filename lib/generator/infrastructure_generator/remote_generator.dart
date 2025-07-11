@@ -45,7 +45,7 @@ class RemoteGenerator {
     List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
   ) {
     String filePath =
-        '$mainPath/$category/infrastructure/datasource/remote/${category}_api.dart';
+        '$mainPath/$category/infrastructure/datasource/remote/${category}_remote.dart';
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);
