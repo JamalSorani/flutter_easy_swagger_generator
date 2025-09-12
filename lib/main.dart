@@ -52,7 +52,15 @@ void main(List<String> arguments) async {
     printWarning('Usage: dart run main.dart [path_to_swagger.json]');
     return;
   }
-  await swaggerSingleCategoryGenerator(arguments[0], 'Package',
-      prefixesToRemove: ['Mobile']);
+  await swaggerGenerator(
+    arguments[0],
+  );
+  // await swaggerGenerator(arguments[0], prefixesToRemove: ['Mobile']);
+
+  //  await swaggerSingleCategoryGenerator(
+  //   arguments[0],
+  //   'Supplier',
+  //   prefixesToRemove: ['Dashboard'],
+  // );
 }
 // dart run lib/main.dart lib/swagger.json

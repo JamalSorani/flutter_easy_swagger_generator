@@ -7,16 +7,33 @@ import '../../helpers/converters.dart';
 import '../../helpers/dart_type.dart';
 import '../../helpers/utils.dart';
 
+/// Generates Dart model classes from Swagger schemas.
+///
+/// - Creates a main response model per endpoint.
+/// - Traverses all referenced schemas recursively.
+/// - Handles enums, arrays, nested objects, and multipart/form-data.
+/// - Writes each class to its own `*_model.dart` file.
 class ModelClassGenerator {
   final List<String> moduleList;
   final Components components;
   final String mainPath;
 
-  ModelClassGenerator(
-      {required this.moduleList,
-      required this.components,
-      required this.mainPath});
+  ModelClassGenerator({
+    required this.moduleList,
+    required this.components,
+    required this.mainPath,
+  });
 
+  /// Generates a model class for the given [key] (API path).
+  ///
+  /// Steps:
+  /// 1. Determine route and class name.
+  /// 2. Collect referenced schemas from:
+  ///    - response bodies,
+  ///    - parameters,
+  ///    - request bodies (including multipart).
+  /// 3. Generate the main model class.
+  /// 4. Generate referenced schemas recursively.
   void generateClass(String key, Map<String, HttpMethodInfo> path) {
     String endPoint = 'Model';
     String routeName = getRouteName(key);
@@ -25,34 +42,31 @@ class ModelClassGenerator {
     String moduleName = getCategory(key);
     String filePath =
         getModelAndEntityFilePath(moduleName, routeName, false, mainPath);
-    List<String> contents = [];
     Set<String> refSchemas = {};
-    StringBuffer classBuffer = StringBuffer();
 
+    // Collect referenced schemas from responses, params, and request body
     for (var httpMethodInfo in path.values) {
-      // Extract the response schema (assuming 200 OK and application/json)
+      // Response schema
       final response200 = httpMethodInfo.responses.response200;
       final responseContent = response200?.content;
       final responseSchema = responseContent != null
           ? responseContent['application/json']?.schema
           : null;
 
-      if (responseSchema != null) {
-        String classContent = _generateResponseModelClass(
-          className: className,
-          schema: responseSchema,
-          classBuffer: classBuffer,
-        );
-        contents.add(classContent);
-        // Collect referenced schemas, etc. as needed
-        // (You may want to implement _collectRefSchemas for response schemas as well)
+      if (responseSchema != null && responseSchema.ref != null) {
+        refSchemas.add(responseSchema.ref!);
       }
 
+      // Parameters
       refSchemas = _collectRefSchemas(httpMethodInfo.parameters, refSchemas);
-      refSchemas = _collectRefSchemas(
-          httpMethodInfo.requestBody?.content?.values.toList(), refSchemas);
 
-      // Special handling for specific types
+      // Request body
+      refSchemas = _collectRefSchemas(
+        httpMethodInfo.requestBody?.content?.values.toList(),
+        refSchemas,
+      );
+
+      // Special handling for multipart/form-data
       if (httpMethodInfo.requestBody?.content != null) {
         for (var contentType in httpMethodInfo.requestBody!.content!.keys) {
           if (contentType == "multipart/form-data" &&
@@ -62,19 +76,9 @@ class ModelClassGenerator {
                 .requestBody!.content![contentType]!.schema as ObjectProperty;
             if (schema.properties != null) {
               for (var prop in schema.properties!.values) {
-                // Handle array properties with references
                 if (prop is ArrayProperty && prop.items?.ref != null) {
-                  if (prop.items!.ref != null) {
-                    refSchemas.add(prop.items!.ref!);
-                  }
+                  refSchemas.add(prop.items!.ref!);
                 }
-
-                // Handle direct references
-                if (prop.ref != null) {
-                  refSchemas.add(prop.ref!);
-                }
-
-                // Special check for WholesalePriceType
                 if (prop.ref != null) {
                   refSchemas.add(prop.ref!);
                 }
@@ -85,14 +89,35 @@ class ModelClassGenerator {
       }
     }
 
+    // Also include schemas from components that match this module
+    for (var schemaName in components.schemas.keys) {
+      if (schemaName.toLowerCase().contains(moduleName.toLowerCase()) ||
+          schemaName.toLowerCase().contains('package')) {
+        refSchemas.add('#/components/schemas/$schemaName');
+      }
+    }
+
     final file = File(filePath);
     file.parent.createSync(recursive: true);
 
-    for (var content in contents) {
-      file.writeAsStringSync(content);
-    }
+    // Generate main endpoint model
+    StringBuffer mainClassBuffer = StringBuffer();
+    mainClassBuffer.writeln('// Generated model for $routeName');
+    mainClassBuffer.writeln();
+    mainClassBuffer.writeln('class $className {');
+    mainClassBuffer.writeln('  final Map<String, dynamic> data;');
+    mainClassBuffer.writeln();
+    mainClassBuffer.writeln('  $className({required this.data});');
+    mainClassBuffer.writeln();
+    mainClassBuffer
+        .writeln('  factory $className.fromJson(Map<String, dynamic> json) {');
+    mainClassBuffer.writeln('    return $className(data: json);');
+    mainClassBuffer.writeln('  }');
+    mainClassBuffer.writeln('}');
 
-    // Generate referenced types
+    file.writeAsStringSync(mainClassBuffer.toString());
+
+    // Generate referenced schema models
     for (var refSchema in refSchemas) {
       String refClassName = _getRefClassName(refSchema);
       String refFilePath =
@@ -101,57 +126,115 @@ class ModelClassGenerator {
       if (refContent.isNotEmpty) {
         File(refFilePath).writeAsStringSync(refContent);
 
-        // Also generate nested references
-        final schema = components.schemas[refSchema.split('/').last];
-        if (schema is ObjectProperty && schema.properties != null) {
-          Set<String> nestedRefs = {};
-          for (var prop in schema.properties!.values) {
-            if (prop.ref != null) {
-              nestedRefs.add(prop.ref!);
-            }
-            if (prop is ArrayProperty && prop.items?.ref != null) {
-              nestedRefs.add(prop.items!.ref!);
-            }
-          }
-          for (var nestedRef in nestedRefs) {
-            String nestedRefClassName = _getRefClassName(nestedRef);
-            String nestedRefFilePath = getModelAndEntityFilePath(
-                moduleName, nestedRefClassName, false, mainPath);
-            String nestedRefContent =
-                _generateRefClass(nestedRef, nestedRefClassName);
-            if (nestedRefContent.isNotEmpty) {
-              File(nestedRefFilePath).writeAsStringSync(nestedRefContent);
-            }
+        _generateNestedReferences(refSchema, moduleName, mainPath);
+      }
+    }
+  }
+
+  /// Recursively generates models for nested references inside [refSchema].
+  void _generateNestedReferences(
+      String refSchema, String moduleName, String mainPath) {
+    final schema = components.schemas[refSchema.split('/').last];
+    if (schema is ObjectProperty && schema.properties != null) {
+      Set<String> nestedRefs = {};
+      for (var prop in schema.properties!.values) {
+        if (prop.ref != null) {
+          nestedRefs.add(prop.ref!);
+        }
+        if (prop is ArrayProperty && prop.items?.ref != null) {
+          nestedRefs.add(prop.items!.ref!);
+        }
+      }
+      for (var nestedRef in nestedRefs) {
+        String nestedRefClassName = _getRefClassName(nestedRef);
+        String nestedRefFilePath = getModelAndEntityFilePath(
+          moduleName,
+          nestedRefClassName,
+          false,
+          mainPath,
+        );
+
+        if (!File(nestedRefFilePath).existsSync()) {
+          String nestedRefContent =
+              _generateRefClass(nestedRef, nestedRefClassName);
+          if (nestedRefContent.isNotEmpty) {
+            File(nestedRefFilePath).writeAsStringSync(nestedRefContent);
+            _generateNestedReferences(nestedRef, moduleName, mainPath);
           }
         }
       }
     }
   }
 
+  /// Resolves a schema reference to a Dart class name.
+  ///
+  /// - Appends `Model` suffix for most cases.
+  /// - Handles `Enums` → enum class.
+  /// - Handles generic schemas with backticks.
   String _getRefClassName(String refSchema) {
     final ref = refSchema.split('/').last.split('.');
+
+    if (refSchema.contains('`')) {
+      final genericMatch = RegExp(r'\[\[([^,]+),.*\]\]').firstMatch(refSchema);
+      if (genericMatch != null) {
+        final innerType = genericMatch.group(1)!.split('.').last;
+        return '${innerType}Model';
+      }
+    }
+
     String name = ref.last.toString().toLowerCase() == "request"
         ? ref[ref.length - 2]
         : ref.last;
 
-    // Handle shared types
     if (refSchema.contains('.Shared.')) {
       return name;
     }
+    if (refSchema.contains('.Enums.')) {
+      return name;
+    }
+
     String endPoint = 'Model';
     return name + endPoint;
   }
 
+  /// Generates a Dart class or enum for a given schema reference.
+  ///
+  /// - Falls back to a placeholder class if schema is missing.
+  /// - Handles enums (string type with `enumValues`).
+  /// - Handles object schemas with nested properties.
   String _generateRefClass(String refSchema, String className) {
     StringBuffer buffer = StringBuffer();
 
-    // Get schema from components
     final schema = components.schemas[refSchema.split('/').last];
     if (schema == null) {
-      return '';
+      // Unknown schema → generate placeholder
+      if (refSchema.contains('.Enums.')) {
+        buffer.writeln('enum $className {');
+        buffer.writeln(
+            '  // TODO: Define enum values based on API documentation');
+        buffer.writeln('  placeholder,');
+        buffer.writeln('}');
+        return buffer.toString();
+      } else {
+        buffer.writeln('class $className {');
+        buffer
+            .writeln('  // TODO: Define properties based on API documentation');
+        buffer.writeln('  final String? placeholder;');
+        buffer.writeln();
+        buffer.writeln('  $className({this.placeholder});');
+        buffer.writeln();
+        buffer.writeln(
+            '  factory $className.fromJson(Map<String, dynamic> json) {');
+        buffer.writeln('    return $className(');
+        buffer.writeln('      placeholder: json["placeholder"],');
+        buffer.writeln('    );');
+        buffer.writeln('  }');
+        buffer.writeln('}');
+        return buffer.toString();
+      }
     }
 
-    // Handle enums
+    // Handle primitive enum type
     if (schema is PrimitiveProperty &&
         schema.type == 'string' &&
         schema.enumValues != null) {
@@ -167,8 +250,12 @@ class ModelClassGenerator {
       return buffer.toString();
     }
 
+    // Otherwise, treat as object
     List<String> properties = [];
-    bool withImport = false;
+    List<String> constructorParams = [];
+    List<String> fromJsonParams = [];
+    Set<String> enumImports = {};
+
     if (schema is ObjectProperty && schema.properties != null) {
       for (var entry in schema.properties!.entries) {
         String propName = entry.key;
@@ -176,21 +263,49 @@ class ModelClassGenerator {
 
         DartTypeInfo dartType = getDartType(prop, components, false);
 
-        if (dartType.isRef && prop.ref != null) {
-          String refClassName = _getRefClassName(prop.ref!);
-          String fileName = convertToSnakeCase(refClassName);
-          buffer.writeln('import \'$fileName${'_model'}.dart\';');
-          withImport = true;
+        // Detect enums referenced via $ref
+        bool isEnum = false;
+        if (prop.ref != null) {
+          final refSchemaName = prop.ref!.split('/').last;
+          final refSchemaObj = components.schemas[refSchemaName];
+          if (refSchemaObj is PrimitiveProperty &&
+              refSchemaObj.enumValues != null) {
+            isEnum = true;
+            String enumImportFile =
+                '${convertToSnakeCase(_getRefClassName(prop.ref!))}.dart';
+            enumImports.add(enumImportFile);
+          }
         }
 
+        // Import nested reference classes
+        if (dartType.isRef && prop.ref != null && !isEnum) {
+          String refClassName = _getRefClassName(prop.ref!);
+          String fileName = convertToSnakeCase(refClassName);
+          buffer.writeln('import \'${fileName}_model.dart\';');
+        }
+
+        // Property type resolution
         String propType = dartType.className;
+        if (isEnum) {
+          propType = _getRefClassName(prop.ref!);
+        }
         if (prop is ArrayProperty) {
           if (prop.items?.ref != null) {
-            String itemRefClassName = _getRefClassName(prop.items!.ref!);
-            String fileName = convertToSnakeCase(itemRefClassName);
-            buffer.writeln('import \'$fileName${'_model'}.dart\';');
-            propType = 'List<$itemRefClassName>';
-            withImport = true;
+            final itemRefSchemaName = prop.items!.ref!.split('/').last;
+            final itemRefSchemaObj = components.schemas[itemRefSchemaName];
+            if (itemRefSchemaObj is PrimitiveProperty &&
+                itemRefSchemaObj.enumValues != null) {
+              String itemRefClassName = _getRefClassName(prop.items!.ref!);
+              propType = 'List<$itemRefClassName>';
+              String enumImportFile =
+                  '${convertToSnakeCase(itemRefClassName)}_model.dart';
+              enumImports.add(enumImportFile);
+            } else {
+              String itemRefClassName = _getRefClassName(prop.items!.ref!);
+              String fileName = convertToSnakeCase(itemRefClassName);
+              buffer.writeln('import \'${fileName}_model.dart\';');
+              propType = 'List<$itemRefClassName>';
+            }
           } else if (prop.items is PrimitiveProperty &&
               (prop.items as PrimitiveProperty).type == 'string' &&
               (prop.items as PrimitiveProperty).format == 'binary') {
@@ -203,13 +318,76 @@ class ModelClassGenerator {
 
         String nullableSuffix = prop.nullable == true ? '?' : '';
         String camelCaseFieldName = convertToCamelCase(
-            propName.replaceAll('.', '').replaceAll("/", ""));
+          propName.replaceAll('.', '').replaceAll("/", ""),
+        );
+
+        // Add property
         properties.add('  final $propType$nullableSuffix $camelCaseFieldName;');
+
+        // Constructor param
+        if (prop.nullable == true) {
+          constructorParams.add('    this.$camelCaseFieldName,');
+        } else {
+          constructorParams.add('    required this.$camelCaseFieldName,');
+        }
+
+        // JSON parsing logic
+        String fromJsonParam;
+        if (prop is ArrayProperty && prop.items?.ref != null) {
+          final itemRefSchemaName = prop.items!.ref!.split('/').last;
+          final itemRefSchemaObj = components.schemas[itemRefSchemaName];
+          if (itemRefSchemaObj is PrimitiveProperty &&
+              itemRefSchemaObj.enumValues != null) {
+            String itemRefClassName = _getRefClassName(prop.items!.ref!);
+            String fallbackValue = itemRefSchemaObj.enumValues!.isNotEmpty
+                ? convertToCamelCase(itemRefSchemaObj.enumValues!.first)
+                : 'placeholder';
+            fromJsonParam =
+                '      $camelCaseFieldName: (json["$propName"] as List<dynamic>?)?.map((e) => $itemRefClassName.values.firstWhere((c) => c.toString() == \'$itemRefClassName.\$e\', orElse: () => $itemRefClassName.$fallbackValue)).toList() ?? [],';
+          } else {
+            String itemRefClassName = _getRefClassName(prop.items!.ref!);
+            fromJsonParam =
+                '      $camelCaseFieldName: (json["$propName"] as List<dynamic>?)?.map((e) => $itemRefClassName.fromJson(e as Map<String, dynamic>)).toList() ?? [],';
+          }
+        } else if (isEnum) {
+          String enumClassName = _getRefClassName(prop.ref!);
+          final refSchemaName = prop.ref!.split('/').last;
+          final refSchemaObj = components.schemas[refSchemaName];
+          String fallbackValue = 'placeholder';
+          if (refSchemaObj is PrimitiveProperty &&
+              refSchemaObj.enumValues != null &&
+              refSchemaObj.enumValues!.isNotEmpty) {
+            fallbackValue = convertToCamelCase(refSchemaObj.enumValues!.first);
+          }
+          if (prop.nullable == true) {
+            fromJsonParam =
+                '      $camelCaseFieldName: json["$propName"] != null ? $enumClassName.values.firstWhere((e) => e.toString() == \'$enumClassName.\${json["$propName"]}\', orElse: () => $enumClassName.$fallbackValue) : null,';
+          } else {
+            fromJsonParam =
+                '      $camelCaseFieldName: $enumClassName.values.firstWhere((e) => e.toString() == \'$enumClassName.\${json["$propName"]}\', orElse: () => $enumClassName.$fallbackValue),';
+          }
+        } else if (dartType.isRef && prop.ref != null) {
+          String refClassName = _getRefClassName(prop.ref!);
+          fromJsonParam =
+              '      $camelCaseFieldName: json["$propName"] != null ? $refClassName.fromJson(json["$propName"] as Map<String, dynamic>) : null,';
+        } else if (prop is ArrayProperty) {
+          String itemType =
+              getDartType(prop.items, components, false).className;
+          fromJsonParam =
+              '      $camelCaseFieldName: (json["$propName"] as List<dynamic>?)?.cast<$itemType>() ?? [],';
+        } else {
+          fromJsonParam = '      $camelCaseFieldName: json["$propName"],';
+        }
+        fromJsonParams.add(fromJsonParam);
       }
     }
-    if (withImport) {
-      buffer.writeln();
+
+    // Add enum imports
+    for (final enumImport in enumImports) {
+      buffer.writeln('import \'$enumImport\';');
     }
+
+    // Generate class
     buffer.writeln('class $className {');
     for (final prop in properties) {
       buffer.writeln(prop);
@@ -218,31 +396,18 @@ class ModelClassGenerator {
 
     if (schema is ObjectProperty && schema.properties != null) {
       buffer.writeln('  $className({');
-      for (var entry in schema.properties!.entries) {
-        String propName = entry.key;
-        String camelCaseFieldName = convertToCamelCase(
-            propName.replaceAll('.', '').replaceAll("/", ""));
-        buffer.writeln('    required this.$camelCaseFieldName,');
+      for (final param in constructorParams) {
+        buffer.writeln(param);
       }
       buffer.writeln('  });');
-
-      for (var entry in schema.properties!.entries) {
-        String propName = entry.key;
-        String camelCaseFieldName =
-            convertToCamelCase(propName.replaceAll('.', ''));
-        buffer.writeln('      \'$propName\': $camelCaseFieldName,');
-      }
 
       buffer.writeln(
         '''
   factory $className.fromJson(Map<String, dynamic> json) {
     return $className(''',
       );
-      for (var entry in schema.properties!.entries) {
-        String propName = entry.key;
-        String camelCaseFieldName =
-            convertToCamelCase(propName.replaceAll('.', ''));
-        buffer.writeln('      $camelCaseFieldName: json["$propName"],');
+      for (final param in fromJsonParams) {
+        buffer.writeln(param);
       }
       buffer.writeln('''
     );
@@ -253,6 +418,7 @@ class ModelClassGenerator {
     return buffer.toString();
   }
 
+  /// Collects `$ref` schemas from parameters or request body content.
   Set<String> _collectRefSchemas(
       List<dynamic>? parameters, Set<String> refSchemas) {
     if (parameters != null) {
@@ -269,6 +435,7 @@ class ModelClassGenerator {
     return refSchemas;
   }
 
+  /// Traverses object properties recursively to collect nested `$ref` schemas.
   Set<String> _collectNestedRefs(
       ObjectProperty property, Set<String> refSchemas) {
     if (property.properties != null) {
@@ -282,80 +449,5 @@ class ModelClassGenerator {
       }
     }
     return refSchemas;
-  }
-
-  String _generateResponseModelClass({
-    required String className,
-    required TProperty schema,
-    required StringBuffer classBuffer,
-  }) {
-    // This is similar to _generateRefClass, but for a direct schema
-    List<String> properties = [];
-    bool withImport = false;
-    if (schema is ObjectProperty && schema.properties != null) {
-      for (var entry in schema.properties!.entries) {
-        String propName = entry.key;
-        TProperty prop = entry.value;
-        DartTypeInfo dartType = getDartType(prop, components, false);
-        if (dartType.isRef && prop.ref != null) {
-          String refClassName = _getRefClassName(prop.ref!);
-          String fileName = convertToSnakeCase(refClassName);
-          classBuffer.writeln('import \'$fileName${'_model'}.dart\';');
-          withImport = true;
-        }
-        String propType = dartType.className;
-        if (prop is ArrayProperty) {
-          if (prop.items?.ref != null) {
-            String itemRefClassName = _getRefClassName(prop.items!.ref!);
-            String fileName = convertToSnakeCase(itemRefClassName);
-            classBuffer.writeln('import \'$fileName${'_model'}.dart\';');
-            propType = 'List<$itemRefClassName>';
-            withImport = true;
-          } else if (prop.items is PrimitiveProperty &&
-              (prop.items as PrimitiveProperty).type == 'string' &&
-              (prop.items as PrimitiveProperty).format == 'binary') {
-            propType = 'List<String>';
-          } else {
-            propType =
-                'List<${getDartType(prop.items, components, false).className}>';
-          }
-        }
-        String nullableSuffix = prop.nullable == true ? '?' : '';
-        String camelCaseFieldName = convertToCamelCase(
-            propName.replaceAll('.', '').replaceAll("/", ""));
-        properties.add('  final $propType$nullableSuffix $camelCaseFieldName;');
-      }
-    }
-    if (withImport) {
-      classBuffer.writeln();
-    }
-    classBuffer.writeln('class $className {');
-    for (final prop in properties) {
-      classBuffer.writeln(prop);
-    }
-    classBuffer.writeln();
-    if (schema is ObjectProperty && schema.properties != null) {
-      classBuffer.writeln('  $className({');
-      for (var entry in schema.properties!.entries) {
-        String propName = entry.key;
-        String camelCaseFieldName = convertToCamelCase(
-            propName.replaceAll('.', '').replaceAll("/", ""));
-        classBuffer.writeln('    required this.$camelCaseFieldName,');
-      }
-      classBuffer.writeln('  });');
-      classBuffer.writeln(
-          '  factory $className.fromJson(Map<String, dynamic> json) {');
-      classBuffer.writeln('    return $className(');
-      for (var entry in schema.properties!.entries) {
-        String propName = entry.key;
-        String camelCaseFieldName =
-            convertToCamelCase(propName.replaceAll('.', ''));
-        classBuffer.writeln('      $camelCaseFieldName: json["$propName"],');
-      }
-      classBuffer.writeln('    );');
-      classBuffer.writeln('  }');
-    }
-    classBuffer.writeln('}');
-    return classBuffer.toString();
   }
 }

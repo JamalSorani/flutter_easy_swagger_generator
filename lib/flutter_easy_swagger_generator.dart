@@ -191,10 +191,8 @@ Future<void> swaggerSingleCategoryGenerator(String swaggerPath, String category,
   final oldPath = paths;
   paths = {};
   for (final path in oldPath.keys) {
-    printInfo(path);
     if (path.toLowerCase().contains(category.toLowerCase())) {
       paths[path] = oldPath[path]!;
-      printError("paths.toString()");
     }
   }
   List<String> moduleList = getModuleNames(paths);

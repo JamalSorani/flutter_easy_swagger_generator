@@ -1,15 +1,43 @@
 import 'dart:io';
 
+/// A generator class that creates result handling utilities for Flutter applications.
+///
+/// This class generates three main components:
+/// 1. A generic `Result<T>` class for handling operation states (init, loading, loaded, error)
+/// 2. A `ResultBuilder` widget for building UI based on result states
+/// 3. Freezed model classes for the Result type
+///
+/// The generated code follows best practices for state management in Flutter applications.
 class ResultBuilderGenerator {
+  /// The main path where the generated files will be created.
+  ///
+  /// This path is used to determine the correct location for the generated files,
+  /// with special handling for example projects.
   final String mainPath;
+
+  /// Creates a new instance of [ResultBuilderGenerator].
+  ///
+  /// [mainPath] The root path where the generated files should be created.
   ResultBuilderGenerator({required this.mainPath});
-  generateResultBuilder() {
+
+  /// Generates all result builder related files.
+  ///
+  /// This method generates:
+  /// - result.dart: Contains the base Result class and extensions
+  /// - result_builder.dart: Contains the ResultBuilder widget
+  /// - result.freezed.dart: Generated file with Freezed models
+  void generateResultBuilder() {
     _generateResult();
     _generateResultBuilder();
     _generateResultFreezed();
   }
 
-  _generateResult() {
+  /// Generates the base Result class and its extensions.
+  ///
+  /// Creates a file at `lib/core/result_builder/result.dart` containing:
+  /// - A generic `Result<T>` class with states: init, loading, loaded, and error
+  /// - Extension methods for convenient state checking
+  void _generateResult() {
     final buffer = StringBuffer();
     buffer.writeln(
       """
@@ -61,7 +89,12 @@ extension ResultExtension<T> on Result<T> {
     }
   }
 
-  _generateResultBuilder() {
+  /// Generates the ResultBuilder widget.
+  ///
+  /// Creates a file at `lib/core/result_builder/result_builder.dart` containing:
+  /// - A `ResultBuilder<T>` widget that builds different UIs based on result state
+  /// - Default loading and init states with customizable overrides
+  void _generateResultBuilder() {
     final buffer = StringBuffer();
     buffer.writeln("""
 import 'result.dart';
@@ -116,7 +149,12 @@ class ResultBuilder<T> extends StatelessWidget {
     }
   }
 
-  _generateResultFreezed() {
+  /// Generates the Freezed model classes for the Result type.
+  ///
+  /// Creates a file at `lib/core/result_builder/result.freezed.dart` containing:
+  /// - Freezed model definitions for all Result states
+  /// - Required mixins and utilities for the Freezed implementation
+  void _generateResultFreezed() {
     final buffer = StringBuffer();
     buffer.writeln("""
 // coverage:ignore-file

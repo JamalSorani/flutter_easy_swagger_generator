@@ -10,18 +10,38 @@ import '../../helpers/dart_type.dart';
 import '../../helpers/utils.dart';
 import 'class_serializer_generator.dart';
 
+/// Generates Dart classes (Models or Entities) from Swagger API definitions.
+///
+/// This generator is responsible for:
+/// - Creating model or entity classes based on Swagger paths.
+/// - Handling request parameters, request bodies, and references.
+/// - Writing generated classes into appropriate file paths.
+/// - Generating referenced schemas and nested references.
 class ClassGenerator {
+  /// List of modules where generated classes will be placed.
   final List<String> moduleList;
+
+  /// Swagger components (schemas, responses, etc.).
   final Components components;
+
+  /// Flag to indicate whether to generate entity (`Param`) classes or model (`Model`) classes.
   final bool isForEntities;
+
+  /// Root path where generated files will be stored.
   final String mainPath;
 
-  ClassGenerator(
-      {required this.moduleList,
-      required this.components,
-      required this.isForEntities,
-      required this.mainPath});
+  /// Creates an instance of [ClassGenerator].
+  ClassGenerator({
+    required this.moduleList,
+    required this.components,
+    required this.isForEntities,
+    required this.mainPath,
+  });
 
+  /// Generates a Dart class for the given API path.
+  ///
+  /// - [key] is the API endpoint.
+  /// - [path] contains HTTP method information.
   void generateClass(String key, Map<String, HttpMethodInfo> path) {
     String endPoint = isForEntities ? 'Param' : 'Model';
     String routeName = getRouteName(key);
@@ -38,6 +58,7 @@ class ClassGenerator {
     Set<String> refSchemas = {};
     StringBuffer classBuffer = StringBuffer();
 
+    // Generate content for each HTTP method
     for (var httpMethodInfo in path.values) {
       String classContent = _generateClassContent(
         className: className,
@@ -46,11 +67,13 @@ class ClassGenerator {
         classBuffer: classBuffer,
       );
       contents.add(classContent);
+
+      // Collect referenced schemas
       refSchemas = _collectRefSchemas(httpMethodInfo.parameters, refSchemas);
       refSchemas = _collectRefSchemas(
           httpMethodInfo.requestBody?.content?.values.toList(), refSchemas);
 
-      // Special handling for specific types
+      // Special handling for multipart/form-data
       if (httpMethodInfo.requestBody?.content != null) {
         for (var contentType in httpMethodInfo.requestBody!.content!.keys) {
           if (contentType == "multipart/form-data" &&
@@ -60,19 +83,11 @@ class ClassGenerator {
                 .requestBody!.content![contentType]!.schema as ObjectProperty;
             if (schema.properties != null) {
               for (var prop in schema.properties!.values) {
-                // Handle array properties with references
+                // Handle array references
                 if (prop is ArrayProperty && prop.items?.ref != null) {
-                  if (prop.items!.ref != null) {
-                    refSchemas.add(prop.items!.ref!);
-                  }
+                  refSchemas.add(prop.items!.ref!);
                 }
-
                 // Handle direct references
-                if (prop.ref != null) {
-                  refSchemas.add(prop.ref!);
-                }
-
-                // Special check for WholesalePriceType
                 if (prop.ref != null) {
                   refSchemas.add(prop.ref!);
                 }
@@ -83,9 +98,9 @@ class ClassGenerator {
       }
     }
 
+    // Write class content to file
     final file = File(filePath);
     file.parent.createSync(recursive: true);
-
     for (var content in contents) {
       file.writeAsStringSync(content);
     }
@@ -94,12 +109,17 @@ class ClassGenerator {
     for (var refSchema in refSchemas) {
       String refClassName = _getRefClassName(refSchema);
       String refFilePath = getModelAndEntityFilePath(
-          moduleName, refClassName, isForEntities, mainPath);
+        moduleName,
+        refClassName,
+        isForEntities,
+        mainPath,
+      );
       String refContent = _generateRefClass(refSchema, refClassName);
+
       if (refContent.isNotEmpty) {
         File(refFilePath).writeAsStringSync(refContent);
 
-        // Also generate nested references
+        // Generate nested references recursively
         final schema = components.schemas[refSchema.split('/').last];
         if (schema is ObjectProperty && schema.properties != null) {
           Set<String> nestedRefs = {};
@@ -114,7 +134,11 @@ class ClassGenerator {
           for (var nestedRef in nestedRefs) {
             String nestedRefClassName = _getRefClassName(nestedRef);
             String nestedRefFilePath = getModelAndEntityFilePath(
-                moduleName, nestedRefClassName, isForEntities, mainPath);
+              moduleName,
+              nestedRefClassName,
+              isForEntities,
+              mainPath,
+            );
             String nestedRefContent =
                 _generateRefClass(nestedRef, nestedRefClassName);
             if (nestedRefContent.isNotEmpty) {
@@ -126,13 +150,12 @@ class ClassGenerator {
     }
   }
 
+  /// Extracts a class name from a reference schema string.
   String _getRefClassName(String refSchema) {
     final ref = refSchema.split('/').last.split('.');
-    String name = ref.last.toString().toLowerCase() == "request"
-        ? ref[ref.length - 2]
-        : ref.last;
+    String name =
+        ref.last.toLowerCase() == "request" ? ref[ref.length - 2] : ref.last;
 
-    // Handle shared types
     if (refSchema.contains('.Shared.')) {
       return name;
     }
@@ -140,10 +163,10 @@ class ClassGenerator {
     return name + endPoint;
   }
 
+  /// Generates a class for a referenced schema.
   String _generateRefClass(String refSchema, String className) {
     StringBuffer buffer = StringBuffer();
 
-    // Get schema from components
     final schema = components.schemas[refSchema.split('/').last];
     if (schema == null) {
       return '';
@@ -157,7 +180,7 @@ class ClassGenerator {
       for (var value in schema.enumValues!) {
         value = convertToCamelCase(value);
         if (value == "new") {
-          value = "neww";
+          value = "neww"; // avoid Dart keyword conflict
         }
         buffer.writeln('  $value,');
       }
@@ -167,13 +190,15 @@ class ClassGenerator {
 
     List<String> properties = [];
     bool withImport = false;
+
+    // Handle object schemas
     if (schema is ObjectProperty && schema.properties != null) {
       for (var entry in schema.properties!.entries) {
         String propName = entry.key;
         TProperty prop = entry.value;
-
         DartTypeInfo dartType = getDartType(prop, components, isForEntities);
 
+        // Add imports for references
         if (dartType.isRef && prop.ref != null) {
           String refClassName = _getRefClassName(prop.ref!);
           String fileName = convertToSnakeCase(refClassName);
@@ -183,6 +208,8 @@ class ClassGenerator {
         }
 
         String propType = dartType.className;
+
+        // Handle array types
         if (prop is ArrayProperty) {
           if (prop.items?.ref != null) {
             String itemRefClassName = _getRefClassName(prop.items!.ref!);
@@ -202,53 +229,47 @@ class ClassGenerator {
         }
 
         String nullableSuffix = prop.nullable == true ? '?' : '';
-        // String camelCaseFieldName = convertToCamelCase(
-        //     propName.replaceAll('.', '').replaceAll("/", ""));
         properties.add('  final $propType$nullableSuffix $propName;');
       }
     }
+
     if (withImport) {
       buffer.writeln();
     }
+
+    // Generate class definition
     buffer.writeln('class $className {');
     for (final prop in properties) {
       buffer.writeln(prop);
     }
     buffer.writeln();
 
+    // Constructor and serialization
     if (schema is ObjectProperty && schema.properties != null) {
       buffer.writeln('  $className({');
       for (var entry in schema.properties!.entries) {
-        String propName = entry.key;
-        // String camelCaseFieldName = convertToCamelCase(
-        //     propName.replaceAll('.', '').replaceAll("/", ""));
-        buffer.writeln('    required this.$propName,');
+        buffer.writeln('    required this.${entry.key},');
       }
       buffer.writeln('  });');
+
       if (isForEntities) {
-        buffer.writeln(
-          '''
+        buffer.writeln('''
   Map<String, dynamic> toJson() {
-    return {''',
-        );
+    return {''');
         for (var entry in schema.properties!.entries) {
-          String propName = entry.key;
-          buffer.writeln('      \'$propName\': $propName,');
+          buffer.writeln('      \'${entry.key}\': ${entry.key},');
         }
         buffer.writeln('''
     };
   }''');
       } else {
-        buffer.writeln(
-          '''
+        buffer.writeln('''
   factory $className.fromJson(Map<String, dynamic> json) {
-    return $className(''',
-        );
+    return $className(''');
         for (var entry in schema.properties!.entries) {
-          String propName = entry.key;
           String camelCaseFieldName =
-              convertToCamelCase(propName.replaceAll('.', ''));
-          buffer.writeln('      $camelCaseFieldName: json["$propName"],');
+              convertToCamelCase(entry.key.replaceAll('.', ''));
+          buffer.writeln('      $camelCaseFieldName: json["${entry.key}"],');
         }
         buffer.writeln('''
     );
@@ -259,6 +280,7 @@ class ClassGenerator {
     return buffer.toString();
   }
 
+  /// Collects reference schemas from parameters.
   Set<String> _collectRefSchemas(
       List<dynamic>? parameters, Set<String> refSchemas) {
     if (parameters != null) {
@@ -275,6 +297,7 @@ class ClassGenerator {
     return refSchemas;
   }
 
+  /// Collects nested reference schemas from an [ObjectProperty].
   Set<String> _collectNestedRefs(
       ObjectProperty property, Set<String> refSchemas) {
     if (property.properties != null) {
@@ -290,6 +313,7 @@ class ClassGenerator {
     return refSchemas;
   }
 
+  /// Generates the class content for parameters and request body.
   String _generateClassContent({
     required String className,
     required List<IParameter>? parameters,
@@ -299,7 +323,7 @@ class ClassGenerator {
     List<String> parameterDeclarations = [];
     List<String> requiredParams = [];
 
-    // Process parameters
+    // Handle parameters
     if (parameters != null) {
       for (var param in parameters) {
         String paramName = param.name;
@@ -311,11 +335,13 @@ class ClassGenerator {
         }
         DartTypeInfo dartTypeInfo =
             getDartType(param.schema, components, isForEntities);
+
         if (dartTypeInfo.isRef) {
           String refClassName = _getRefClassName(param.schema!.ref!);
           classBuffer.writeln(
               'import \'${convertToSnakeCase(refClassName)}${isForEntities ? '_param' : '_model'}.dart\';');
         }
+
         String paramType = dartTypeInfo.className;
         if (paramName.contains(".")) {
           paramName = paramName.replaceAll('.', '');
@@ -326,28 +352,27 @@ class ClassGenerator {
             'required this.${convertToCamelCase(paramName).replaceAll("/", "")}');
       }
     }
+
     bool withImport = false;
-    // Process request body
+
+    // Handle request body
     if (requestBody?.content != null) {
       for (var prop in requestBody!.content!.keys) {
         bool isRef = false;
 
-        // Handle special content types
         if (prop == "application/json" || prop == "multipart/form-data") {
           if (requestBody.content![prop]?.schema == null) {
             continue;
           }
-
-          // Check if it's a reference
           if (requestBody.content![prop]?.schema?.ref != null) {
             isRef = true;
           }
         } else if (requestBody.content![prop]?.schema == null ||
             prop.contains("/")) {
-          // Skip other content types without schema
           continue;
         }
-        // For multipart/form-data, we need to handle the properties differently
+
+        // Handle multipart/form-data object schema
         if (prop == "multipart/form-data" &&
             requestBody.content![prop]?.schema is ObjectProperty) {
           ObjectProperty schema =
@@ -423,10 +448,12 @@ class ClassGenerator {
         }
       }
     }
+
     if (withImport) {
       classBuffer.writeln();
     }
-    // Generate class
+
+    // Generate class definition
     classBuffer.writeln('class $className {');
     for (var declaration in parameterDeclarations) {
       classBuffer.writeln(declaration);

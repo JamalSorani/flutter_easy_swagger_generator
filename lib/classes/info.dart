@@ -1,11 +1,20 @@
 import 'contact.dart';
 
+/// Represents the metadata information of an API.
 class Info {
+  /// The title of the API.
   final String title;
+
+  /// A brief description of the API.
   final String description;
+
+  /// The version of the API.
   final String version;
+
+  /// Optional contact information for the API.
   final Contact? contact;
 
+  /// Constructs an [Info] object with required fields and optional [contact].
   Info({
     required this.title,
     required this.description,
@@ -13,6 +22,9 @@ class Info {
     required this.contact,
   });
 
+  /// Creates an [Info] instance from a JSON map.
+  ///
+  /// Parses the `contact` field into a [Contact] object if it exists.
   factory Info.fromJson(Map<String, dynamic> json) {
     return Info(
       title: json['title'] as String,

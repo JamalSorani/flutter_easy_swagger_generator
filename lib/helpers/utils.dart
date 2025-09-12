@@ -1,12 +1,31 @@
 import 'constants.dart';
 import 'converters.dart';
 
+/// Returns the file name for a given [moduleName] and [routeName].
+///
+/// - If [isForEntities] is `true`, the suffix `_param` is added.
+/// - Otherwise, the suffix `_model` is added.
+///
+/// The [routeName] is first converted to `snake_case` format.
 String _getFileName(String moduleName, String routeName, bool isForEntities) {
   String snakeCaseRoute = convertToSnakeCase(routeName);
 
   return isForEntities ? '${snakeCaseRoute}_param' : '${snakeCaseRoute}_model';
 }
 
+/// Builds the complete file path for either an entity or a model.
+///
+/// - [moduleName]: The module folder name (e.g., `order`, `cart`).
+/// - [routeName]: The route name to be converted into a file name.
+/// - [isForEntities]: Determines whether the path should point to
+///   `domain/entities` (if `true`) or `infrastructure/models` (if `false`).
+/// - [mainPath]: The root path where module folders are located.
+///
+/// Example:
+/// ```dart
+/// getModelAndEntityFilePath("order", "getOrder", true, "lib");
+/// // Returns: lib/order/domain/entities/get_order_param.dart
+/// ```
 String getModelAndEntityFilePath(
     String moduleName, String routeName, bool isForEntities, String mainPath) {
   String fileName = _getFileName(moduleName, routeName, isForEntities);
@@ -14,17 +33,21 @@ String getModelAndEntityFilePath(
   return '$mainPath/$moduleName/$subPath/$fileName.dart';
 }
 
+/// Extracts a **route name** from the given [path].
+///
+/// - Removes `/api/` and braces `{}`.
+/// - Removes prefixes defined in [ConstantsHelper.allPrefixesToRemove].
+/// - Converts each path segment to PascalCase and concatenates them.
+///
+/// If the path is empty after cleaning, it falls back to
+/// [ConstantsHelper.generalCategory].
 String getRouteName(String path) {
   path = cleanPath(path);
   List<String> parts = path.split('/');
   if (parts.isEmpty) return ConstantsHelper.generalCategory;
   for (var prefix in ConstantsHelper.allPrefixesToRemove) {
     if (parts.first.toLowerCase() == prefix.toLowerCase()) {
-      if (prefix == ConstantsHelper.allPrefixesToRemove[0]) {
-        parts.add("Dash");
-      }
       parts.removeAt(0);
-
       break;
     }
   }
@@ -34,8 +57,16 @@ String getRouteName(String path) {
       .join('');
 }
 
+/// Extracts the **category** (module name) from a given [path].
+///
+/// - If the last segment contains `.Shared.`, returns the last part.
+/// - Otherwise, removes `/api/` and braces `{}`.
+/// - Removes prefixes defined in [ConstantsHelper.allPrefixesToRemove].
+/// - Returns the first segment in lowercase.
+///
+/// If no category is found, it falls back to
+/// [ConstantsHelper.generalCategory].
 String getCategory(String path) {
-  // Handle shared types
   final ref = path.split('/').last;
   final refParts = ref.split('.');
 
@@ -57,6 +88,11 @@ String getCategory(String path) {
       : ConstantsHelper.generalCategory;
 }
 
+/// Cleans the given [path] by removing unwanted parts.
+///
+/// Specifically:
+/// - Removes `/api/`.
+/// - Removes `{}` placeholders.
 String cleanPath(String path) {
   return path.replaceAll('/api/', '').replaceAll('{', '').replaceAll('}', '');
 }

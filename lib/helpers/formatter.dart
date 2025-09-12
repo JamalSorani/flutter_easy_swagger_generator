@@ -2,13 +2,20 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
 
-/// Number of concurrent formatting operations - increased for better performance
+/// The maximum number of concurrent formatting operations
+/// that can run in parallel.
 const int _concurrentOperations = 5;
 
-/// Batch size for progress updates to reduce console output overhead
+/// Number of files to process before showing progress output.
 const int _progressBatchSize = 5;
 
-/// Formats a single file and returns success status
+/// Formats a single Dart file using the `dart format` command.
+///
+/// Returns:
+/// - `true` if formatting succeeded.
+/// - `false` if formatting failed or an exception occurred.
+///
+/// The [filePath] must point to a valid `.dart` file.
 Future<bool> _formatFile(String filePath) async {
   try {
     final process =
@@ -20,12 +27,24 @@ Future<bool> _formatFile(String filePath) async {
   }
 }
 
-/// Formats all Dart files in the given directory using optimized parallel processing
+/// Recursively formats all Dart files in the given [directory].
+///
+/// - Uses the `dart format` command.
+/// - Processes files in batches, with [_concurrentOperations] files
+///   formatted in parallel.
+/// - Displays progress after every [_progressBatchSize] files.
+/// - Prints a summary with the total time taken, number of files formatted,
+///   and any failures.
+///
+/// Example:
+/// ```dart
+/// await formatDirectory("lib");
+/// ```
 Future<void> formatDirectory(String directory) async {
   final stopwatch = Stopwatch()..start();
 
   try {
-    // Get all .dart files in parallel using compute
+    // Collect all Dart files recursively inside the directory
     final dartFiles = await Directory(directory)
         .list(recursive: true)
         .where((entity) => entity is File && entity.path.endsWith('.dart'))
@@ -41,7 +60,7 @@ Future<void> formatDirectory(String directory) async {
     var formattedFiles = 0;
     var failedFiles = 0;
 
-    // Create batches of files for concurrent processing
+    // Split files into batches for parallel processing
     final batches = <List<String>>[];
     for (var i = 0; i < dartFiles.length; i += _concurrentOperations) {
       batches.add(dartFiles.sublist(
@@ -52,19 +71,18 @@ Future<void> formatDirectory(String directory) async {
       ));
     }
 
-    // Process batches
+    // Process each batch concurrently
     for (final batch in batches) {
       final results = await Future.wait(
         batch.map((file) => _formatFile(file)),
         eagerError: false,
       );
 
-      // Update counters
       final successCount = results.where((success) => success).length;
       formattedFiles += successCount;
       failedFiles += results.length - successCount;
 
-      // Update progress every _progressBatchSize batches
+      // Show progress periodically
       if (formattedFiles % _progressBatchSize == 0 ||
           formattedFiles == totalFiles) {
         printProgress(
@@ -72,9 +90,9 @@ Future<void> formatDirectory(String directory) async {
       }
     }
 
-    // Final status
+    // Print summary
     final duration = stopwatch.elapsed;
-    print('\n'); // New line after progress
+    print('\n');
     printSuccess('''
 Formatting completed in ${duration.inSeconds}.${duration.inMilliseconds % 1000}s
 ✓ Successfully formatted: $formattedFiles files

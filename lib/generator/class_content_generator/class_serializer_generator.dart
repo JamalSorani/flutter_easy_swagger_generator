@@ -5,9 +5,21 @@ import '../../helpers/converters.dart';
 import '../../helpers/dart_type.dart';
 import 'package:flutter_easy_swagger_generator/classes/property.dart';
 
+/// Generates serialization logic (`toJson` and `fromJson`) for Dart classes
+/// based on Swagger/OpenAPI specifications.
+///
+/// This includes handling:
+/// - Parameters (query, header, path, etc.)
+/// - Request body with different content types (`application/json`, `multipart/form-data`)
+/// - References to reusable schemas
 class ClassSerializerGenerator {
+  /// Buffer where generated class code is written
   final StringBuffer classBuffer;
+
+  /// Name of the class being generated
   final String className;
+
+  /// Swagger/OpenAPI components used for resolving schemas and references
   final Components components;
 
   ClassSerializerGenerator({
@@ -16,7 +28,10 @@ class ClassSerializerGenerator {
     required this.components,
   });
 
-  generateConstructure(List<String> requiredParams) {
+  /// Generates the constructor for the target class.
+  ///
+  /// Ensures required parameters are included in the constructor signature.
+  void generateConstructure(List<String> requiredParams) {
     if (requiredParams.isNotEmpty) {
       classBuffer.write('  $className({');
       classBuffer.write(requiredParams.join(', '));
@@ -24,11 +39,19 @@ class ClassSerializerGenerator {
     }
   }
 
-  genereateToJson(
+  /// Generates a `toJson` method for serializing the class to a map.
+  ///
+  /// Handles:
+  /// - Parameters (skipping ignored ones like `X-TimeZoneId`, `tz-offset`, `lang`, `DebugMode`)
+  /// - Request bodies, including `application/json` and `multipart/form-data`
+  /// - References to other schemas
+  void genereateToJson(
     List<IParameter>? parameters,
     TRequestBody? requestBody,
   ) {
     bool isWritingStarted = false;
+
+    // Serialize parameters
     if (parameters != null) {
       for (var param in parameters) {
         String paramName = param.name;
@@ -49,6 +72,8 @@ class ClassSerializerGenerator {
         classBuffer.writeln('      \'$paramName\': $camelCaseName,');
       }
     }
+
+    // Serialize request body content
     if (requestBody?.content != null) {
       for (var prop in requestBody!.content!.keys) {
         bool isRef = false;
@@ -59,17 +84,16 @@ class ClassSerializerGenerator {
             continue;
           }
 
-          // Check if it's a reference
+          // Detect references
           if (requestBody.content![prop]?.schema?.ref != null) {
             isRef = true;
           }
         } else if (requestBody.content![prop]?.schema == null ||
             prop.contains("/")) {
-          // Skip other content types without schema
           continue;
         }
 
-        // For multipart/form-data, we need to handle the properties differently
+        // Handle multipart/form-data with object schema
         if (prop == "multipart/form-data" &&
             requestBody.content![prop]?.schema is ObjectProperty) {
           ObjectProperty schema =
@@ -90,6 +114,7 @@ class ClassSerializerGenerator {
             }
           }
         } else if (isRef) {
+          // Handle referenced schemas
           DartTypeInfo dartTypeInfo =
               getDartType(requestBody.content![prop]?.schema, components, true);
           String propType = dartTypeInfo.className;
@@ -101,6 +126,7 @@ class ClassSerializerGenerator {
 }''');
           return;
         } else {
+          // Handle primitive request body properties
           String camelCaseName =
               convertToCamelCase(prop.replaceAll('.', '').replaceAll('/', ''));
           if (!isWritingStarted) {
@@ -114,6 +140,8 @@ class ClassSerializerGenerator {
         }
       }
     }
+
+    // Close map if started
     if (isWritingStarted) {
       classBuffer.writeln('''
     };
@@ -123,11 +151,20 @@ class ClassSerializerGenerator {
     classBuffer.writeln('}');
   }
 
-  generateFromJson(
+  /// Generates a `fromJson` factory constructor for deserializing a class
+  /// from a JSON map.
+  ///
+  /// Handles:
+  /// - Parameters (skipping ignored ones)
+  /// - Request body with `application/json` and `multipart/form-data`
+  /// - Referenced schemas
+  void generateFromJson(
     List<IParameter>? parameters,
     TRequestBody? requestBody,
   ) {
     bool isWritingStarted = false;
+
+    // Deserialize parameters
     if (parameters != null) {
       for (var param in parameters) {
         String paramName = param.name;
@@ -150,27 +187,25 @@ class ClassSerializerGenerator {
         classBuffer.writeln('      $camelCaseName: json["$paramName"] ,');
       }
     }
+
+    // Deserialize request body content
     if (requestBody?.content != null) {
       for (var prop in requestBody!.content!.keys) {
         bool isRef = false;
 
-        // Handle special content types
         if (prop == "application/json" || prop == "multipart/form-data") {
           if (requestBody.content![prop]?.schema == null) {
             continue;
           }
-
-          // Check if it's a reference
           if (requestBody.content![prop]?.schema?.ref != null) {
             isRef = true;
           }
         } else if (requestBody.content![prop]?.schema == null ||
             prop.contains("/")) {
-          // Skip other content types without schema
           continue;
         }
 
-        // For multipart/form-data, we need to handle the properties differently
+        // Handle multipart/form-data with object schema
         if (prop == "multipart/form-data" &&
             requestBody.content![prop]?.schema is ObjectProperty) {
           ObjectProperty schema =
@@ -194,6 +229,7 @@ class ClassSerializerGenerator {
             }
           }
         } else if (isRef) {
+          // Handle referenced schemas
           DartTypeInfo dartTypeInfo = getDartType(
               requestBody.content![prop]?.schema, components, false);
           String propType = dartTypeInfo.className;
@@ -207,6 +243,7 @@ class ClassSerializerGenerator {
 }''');
           return;
         } else {
+          // Handle primitive request body properties
           String camelCaseName =
               convertToCamelCase(prop.replaceAll('.', '').replaceAll('/', ''));
           if (!isWritingStarted) {
@@ -219,6 +256,8 @@ class ClassSerializerGenerator {
         }
       }
     }
+
+    // Close constructor if started
     if (isWritingStarted) {
       classBuffer.writeln('''
     );
