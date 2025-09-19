@@ -1,4 +1,5 @@
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
+import 'dart:io';
 
 /// Generates clean architecture code from a Swagger/OpenAPI specification.
 ///
@@ -48,81 +49,82 @@ Future<void> swaggerGenerator(String swaggerPath,
   //********************* Variables *******************************/
   String jsonString = File(swaggerPath).readAsStringSync();
   Map<String, dynamic> swaggerJson = jsonDecode(jsonString);
-  IOpenApiJSON openApiJSON = IOpenApiJSON.fromJson(swaggerJson);
+  OpenApiJSON openApiJSON = OpenApiJSON.fromJson(swaggerJson);
   Components components = openApiJSON.components;
-  Map<String, Map<String, HttpMethodInfo>> paths = openApiJSON.paths;
-  List<String> moduleList = getModuleNames(paths);
+  List<RouteInfo> routesInfo = openApiJSON.paths;
+  Map<String, List<RouteInfo>> groupedRoutes = {};
+  for (var routeInfo in routesInfo) {
+    String category = getCategory(routeInfo.fullRoute);
+    groupedRoutes.putIfAbsent(category, () => []).add(routeInfo);
+  }
   //***************************************************************/
 
   //********************* Generators Objects **********************/
   RoutesGenerator routesGenerator = RoutesGenerator(
-    paths: paths,
+    groupedRoutes: groupedRoutes,
     mainPath: mainPath,
   );
   EntitiesGenerator entitiesGenerator = EntitiesGenerator(
-    moduleList: moduleList,
-    paths: paths,
+    routesInfo: routesInfo,
     components: components,
     mainPath: mainPath,
   );
-  ModelsGenerator responseModelsGenerator = ModelsGenerator(
-    moduleList: moduleList,
-    paths: paths,
-    components: components,
-    mainPath: mainPath,
-  );
-  RepositoryGenerator repositoryGenerator = RepositoryGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  NetworkGenerator networkGenerator = NetworkGenerator(
-    mainPath: mainPath,
-  );
-  RemoteGenerator remoteGenerator = RemoteGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  RepoImpGenerator repoImpGenerator = RepoImpGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  ApplicationGenerator applicationGenerator = ApplicationGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  BlocGenerator blocGenerator = BlocGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  EventGenerator eventGenerator = EventGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  StateGenerator stateGenerator = StateGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator(
-    mainPath: mainPath,
-  );
-  InjectionGenerator injectionGenerator = InjectionGenerator(
-    mainPath: mainPath,
-    moduleList: moduleList,
-  );
+  // ModelsGenerator responseModelsGenerator = ModelsGenerator(
+  //   moduleList: moduleList,
+  //   paths: paths,
+  //   components: components,
+  //   mainPath: mainPath,
+  // );
+  // RepositoryGenerator repositoryGenerator = RepositoryGenerator(
+  //   groupedRoutes: groupedRoutes,
+  //   mainPath: mainPath,
+  // );
+  // NetworkGenerator networkGenerator = NetworkGenerator(
+  //   mainPath: mainPath,
+  // );
+  // RemoteGenerator remoteGenerator = RemoteGenerator(
+  //   paths: paths,
+  //   components: components,
+  //   moduleList: moduleList,
+  //   mainPath: mainPath,
+  // );
+  // RepoImpGenerator repoImpGenerator = RepoImpGenerator(
+  //   paths: paths,
+  //   components: components,
+  //   moduleList: moduleList,
+  //   mainPath: mainPath,
+  // );
+  // ApplicationGenerator applicationGenerator = ApplicationGenerator(
+  //   paths: paths,
+  //   components: components,
+  //   moduleList: moduleList,
+  //   mainPath: mainPath,
+  // );
+  // BlocGenerator blocGenerator = BlocGenerator(
+  //   paths: paths,
+  //   components: components,
+  //   moduleList: moduleList,
+  //   mainPath: mainPath,
+  // );
+  // EventGenerator eventGenerator = EventGenerator(
+  //   paths: paths,
+  //   components: components,
+  //   moduleList: moduleList,
+  //   mainPath: mainPath,
+  // );
+  // StateGenerator stateGenerator = StateGenerator(
+  //   paths: paths,
+  //   components: components,
+  //   moduleList: moduleList,
+  //   mainPath: mainPath,
+  // );
+  // ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator(
+  //   mainPath: mainPath,
+  // );
+  // InjectionGenerator injectionGenerator = InjectionGenerator(
+  //   mainPath: mainPath,
+  //   moduleList: moduleList,
+  // );
   //***************************************************************/
 
   //********************* Generating **********************/
@@ -130,17 +132,17 @@ Future<void> swaggerGenerator(String swaggerPath,
   await Future.wait([
     Future(() => routesGenerator.generateRoutes()),
     Future(() => entitiesGenerator.generateEntities()),
-    Future(() => responseModelsGenerator.generateModels()),
-    Future(() => repositoryGenerator.generateRepository()),
-    Future(() => networkGenerator.generateNetwork()),
-    Future(() => remoteGenerator.generateRemote()),
-    Future(() => repoImpGenerator.generateRepoImp()),
-    Future(() => applicationGenerator.generateApplication()),
-    Future(() => blocGenerator.generateBloc()),
-    Future(() => eventGenerator.generateEvent()),
-    Future(() => stateGenerator.generateState()),
-    Future(() => resultBuilderGenerator.generateResultBuilder()),
-    Future(() => injectionGenerator.generateInjection()),
+    // Future(() => responseModelsGenerator.generateModels()),
+    // Future(() => repositoryGenerator.generateRepository()),
+    // Future(() => networkGenerator.generateNetwork()),
+    // Future(() => remoteGenerator.generateRemote()),
+    // Future(() => repoImpGenerator.generateRepoImp()),
+    // Future(() => applicationGenerator.generateApplication()),
+    // Future(() => blocGenerator.generateBloc()),
+    // Future(() => eventGenerator.generateEvent()),
+    // Future(() => stateGenerator.generateState()),
+    // Future(() => resultBuilderGenerator.generateResultBuilder()),
+    // Future(() => injectionGenerator.generateInjection()),
   ]);
   printSuccess('Code generation completed!\n');
   //*******************************************************/
@@ -168,131 +170,124 @@ Future<void> swaggerGenerator(String swaggerPath,
 /// * [swaggerPath] - Path to the Swagger file or URL to the Swagger specification
 /// * [category] - The category string to filter API paths
 /// * [prefixesToRemove] - (Optional) List of prefixes to remove from generated class and file names
-Future<void> swaggerSingleCategoryGenerator(String swaggerPath, String category,
-    {List<String>? prefixesToRemove}) async {
-  String mainPath = "lib/app";
+// Future<void> swaggerSingleCategoryGenerator(String swaggerPath, String category,
+//     {List<String>? prefixesToRemove}) async {
+//   String mainPath = "lib/app";
 
-  // Check if swagger file exists
-  if (!File(swaggerPath).existsSync()) {
-    printError('Error: Swagger file not found at $swaggerPath');
-    printInfo('Usage: dart run main.dart [path_to_swagger.json]');
-    return;
-  }
-  if (prefixesToRemove != null) {
-    ConstantsHelper.allPrefixesToRemove.addAll(prefixesToRemove);
-  }
+//   // Check if swagger file exists
+//   if (!File(swaggerPath).existsSync()) {
+//     printError('Error: Swagger file not found at $swaggerPath');
+//     printInfo('Usage: dart run main.dart [path_to_swagger.json]');
+//     return;
+//   }
+//   if (prefixesToRemove != null) {
+//     ConstantsHelper.allPrefixesToRemove.addAll(prefixesToRemove);
+//   }
 
-  //********************* Variables *******************************/
-  String jsonString = File(swaggerPath).readAsStringSync();
-  Map<String, dynamic> swaggerJson = jsonDecode(jsonString);
-  IOpenApiJSON openApiJSON = IOpenApiJSON.fromJson(swaggerJson);
-  Components components = openApiJSON.components;
-  Map<String, Map<String, HttpMethodInfo>> paths = openApiJSON.paths;
-  final oldPath = paths;
-  paths = {};
-  for (final path in oldPath.keys) {
-    if (path.toLowerCase().contains(category.toLowerCase())) {
-      paths[path] = oldPath[path]!;
-    }
-  }
-  List<String> moduleList = getModuleNames(paths);
-  //***************************************************************/
+//   //********************* Variables *******************************/
+//   String jsonString = File(swaggerPath).readAsStringSync();
+//   Map<String, dynamic> swaggerJson = jsonDecode(jsonString);
+//   OpenApiJSON openApiJSON = OpenApiJSON.fromJson(swaggerJson);
+//   Components components = openApiJSON.components;
+//   List<RouteInfo> paths = openApiJSON.paths;
+//   List<String> moduleList = getModuleNames(paths);
+//   //***************************************************************/
 
-  //********************* Generators Objects **********************/
-  RoutesGenerator routesGenerator = RoutesGenerator(
-    paths: paths,
-    mainPath: mainPath,
-  );
-  EntitiesGenerator entitiesGenerator = EntitiesGenerator(
-    moduleList: moduleList,
-    paths: paths,
-    components: components,
-    mainPath: mainPath,
-  );
-  ModelsGenerator responseModelsGenerator = ModelsGenerator(
-    moduleList: moduleList,
-    paths: paths,
-    components: components,
-    mainPath: mainPath,
-  );
-  RepositoryGenerator repositoryGenerator = RepositoryGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  NetworkGenerator networkGenerator = NetworkGenerator(
-    mainPath: mainPath,
-  );
-  RemoteGenerator remoteGenerator = RemoteGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  RepoImpGenerator repoImpGenerator = RepoImpGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  ApplicationGenerator applicationGenerator = ApplicationGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  BlocGenerator blocGenerator = BlocGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  EventGenerator eventGenerator = EventGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  StateGenerator stateGenerator = StateGenerator(
-    paths: paths,
-    components: components,
-    moduleList: moduleList,
-    mainPath: mainPath,
-  );
-  ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator(
-    mainPath: mainPath,
-  );
-  InjectionGenerator injectionGenerator = InjectionGenerator(
-    mainPath: mainPath,
-    moduleList: moduleList,
-  );
-  //***************************************************************/
+//   //********************* Generators Objects **********************/
+//   RoutesGenerator routesGenerator = RoutesGenerator(
+//     paths: paths,
+//     mainPath: mainPath,
+//   );
+//   EntitiesGenerator entitiesGenerator = EntitiesGenerator(
+//     moduleList: moduleList,
+//     paths: paths,
+//     components: components,
+//     mainPath: mainPath,
+//   );
+//   // ModelsGenerator responseModelsGenerator = ModelsGenerator(
+//   //   moduleList: moduleList,
+//   //   paths: paths,
+//   //   components: components,
+//   //   mainPath: mainPath,
+//   // );
+//   // RepositoryGenerator repositoryGenerator = RepositoryGenerator(
+//   //   paths: paths,
+//   //   components: components,
+//   //   moduleList: moduleList,
+//   //   mainPath: mainPath,
+//   // );
+//   // NetworkGenerator networkGenerator = NetworkGenerator(
+//   //   mainPath: mainPath,
+//   // );
+//   // RemoteGenerator remoteGenerator = RemoteGenerator(
+//   //   paths: paths,
+//   //   components: components,
+//   //   moduleList: moduleList,
+//   //   mainPath: mainPath,
+//   // );
+//   // RepoImpGenerator repoImpGenerator = RepoImpGenerator(
+//   //   paths: paths,
+//   //   components: components,
+//   //   moduleList: moduleList,
+//   //   mainPath: mainPath,
+//   // );
+//   // ApplicationGenerator applicationGenerator = ApplicationGenerator(
+//   //   paths: paths,
+//   //   components: components,
+//   //   moduleList: moduleList,
+//   //   mainPath: mainPath,
+//   // );
+//   // BlocGenerator blocGenerator = BlocGenerator(
+//   //   paths: paths,
+//   //   components: components,
+//   //   moduleList: moduleList,
+//   //   mainPath: mainPath,
+//   // );
+//   // EventGenerator eventGenerator = EventGenerator(
+//   //   paths: paths,
+//   //   components: components,
+//   //   moduleList: moduleList,
+//   //   mainPath: mainPath,
+//   // );
+//   // StateGenerator stateGenerator = StateGenerator(
+//   //   paths: paths,
+//   //   components: components,
+//   //   moduleList: moduleList,
+//   //   mainPath: mainPath,
+//   // );
+//   // ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator(
+//   //   mainPath: mainPath,
+//   // );
+//   // InjectionGenerator injectionGenerator = InjectionGenerator(
+//   //   mainPath: mainPath,
+//   //   moduleList: moduleList,
+//   // );
+//   //***************************************************************/
 
-  //********************* Generating **********************/
-  printInfo('\nGenerating code from swagger file: $swaggerPath');
-  await Future.wait([
-    Future(() => routesGenerator.generateRoutes()),
-    Future(() => entitiesGenerator.generateEntities()),
-    Future(() => responseModelsGenerator.generateModels()),
-    Future(() => repositoryGenerator.generateRepository()),
-    Future(() => networkGenerator.generateNetwork()),
-    Future(() => remoteGenerator.generateRemote()),
-    Future(() => repoImpGenerator.generateRepoImp()),
-    Future(() => applicationGenerator.generateApplication()),
-    Future(() => blocGenerator.generateBloc()),
-    Future(() => eventGenerator.generateEvent()),
-    Future(() => stateGenerator.generateState()),
-    Future(() => resultBuilderGenerator.generateResultBuilder()),
-    Future(() => injectionGenerator.generateInjection()),
-  ]);
-  printSuccess('Code generation completed!\n');
-  //*******************************************************/
+//   //********************* Generating **********************/
+//   printInfo('\nGenerating code from swagger file: $swaggerPath');
+//   await Future.wait([
+//     Future(() => routesGenerator.generateRoutes()),
+//     Future(() => entitiesGenerator.generateEntities()),
+//     // Future(() => responseModelsGenerator.generateModels()),
+//     // Future(() => repositoryGenerator.generateRepository()),
+//     // Future(() => networkGenerator.generateNetwork()),
+//     // Future(() => remoteGenerator.generateRemote()),
+//     // Future(() => repoImpGenerator.generateRepoImp()),
+//     // Future(() => applicationGenerator.generateApplication()),
+//     // Future(() => blocGenerator.generateBloc()),
+//     // Future(() => eventGenerator.generateEvent()),
+//     // Future(() => stateGenerator.generateState()),
+//     // Future(() => resultBuilderGenerator.generateResultBuilder()),
+//     // Future(() => injectionGenerator.generateInjection()),
+//   ]);
+//   printSuccess('Code generation completed!\n');
+//   //*******************************************************/
 
-  //********************* Formatting **********************/
-  // if (promptUser('Do you want to format the generated files?') == 'y') {
-  //   printInfo('\nFormatting generated files...');
-  //   await formatDirectory('$mainPath');
-  // }
-  //*******************************************************/
-}
+//   //********************* Formatting **********************/
+//   // if (promptUser('Do you want to format the generated files?') == 'y') {
+//   //   printInfo('\nFormatting generated files...');
+//   //   await formatDirectory('$mainPath');
+//   // }
+//   // *******************************************************/
+// }

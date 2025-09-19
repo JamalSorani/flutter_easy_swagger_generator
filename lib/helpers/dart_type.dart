@@ -1,5 +1,4 @@
-import 'package:flutter_easy_swagger_generator/classes/components.dart';
-import '../classes/property.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Determines the Dart type information for a given Swagger schema.
 ///
@@ -17,7 +16,10 @@ import '../classes/property.dart';
 /// - The original schema.
 /// - Whether the type was resolved from a `$ref`.
 DartTypeInfo getDartType(
-    TProperty? schema, Components components, bool isForEntities) {
+  TProperty? schema,
+  Components components,
+  bool isForEntities,
+) {
   if (schema == null) {
     return DartTypeInfo(className: 'dynamic', schema: null);
   }
@@ -50,16 +52,16 @@ DartTypeInfo getDartType(
         : refParts.last;
 
     // Map primitive types directly, otherwise use referenced class
-    String? type = components.schemas[ref]?.type;
-    if (type != null && type != "object") {
-      return _type(type, schema);
+    String? type = components.schemas[ref]?.type.name;
+    if (type != null && type != "ObjectProperty") {
+      return _type(type, components.schemas[ref]!, enumName: schemaName);
     }
     return DartTypeInfo(
         className: schemaName + endPoint, schema: schema, isRef: true);
   }
 
   // Handle primitive Swagger types
-  return _type(schema.type, schema);
+  return _type(schema.type.name, schema);
 }
 
 /// Maps a Swagger primitive type string to its Dart equivalent.
@@ -69,16 +71,31 @@ DartTypeInfo getDartType(
 /// - `"number"` → `double`
 /// - `"boolean"` → `bool`
 /// - anything else → `dynamic`
-DartTypeInfo _type(String? type, dynamic schema) {
+DartTypeInfo _type(
+  String? type,
+  TProperty schema, {
+  String? enumName,
+}) {
+  if (enumName != null && (schema.enumValues.isNotEmpty)) {
+    return DartTypeInfo(
+      className: "${enumName}Enum",
+      schema: schema,
+      isEnum: true,
+    );
+  }
   switch (type) {
     case 'string':
       return DartTypeInfo(className: 'String', schema: schema);
     case 'integer':
       return DartTypeInfo(className: 'int', schema: schema);
     case 'number':
-      return DartTypeInfo(className: 'double', schema: schema);
+      return DartTypeInfo(className: 'num', schema: schema);
     case 'boolean':
       return DartTypeInfo(className: 'bool', schema: schema);
+    case 'file':
+      return DartTypeInfo(className: 'File', schema: schema);
+    case 'date':
+      return DartTypeInfo(className: 'DateTime', schema: schema);
     default:
       return DartTypeInfo(className: 'dynamic', schema: schema);
   }
@@ -91,9 +108,14 @@ DartTypeInfo _type(String? type, dynamic schema) {
 /// - [isRef] indicates if the type was resolved from a `$ref`.
 class DartTypeInfo {
   final String className;
-  final dynamic schema;
+  final TProperty? schema;
   final bool isRef;
+  final bool isEnum;
 
-  DartTypeInfo(
-      {required this.className, required this.schema, this.isRef = false});
+  DartTypeInfo({
+    required this.className,
+    required this.schema,
+    this.isRef = false,
+    this.isEnum = false,
+  });
 }

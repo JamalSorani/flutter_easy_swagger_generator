@@ -1,10 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter_easy_swagger_generator/classes/components.dart';
-import 'package:flutter_easy_swagger_generator/classes/http_method_info.dart';
-import 'package:flutter_easy_swagger_generator/helpers/converters.dart';
-import '../../helpers/printer.dart';
-import '../../helpers/utils.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// A generator responsible for creating Bloc files for each API category.
 ///
@@ -18,7 +14,7 @@ import '../../helpers/utils.dart';
 /// represent different states (loading, success, error).
 class BlocGenerator {
   /// The map of API paths grouped by route and their corresponding methods.
-  final Map<String, Map<String, HttpMethodInfo>> paths;
+  final List<RouteInfo> paths;
 
   /// The components defined in the Swagger file.
   final Components components;
@@ -45,16 +41,15 @@ class BlocGenerator {
   /// 3. Handle errors gracefully during generation.
   void generateBloc() {
     try {
-      Map<String, List<MapEntry<String, Map<String, HttpMethodInfo>>>>
-          groupedPaths = {};
+      Map<String, List<RouteInfo>> groupedPaths = {};
 
       // Group paths by category
-      for (var path in paths.keys) {
-        String category = getCategory(path);
+      for (var path in paths) {
+        String category = getCategory(path.fullRoute);
         if (!groupedPaths.containsKey(category)) {
           groupedPaths[category] = [];
         }
-        groupedPaths[category]!.add(MapEntry(path, paths[path]!));
+        groupedPaths[category]!.add(path);
       }
 
       // Generate Bloc for each category
@@ -75,7 +70,7 @@ class BlocGenerator {
   /// - Updates states based on the `Result` type (loading, error, loaded).
   void _generateBlocForCategory(
     String category,
-    List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
+    List<RouteInfo> categoryPaths,
   ) {
     String filePath =
         '$mainPath/$category/presentation/state/${category}_bloc.dart';
@@ -92,8 +87,8 @@ import '../../application/${category}_facade.dart';""");
 
     // Add model imports for each route
     for (var path in categoryPaths) {
-      String routeName = getRouteName(path.key);
-      String actionName = convertToSnakeCase(routeName);
+      String routeName = getRouteName(path.fullRoute);
+      String actionName = routeName.toSnakeCase();
 
       buffer.writeln(
           "import '../../infrastructure/models/${actionName}_model.dart';");
@@ -101,8 +96,8 @@ import '../../application/${category}_facade.dart';""");
 
     // Add entity imports for each route
     for (var path in categoryPaths) {
-      String routeName = getRouteName(path.key);
-      String actionName = convertToSnakeCase(routeName);
+      String routeName = getRouteName(path.fullRoute);
+      String actionName = routeName.toSnakeCase();
       buffer
           .writeln("import '../../domain/entities/${actionName}_param.dart';");
     }
@@ -130,38 +125,33 @@ class ${capitalizedCategory}Bloc extends Bloc<${capitalizedCategory}Event, ${cap
 
     // Register event handlers
     for (var path in categoryPaths) {
-      String routeName = getRouteName(path.key);
+      String routeName = getRouteName(path.fullRoute);
       String actionName = routeName;
 
-      for (var method in path.value.entries) {
-        HttpMethodInfo info = method.value;
+      HttpMethodInfo info = path.httpMethodInfo;
 
-        if (info.responses.response200 == null) continue;
+      if (info.responses.response200 == null) continue;
 
-        String methodName =
-            actionName[0].toLowerCase() + actionName.substring(1);
-        buffer.writeln(
-          """
+      String methodName = actionName[0].toLowerCase() + actionName.substring(1);
+      buffer.writeln(
+        """
     on<${actionName}Event>(_$methodName);""",
-        );
-      }
+      );
     }
     buffer.writeln("  }");
 
     // Define event handler functions
     for (var path in categoryPaths) {
-      String routeName = getRouteName(path.key);
+      String routeName = getRouteName(path.fullRoute);
       String actionName = routeName;
 
-      for (var method in path.value.entries) {
-        HttpMethodInfo info = method.value;
+      HttpMethodInfo info = path.httpMethodInfo;
 
-        if (info.responses.response200 == null) continue;
+      if (info.responses.response200 == null) continue;
 
-        String methodName =
-            actionName[0].toLowerCase() + actionName.substring(1);
-        buffer.writeln(
-          """
+      String methodName = actionName[0].toLowerCase() + actionName.substring(1);
+      buffer.writeln(
+        """
 
   /// Handles the [${actionName}Event].
   ///
@@ -178,8 +168,7 @@ class ${capitalizedCategory}Bloc extends Bloc<${capitalizedCategory}Event, ${cap
       (r) => emit(state.copyWith(${methodName}State: Result.loaded(data: r))),
     );
   }""",
-        );
-      }
+      );
     }
 
     buffer.writeln("}");

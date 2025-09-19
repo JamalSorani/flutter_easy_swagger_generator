@@ -47,7 +47,7 @@ class InjectionGenerator {
   /// - Registers API, Repository, Facade, and Bloc into [GetIt].
   _generateInjectionForEachCategory(String category) {
     String filePath =
-        '${mainPath.contains("example") ? "example/" : ""}lib/common/injection/src/${convertToSnakeCase(category)}_injection.dart';
+        '${mainPath.contains("example") ? "example/" : ""}lib/common/injection/src/${category.toSnakeCase()}_injection.dart';
     final file = File(filePath);
     file.parent.createSync(recursive: true);
     final StringBuffer buffer = StringBuffer();
@@ -112,8 +112,7 @@ Future<void> ${category}Injection() async {
     buffer.writeln("import 'package:get_it/get_it.dart';");
 
     for (var module in moduleList) {
-      buffer.writeln(
-          "import 'src/${convertToSnakeCase(module)}_injection.dart';");
+      buffer.writeln("import 'src/${module.toSnakeCase()}_injection.dart';");
     }
 
     buffer.writeln();

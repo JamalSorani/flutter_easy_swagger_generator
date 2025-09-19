@@ -1,25 +1,27 @@
 import 'media_type.dart';
 
 /// Represents the request body of an API operation
-class TRequestBody {
+class RequestBody {
   /// Optional description of the request body
   final String? description;
 
   /// Maps media types (e.g., application/json) to their content details
-  final Map<String, MediaTypeContent>? content;
+  final MediaTypeContent? content;
 
-  TRequestBody({this.description, this.content});
+  RequestBody({
+    required this.description,
+    required this.content,
+  });
 
   /// Creates an instance from a JSON map
-  factory TRequestBody.fromJson(Map<String, dynamic> json) {
-    return TRequestBody(
+  factory RequestBody.fromJson(Map<String, dynamic> json) {
+    return RequestBody(
       description: json['description'] as String?,
-      content: (json['content'] as Map<String, dynamic>?)?.map(
-        (key, value) => MapEntry(
-          key,
-          MediaTypeContent.fromJson(value as Map<String, dynamic>),
-        ),
-      ),
+      content: json['content'] == null
+          ? null
+          : MediaTypeContent.fromJson(
+              json['content'] as Map<String, dynamic>,
+            ),
     );
   }
 }

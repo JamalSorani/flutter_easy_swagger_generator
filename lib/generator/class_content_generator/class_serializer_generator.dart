@@ -1,9 +1,4 @@
-import '../../classes/components.dart';
-import '../../classes/parameter.dart';
-import '../../classes/request_body.dart';
-import '../../helpers/converters.dart';
-import '../../helpers/dart_type.dart';
-import 'package:flutter_easy_swagger_generator/classes/property.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Generates serialization logic (`toJson` and `fromJson`) for Dart classes
 /// based on Swagger/OpenAPI specifications.
@@ -31,11 +26,15 @@ class ClassSerializerGenerator {
   /// Generates the constructor for the target class.
   ///
   /// Ensures required parameters are included in the constructor signature.
-  void generateConstructure(List<String> requiredParams) {
-    if (requiredParams.isNotEmpty) {
-      classBuffer.write('  $className({');
-      classBuffer.write(requiredParams.join(', '));
-      classBuffer.writeln('});');
+  void generateConstructure(List<String> params) {
+    if (params.isNotEmpty) {
+      classBuffer.writeln("");
+      classBuffer.writeln('  $className({');
+      for (var element in params) {
+        classBuffer.writeln('    $element,');
+      }
+      classBuffer.writeln('  });');
+      classBuffer.writeln("");
     }
   }
 
@@ -45,110 +44,48 @@ class ClassSerializerGenerator {
   /// - Parameters (skipping ignored ones like `X-TimeZoneId`, `tz-offset`, `lang`, `DebugMode`)
   /// - Request bodies, including `application/json` and `multipart/form-data`
   /// - References to other schemas
-  void genereateToJson(
-    List<IParameter>? parameters,
-    TRequestBody? requestBody,
-  ) {
-    bool isWritingStarted = false;
-
-    // Serialize parameters
-    if (parameters != null) {
-      for (var param in parameters) {
-        String paramName = param.name;
-        if (paramName == 'X-TimeZoneId' ||
-            paramName == 'tz-offset' ||
-            paramName == 'lang' ||
-            paramName == 'DebugMode') {
-          continue;
-        }
-        String camelCaseName =
-            convertToCamelCase(paramName.replaceAll('.', ''));
-        if (!isWritingStarted) {
-          classBuffer.writeln('''
-  Map<String, dynamic> toJson() {
-    return {''');
-          isWritingStarted = true;
-        }
-        classBuffer.writeln('      \'$paramName\': $camelCaseName,');
-      }
+  void genereateToJson(List<GeneratedJsonLine> lines, bool isMultiPart) {
+    classBuffer.writeln(
+      '''
+  ${isMultiPart ? "FormData" : "Map<String, dynamic>"} toJson() {
+    return ${isMultiPart ? "FormData.fromMap(" : ""}{''',
+    );
+    bool containsNull = false;
+    for (var line in lines) {
+      classBuffer.writeln(line.generatedJsonLine);
+      containsNull = containsNull || line.nullable;
     }
-
-    // Serialize request body content
-    if (requestBody?.content != null) {
-      for (var prop in requestBody!.content!.keys) {
-        bool isRef = false;
-
-        // Handle special content types
-        if (prop == "application/json" || prop == "multipart/form-data") {
-          if (requestBody.content![prop]?.schema == null) {
-            continue;
-          }
-
-          // Detect references
-          if (requestBody.content![prop]?.schema?.ref != null) {
-            isRef = true;
-          }
-        } else if (requestBody.content![prop]?.schema == null ||
-            prop.contains("/")) {
-          continue;
-        }
-
-        // Handle multipart/form-data with object schema
-        if (prop == "multipart/form-data" &&
-            requestBody.content![prop]?.schema is ObjectProperty) {
-          ObjectProperty schema =
-              requestBody.content![prop]!.schema as ObjectProperty;
-          if (schema.properties != null) {
-            if (!isWritingStarted) {
-              classBuffer.writeln('''
-  Map<String, dynamic> toJson() {
-    return {''');
-              isWritingStarted = true;
-            }
-
-            for (var entry in schema.properties!.entries) {
-              String fieldName = entry.key;
-              String camelCaseFieldName = convertToCamelCase(
-                  fieldName.replaceAll('.', '')..replaceAll('/', ""));
-              classBuffer.writeln('      \'$fieldName\': $camelCaseFieldName,');
-            }
-          }
-        } else if (isRef) {
-          // Handle referenced schemas
-          DartTypeInfo dartTypeInfo =
-              getDartType(requestBody.content![prop]?.schema, components, true);
-          String propType = dartTypeInfo.className;
-
-          classBuffer.write('''
-  Map<String, dynamic> toJson() {
-    return ${convertToCamelCase(propType)}.toJson();
-  }    
-}''');
-          return;
-        } else {
-          // Handle primitive request body properties
-          String camelCaseName =
-              convertToCamelCase(prop.replaceAll('.', '').replaceAll('/', ''));
-          if (!isWritingStarted) {
-            classBuffer.writeln('''
-  Map<String, dynamic> toJson() {
-    return {
-''');
-            isWritingStarted = true;
-          }
-          classBuffer.writeln('      \'$prop\': $camelCaseName,');
-        }
-      }
-    }
-
-    // Close map if started
-    if (isWritingStarted) {
-      classBuffer.writeln('''
-    };
+    String removeNullValues = (isMultiPart || containsNull)
+        ? "..removeWhere((key, value) => value == null)"
+        : "";
+    classBuffer.writeln('''
+    }$removeNullValues${isMultiPart ? ")" : ""};
   }''');
-    }
-
     classBuffer.writeln('}');
+  }
+
+  void generateEnums(List<String> enums) {
+    for (final element in enums) {
+      classBuffer.writeln(element);
+    }
+  }
+
+  void generateImports(
+      List<GeneratedParameters> generateParametars, bool isMultiPart) {
+    bool addEmptyLine = false;
+    if (generateParametars.any((element) {
+      return element.type.contains("File");
+    })) {
+      classBuffer.writeln("import 'dart:io';");
+      addEmptyLine = true;
+    }
+    if (isMultiPart) {
+      classBuffer.writeln("import 'package:dio/dio.dart';");
+      addEmptyLine = true;
+    }
+    if (addEmptyLine) {
+      classBuffer.writeln("");
+    }
   }
 
   /// Generates a `fromJson` factory constructor for deserializing a class
@@ -158,112 +95,108 @@ class ClassSerializerGenerator {
   /// - Parameters (skipping ignored ones)
   /// - Request body with `application/json` and `multipart/form-data`
   /// - Referenced schemas
-  void generateFromJson(
-    List<IParameter>? parameters,
-    TRequestBody? requestBody,
-  ) {
-    bool isWritingStarted = false;
+//   void generateFromJson(
+//     List<Parameter>? parameters,
+//     RequestBody? requestBody,
+//   ) {
+//     bool isWritingStarted = false;
 
-    // Deserialize parameters
-    if (parameters != null) {
-      for (var param in parameters) {
-        String paramName = param.name;
-        if (paramName == 'X-TimeZoneId' ||
-            paramName == 'tz-offset' ||
-            paramName == 'lang' ||
-            paramName == 'DebugMode') {
-          continue;
-        }
-        String camelCaseName =
-            convertToCamelCase(paramName.replaceAll('.', ''));
-        if (!isWritingStarted) {
-          classBuffer.writeln(
-            '''
-    factory $className.fromJson(Map<String, dynamic> json) {
-    return $className (''',
-          );
-          isWritingStarted = true;
-        }
-        classBuffer.writeln('      $camelCaseName: json["$paramName"] ,');
-      }
-    }
+//     // Deserialize parameters
+//     if (parameters != null) {
+//       for (var param in parameters) {
+//         String paramName = param.name;
+//         if (param.inn == "header") {
+//           continue;
+//         }
+//         String camelCaseName =
+//             paramName.replaceAll('.', '').replaceAll('/', '').toCamelCase();
+//         if (!isWritingStarted) {
+//           classBuffer.writeln(
+//             '''
+//     factory $className.fromJson(Map<String, dynamic> json) {
+//     return $className (''',
+//           );
+//           isWritingStarted = true;
+//         }
+//         classBuffer.writeln('      $camelCaseName: json["$paramName"] ,');
+//       }
+//     }
 
-    // Deserialize request body content
-    if (requestBody?.content != null) {
-      for (var prop in requestBody!.content!.keys) {
-        bool isRef = false;
+//     // Deserialize request body content
+//     if (requestBody?.content != null) {
+//       final contentType = requestBody!.content!.contentType;
+//       bool isRef = false;
 
-        if (prop == "application/json" || prop == "multipart/form-data") {
-          if (requestBody.content![prop]?.schema == null) {
-            continue;
-          }
-          if (requestBody.content![prop]?.schema?.ref != null) {
-            isRef = true;
-          }
-        } else if (requestBody.content![prop]?.schema == null ||
-            prop.contains("/")) {
-          continue;
-        }
+//       if (contentType == TContentType.applicationJson ||
+//           contentType == TContentType.multipartFormData) {
+//         if (requestBody.content?.schema == null) {
+//           // continue;
+//         }
+//         if (requestBody.content?.schema?.ref != null) {
+//           isRef = true;
+//         }
+//       } else if (requestBody.content?.schema == null ||
+//           contentType.value.contains("/")) {
+//         // continue;
+//       }
 
-        // Handle multipart/form-data with object schema
-        if (prop == "multipart/form-data" &&
-            requestBody.content![prop]?.schema is ObjectProperty) {
-          ObjectProperty schema =
-              requestBody.content![prop]!.schema as ObjectProperty;
-          if (schema.properties != null) {
-            if (!isWritingStarted) {
-              classBuffer.writeln(
-                '''
-    factory $className.fromJson(Map<String, dynamic> json) {
-    return $className(''',
-              );
-              isWritingStarted = true;
-            }
+//       // Handle multipart/form-data with object schema
+//       if (contentType == TContentType.multipartFormData &&
+//           requestBody.content?.schema is ObjectProperty) {
+//         ObjectProperty schema = requestBody.content!.schema as ObjectProperty;
+//         if (schema.properties != null) {
+//           if (!isWritingStarted) {
+//             classBuffer.writeln(
+//               '''
+//     factory $className.fromJson(Map<String, dynamic> json) {
+//     return $className(''',
+//             );
+//             isWritingStarted = true;
+//           }
 
-            for (var entry in schema.properties!.entries) {
-              String fieldName = entry.key;
-              String camelCaseFieldName = convertToCamelCase(
-                  fieldName.replaceAll('.', '')..replaceAll('/', ""));
-              classBuffer
-                  .writeln('      $camelCaseFieldName: json["$fieldName"] ,');
-            }
-          }
-        } else if (isRef) {
-          // Handle referenced schemas
-          DartTypeInfo dartTypeInfo = getDartType(
-              requestBody.content![prop]?.schema, components, false);
-          String propType = dartTypeInfo.className;
+//           String fieldName = schema.properties?.propertyName ?? "";
+//           String camelCaseFieldName =
+//               fieldName.replaceAll('.', '').replaceAll('/', "").toCamelCase();
+//           classBuffer
+//               .writeln('      $camelCaseFieldName: json["$fieldName"] ,');
+//         }
+//       } else if (isRef) {
+//         // Handle referenced schemas
+//         DartTypeInfo dartTypeInfo =
+//             getDartType(requestBody.content?.schema, components, false);
+//         String propType = dartTypeInfo.className;
 
-          classBuffer.write('''
-  factory $className.fromJson(Map<String, dynamic> json) {
-    return $className(
-      ${convertToCamelCase(propType)}: $propType.fromJson(json),
-    );
-  }    
-}''');
-          return;
-        } else {
-          // Handle primitive request body properties
-          String camelCaseName =
-              convertToCamelCase(prop.replaceAll('.', '').replaceAll('/', ''));
-          if (!isWritingStarted) {
-            classBuffer.writeln('''
-  factory $className.fromJson(Map<String, dynamic> json) {
-    return $className(''');
-            isWritingStarted = true;
-          }
-          classBuffer.writeln('      $camelCaseName: json["$prop"],');
-        }
-      }
-    }
+//         classBuffer.write('''
+//   factory $className.fromJson(Map<String, dynamic> json) {
+//     return $className(
+//       ${(propType).toCamelCase()}: $propType.fromJson(json),
+//     );
+//   }
+// }''');
+//         return;
+//       } else {
+//         // Handle primitive request body properties
+//         String camelCaseName = contentType.value
+//             .replaceAll('.', '')
+//             .replaceAll('/', '')
+//             .toCamelCase();
+//         if (!isWritingStarted) {
+//           classBuffer.writeln('''
+//   factory $className.fromJson(Map<String, dynamic> json) {
+//     return $className(''');
+//           isWritingStarted = true;
+//         }
+//         classBuffer.writeln('      $camelCaseName: json["$contentType"],');
+//       }
+//     }
 
-    // Close constructor if started
-    if (isWritingStarted) {
-      classBuffer.writeln('''
-    );
-  }''');
-    }
+//     // Close constructor if started
+//     if (isWritingStarted) {
+//       classBuffer.writeln('''
+//     );
+//   }''');
+//     }
 
-    classBuffer.writeln('}');
-  }
+//     classBuffer.writeln('}');
+//   }
 }

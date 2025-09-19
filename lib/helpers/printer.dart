@@ -50,6 +50,8 @@ void printSuccess(String message) => _print(message, _green);
 /// Prints an **error message** in red.
 void printError(String message) => _print(message, _red);
 
+void printDebug(dynamic message) => _print(message.toString(), _orange);
+
 /// Prints a **warning message** in orange.
 void printWarning(String message) => _print(message, _orange);
 
@@ -75,4 +77,21 @@ void printProgress(String message) => _write(message, _cyan);
 String promptUser(String question) {
   stdout.write('$_orange$question (y/n): $_reset');
   return stdin.readLineSync()?.toLowerCase() ?? 'n';
+}
+
+void printMap(String title, Map<String, dynamic> map) {
+  //TODO change colors
+  print(title);
+  map.forEach((key, value) {
+    print("$key: $value");
+  });
+}
+
+String makeBanner(String text, {int totalLength = 80}) {
+  // Start with the base: //! <text>
+  final base = '//! $text ';
+  // How many "=" are needed to reach totalLength?
+  final remaining = totalLength - base.length;
+  final dashes = remaining > 0 ? '=' * remaining : '';
+  return '$base$dashes';
 }

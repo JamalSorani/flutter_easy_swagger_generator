@@ -1,15 +1,12 @@
 import 'dart:io';
 
-import 'package:flutter_easy_swagger_generator/classes/components.dart';
-import 'package:flutter_easy_swagger_generator/classes/http_method_info.dart';
-import '../../helpers/printer.dart';
-import '../../helpers/utils.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Generates the `State` class for each module/category based on the Swagger paths.
 /// Each state class contains `Result<T>` fields for each API action,
 /// along with constructor and `copyWith` method for immutable updates.
 class StateGenerator {
-  final Map<String, Map<String, HttpMethodInfo>> paths;
+  final List<RouteInfo> paths;
   final Components components;
   final List<String> moduleList;
   final String mainPath;
@@ -25,13 +22,12 @@ class StateGenerator {
   void generateState() {
     try {
       // Group paths by category
-      Map<String, List<MapEntry<String, Map<String, HttpMethodInfo>>>>
-          groupedPaths = {};
+      Map<String, List<RouteInfo>> groupedPaths = {};
 
-      for (var path in paths.keys) {
-        String category = getCategory(path); // Get category from path
+      for (var path in paths) {
+        String category = getCategory(path.fullRoute); // Get category from path
         groupedPaths.putIfAbsent(category, () => []);
-        groupedPaths[category]!.add(MapEntry(path, paths[path]!));
+        groupedPaths[category]!.add(path);
       }
 
       // Generate state for each category
@@ -46,7 +42,7 @@ class StateGenerator {
   /// Generates a single state file for a given category
   void _generateState(
     String category,
-    List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
+    List<RouteInfo> categoryPaths,
   ) {
     String filePath =
         '$mainPath/$category/presentation/state/${category}_state.dart';
@@ -67,20 +63,18 @@ class StateGenerator {
 
     // Generate Result<T> fields for each route
     for (var path in categoryPaths) {
-      String routeName = getRouteName(path.key); // Convert path to action name
+      String routeName =
+          getRouteName(path.fullRoute); // Convert path to action name
       String actionName = routeName;
 
-      for (var method in path.value.entries) {
-        HttpMethodInfo info = method.value;
+      HttpMethodInfo info = path.httpMethodInfo;
 
-        // Only generate fields for routes with 200 response
-        if (info.responses.response200 == null) continue;
+      // Only generate fields for routes with 200 response
+      if (info.responses.response200 == null) continue;
 
-        String methodName =
-            actionName[0].toLowerCase() + actionName.substring(1);
-        actions.add(actionName);
-        buffer.writeln("  Result<${actionName}Model> ${methodName}State;");
-      }
+      String methodName = actionName[0].toLowerCase() + actionName.substring(1);
+      actions.add(actionName);
+      buffer.writeln("  Result<${actionName}Model> ${methodName}State;");
     }
 
     buffer.writeln();

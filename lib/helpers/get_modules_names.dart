@@ -1,4 +1,4 @@
-import '../classes/http_method_info.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Extracts module names (tags) from Swagger API paths.
 ///
@@ -22,26 +22,22 @@ import '../classes/http_method_info.dart';
 /// final modules = getModuleNames(swaggerPaths);
 /// // ["order", "cart", "employee"]
 /// ```
-List<String> getModuleNames(Map<String, Map<String, HttpMethodInfo>> paths) {
+List<String> getModuleNames(List<RouteInfo> paths) {
   Set<String> tags = {};
 
   // Try to extract tags directly from HttpMethodInfo
-  paths.forEach((path, methods) {
-    methods.forEach((method, httpMethodInfo) {
-      if (httpMethodInfo.tags.isNotEmpty) {
-        final List<String> tagList = httpMethodInfo.tags;
-        for (var tag in tagList) {
-          tags.add(tag.toLowerCase());
-        }
-      }
-    });
-  });
+  for (var path in paths) {
+    for (var tag in path.httpMethodInfo.tags) {
+      tags.add(tag.toLowerCase());
+    }
+  }
 
   // If no tags are found, fall back to extracting from path segments
   if (tags.isEmpty) {
-    for (var path in paths.keys) {
-      List<String> pathSegments = path.split('/');
-      String moduleName = pathSegments.length > 1 ? pathSegments[1] : path;
+    for (var path in paths) {
+      List<String> pathSegments = path.fullRoute.split('/');
+      String moduleName =
+          pathSegments.length > 1 ? pathSegments[1] : path.fullRoute;
 
       // Remove "v1/" prefix if present
       if (moduleName.startsWith('v1/')) {

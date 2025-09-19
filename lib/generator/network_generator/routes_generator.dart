@@ -1,73 +1,69 @@
 import 'dart:io';
 
-import 'package:flutter_easy_swagger_generator/classes/http_method_info.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
-import '../../helpers/create_folder.dart';
-import '../../helpers/printer.dart';
-import '../../helpers/utils.dart';
-
-/// A generator class that creates a Dart class containing all API routes.
+/// A generator that creates a Dart class (`AppUrl`) containing
+/// all API routes extracted from Swagger and grouped by category.
 ///
-/// It reads the Swagger paths and generates a class `AppUrl`
-/// with static constants for each route, grouped by category.
+/// Each category is separated with a banner comment generated
+/// by [makeBanner], and each route is declared as a `static const String`.
+///
+/// Example output:
+/// ```dart
+/// class AppUrl {
+///   //! ORDER ================================================================
+///   static const String orderGetById = 'order/getById';
+///
+///   //! CART =================================================================
+///   static const String cartAddItem = 'cart/addItem';
+/// }
+/// ```
 class RoutesGenerator {
-  /// The main directory path where the generated file will be saved.
+  /// A map of grouped routes, where the key is the category
+  /// (e.g. `order`, `cart`) and the value is a list of [RouteInfo]
+  /// representing individual API routes.
+  final Map<String, List<RouteInfo>> groupedRoutes;
+
+  /// The main output directory path where the generated `url.dart`
+  /// file will be stored.
   final String mainPath;
 
-  /// A map containing all API paths with their HTTP method information.
-  Map<String, Map<String, HttpMethodInfo>> paths;
+  RoutesGenerator({required this.groupedRoutes, required this.mainPath});
 
-  /// Constructor for [RoutesGenerator].
+  /// Generates the `AppUrl` class and writes it to `url.dart` inside [mainPath].
   ///
-  /// Requires [paths] and [mainPath].
-  RoutesGenerator({required this.paths, required this.mainPath});
-
-  /// Generates the `AppUrl` Dart class containing all API routes.
-  ///
-  /// Routes are grouped by category and formatted as static constants.
-  /// Each route has the `/api/` prefix removed.
+  /// - Iterates through [groupedRoutes] and converts them into
+  ///   `static const` route fields.
+  /// - Uses [makeBanner] to insert category headers.
+  /// - Removes `/api/` prefix from each route before writing.
+  /// - Stores the grouped routes in [Store.groupedRoutes] for reuse.
   void generateRoutes() {
     try {
-      // Group routes by category
-      Map<String, List<String>> groupedRoutes = {};
-      for (var path in paths.keys) {
-        // Generate a camelCase action name from the route
-        String actionName = getRouteName(path);
-        actionName = actionName[0].toLowerCase() + actionName.substring(1);
+      final List<String> formattedGroups = [];
 
-        // Determine the category of the route
-        String category = getCategory(path);
-
-        // Format the route as a static constant
-        String formattedRoute =
-            "  static const String $actionName = '${path.replaceAll('/api/', '')}';";
-
-        groupedRoutes.putIfAbsent(category, () => []).add(formattedRoute);
-      }
-
-      // Format grouped routes with comments indicating the category
-      List<String> formattedGroups = [];
+      // Build formatted route strings grouped by category
       groupedRoutes.forEach((category, routes) {
-        formattedGroups.add(
-            "//! $category ===================================================================");
-        formattedGroups.addAll(routes);
-        formattedGroups.add(
-            "//! $category ===================================================================\n");
+        formattedGroups.add("  ${makeBanner(category)}");
+        formattedGroups.addAll(
+          routes.map(
+            (e) =>
+                "  static const String ${getRouteName(e.fullRoute).toCamelCase()} = '${e.fullRoute.replaceAll('/api/', '')}';",
+          ),
+        );
+        formattedGroups.add('');
       });
 
-      // Combine everything into the final Dart class
+      // Final Dart class content
       final generatedClass = '''
-/// This class contains all API routes as static constants,
-/// grouped by category.
 class AppUrl {
 ${formattedGroups.join('\n')}
 }
 ''';
 
-      // Ensure the output folder exists
+      // Ensure output folder exists
       createFolder(mainPath);
 
-      // Write the generated class to a Dart file
+      // Write to file
       final outputFile = File("$mainPath/url.dart");
       outputFile.writeAsStringSync(generatedClass);
     } catch (e) {

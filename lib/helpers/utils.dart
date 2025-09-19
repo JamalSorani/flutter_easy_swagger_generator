@@ -1,5 +1,4 @@
-import 'constants.dart';
-import 'converters.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Returns the file name for a given [moduleName] and [routeName].
 ///
@@ -8,7 +7,7 @@ import 'converters.dart';
 ///
 /// The [routeName] is first converted to `snake_case` format.
 String _getFileName(String moduleName, String routeName, bool isForEntities) {
-  String snakeCaseRoute = convertToSnakeCase(routeName);
+  String snakeCaseRoute = routeName.toSnakeCase();
 
   return isForEntities ? '${snakeCaseRoute}_param' : '${snakeCaseRoute}_model';
 }
@@ -52,9 +51,40 @@ String getRouteName(String path) {
     }
   }
   if (parts.isEmpty) return ConstantsHelper.generalCategory;
-  return parts
-      .map((e) => e.isEmpty ? "" : (e[0].toUpperCase() + e.substring(1)))
-      .join('');
+  String entity = parts[0]; // Example: "Order", "Student", "Subject"
+  String action = parts.length > 1 ? parts[1] : "";
+
+  // Mapping of API verbs → readable method names
+  final Map<String, String> verbMap = {
+    "GetAll": "GetAll",
+    "GetById": "GetById",
+    "Get": "Get",
+    "Create": "Create",
+    "Add": "Add",
+    "Modify": "Modify",
+    "Reset": "Reset",
+    "Send": "Send",
+    "Verify": "Verify",
+    "Resend": "Resend",
+    "Change": "Change",
+    "Refresh": "Refresh",
+    "LogIn": "Login",
+    "LoginAsGuest": "LoginAsGuest",
+  };
+
+  String mappedAction = verbMap[action] ?? action;
+
+  // Special handling: pluralize if "GetAll"
+  if (mappedAction.startsWith("GetAll")) {
+    if (!entity.endsWith("s")) {
+      entity += "s"; // pluralize simple cases
+    }
+  }
+  if (!mappedAction.contains(entity)) {
+    mappedAction = mappedAction + entity;
+  }
+
+  return mappedAction;
 }
 
 /// Extracts the **category** (module name) from a given [path].

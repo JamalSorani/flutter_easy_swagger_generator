@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter_easy_swagger_generator/helpers/printer.dart';
 
 /// The maximum number of concurrent formatting operations

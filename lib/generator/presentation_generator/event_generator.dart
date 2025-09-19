@@ -1,14 +1,11 @@
 import 'dart:io';
 
-import 'package:flutter_easy_swagger_generator/classes/components.dart';
-import 'package:flutter_easy_swagger_generator/classes/http_method_info.dart';
-import '../../helpers/printer.dart';
-import '../../helpers/utils.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Generates event classes for each module/category based on Swagger paths.
 /// Each event corresponds to an API action and contains the parameters (`Param`) required for that action.
 class EventGenerator {
-  final Map<String, Map<String, HttpMethodInfo>> paths;
+  final List<RouteInfo> paths;
   final Components components;
   final List<String> moduleList;
   final String mainPath;
@@ -24,13 +21,12 @@ class EventGenerator {
   void generateEvent() {
     try {
       // Group paths by category
-      Map<String, List<MapEntry<String, Map<String, HttpMethodInfo>>>>
-          groupedPaths = {};
+      Map<String, List<RouteInfo>> groupedPaths = {};
 
-      for (var path in paths.keys) {
-        String category = getCategory(path);
+      for (var path in paths) {
+        String category = getCategory(path.fullRoute);
         groupedPaths.putIfAbsent(category, () => []);
-        groupedPaths[category]!.add(MapEntry(path, paths[path]!));
+        groupedPaths[category]!.add(path);
       }
 
       // Generate events for each category
@@ -45,7 +41,7 @@ class EventGenerator {
   /// Generates the event file for a specific category
   void _generateEventForCategory(
     String category,
-    List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
+    List<RouteInfo> categoryPaths,
   ) {
     String filePath =
         '$mainPath/$category/presentation/state/${category}_event.dart';
@@ -65,25 +61,22 @@ abstract class ${capitalizedCategory}Event {}
 
     // Generate event class for each API action with response 200
     for (var path in categoryPaths) {
-      String routeName = getRouteName(path.key);
+      String routeName = getRouteName(path.fullRoute);
       String actionName = routeName;
 
-      for (var method in path.value.entries) {
-        HttpMethodInfo info = method.value;
+      HttpMethodInfo info = path.httpMethodInfo;
 
-        if (info.responses.response200 == null) continue;
+      if (info.responses.response200 == null) continue;
 
-        String methodName =
-            actionName[0].toLowerCase() + actionName.substring(1);
+      String methodName = actionName[0].toLowerCase() + actionName.substring(1);
 
-        buffer.writeln("""
+      buffer.writeln("""
 class ${actionName}Event extends ${capitalizedCategory}Event {
   final ${actionName}Param ${methodName}Param;
 
   ${actionName}Event({required this.${methodName}Param});
 }
 """);
-      }
     }
 
     // Write the generated file

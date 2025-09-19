@@ -7,7 +7,7 @@ class Server {
 
   Server({
     required this.url,
-    this.description,
+    required this.description,
   });
 
   /// Creates a [Server] instance from a JSON map

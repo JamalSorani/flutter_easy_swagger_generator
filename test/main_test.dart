@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter_easy_swagger_generator/helpers/formatter.dart';
 import 'package:test/test.dart';
 

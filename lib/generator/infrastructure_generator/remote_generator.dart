@@ -1,10 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter_easy_swagger_generator/classes/components.dart';
-import 'package:flutter_easy_swagger_generator/classes/http_method_info.dart';
-import 'package:flutter_easy_swagger_generator/helpers/converters.dart';
-import '../../helpers/printer.dart';
-import '../../helpers/utils.dart';
+import '../../helpers/imports.dart';
 
 /// A generator responsible for creating remote data source classes.
 ///
@@ -14,7 +10,7 @@ import '../../helpers/utils.dart';
 /// - Handle API errors consistently using `throwDioException`.
 class RemoteGenerator {
   /// The map of API paths grouped by route and their corresponding methods.
-  final Map<String, Map<String, HttpMethodInfo>> paths;
+  final List<RouteInfo> paths;
 
   /// The components defined in the Swagger file.
   final Components components;
@@ -41,16 +37,15 @@ class RemoteGenerator {
   /// 3. Adds methods for each HTTP request defined in the Swagger spec.
   void generateRemote() {
     try {
-      Map<String, List<MapEntry<String, Map<String, HttpMethodInfo>>>>
-          groupedPaths = {};
+      Map<String, List<RouteInfo>> groupedPaths = {};
 
       // Group paths by category
-      for (var path in paths.entries) {
-        String category = getCategory(path.key);
+      for (var path in paths) {
+        String category = getCategory(path.fullRoute);
         if (!groupedPaths.containsKey(category)) {
           groupedPaths[category] = [];
         }
-        groupedPaths[category]!.add(MapEntry(path.key, path.value));
+        groupedPaths[category]!.add(path);
       }
 
       // Generate a remote data source for each category
@@ -69,7 +64,7 @@ class RemoteGenerator {
   /// - Converts request entities to JSON and parses responses into models.
   void _generateRemoteForCategory(
     String category,
-    List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
+    List<RouteInfo> paths,
   ) {
     String filePath =
         '$mainPath/$category/infrastructure/datasource/remote/${category}_remote.dart';
@@ -85,17 +80,17 @@ class RemoteGenerator {
         "import '../../../../../common/network/exception/error_handler.dart';");
 
     // Add model imports
-    for (var path in categoryPaths) {
-      String routeName = getRouteName(path.key);
-      String actionName = convertToSnakeCase(routeName);
+    for (var path in paths) {
+      String routeName = getRouteName(path.fullRoute);
+      String actionName = routeName.toSnakeCase();
 
       buffer.writeln("import '../../models/${actionName}_model.dart';");
     }
 
     // Add entity imports
-    for (var path in categoryPaths) {
-      String routeName = getRouteName(path.key);
-      String actionName = convertToSnakeCase(routeName);
+    for (var path in paths) {
+      String routeName = getRouteName(path.fullRoute);
+      String actionName = routeName.toSnakeCase();
       buffer.writeln(
           "import '../../../domain/entities/${actionName}_param.dart';");
     }
@@ -111,20 +106,18 @@ class RemoteGenerator {
         "  const ${(category[0].toUpperCase() + category.substring(1))}Api(Dio dio) : _dio = dio;");
 
     // Generate methods for each API endpoint
-    for (var path in categoryPaths) {
-      String routeName = getRouteName(path.key);
+    for (var path in paths) {
+      String routeName = getRouteName(path.fullRoute);
       String actionName = routeName;
 
-      for (var method in path.value.entries) {
-        HttpMethodInfo info = method.value;
+      HttpMethodInfo info = path.httpMethodInfo;
 
-        if (info.responses.response200 == null) continue;
+      if (info.responses.response200 == null) continue;
 
-        String methodName =
-            actionName[0].toLowerCase() + actionName.substring(1);
-        String requestType = method.key;
+      String methodName = actionName[0].toLowerCase() + actionName.substring(1);
+      HttpMethodType requestType = path.httpMethod;
 
-        buffer.writeln("""
+      buffer.writeln("""
   /// Sends a [$requestType] request to the [$actionName] endpoint.
   ///
   /// - Request body is created from [${methodName}Param].
@@ -142,7 +135,6 @@ class RemoteGenerator {
     });
   }
 """);
-      }
     }
 
     buffer.writeln("}");

@@ -5,7 +5,7 @@ class IResponse {
   /// Details for the 200 response, if any
   final ResponseDetails? response200;
 
-  IResponse({this.response200});
+  IResponse({required this.response200});
 
   /// Creates an instance from a JSON map
   factory IResponse.fromJson(Map<String, dynamic> json) {
@@ -23,20 +23,46 @@ class ResponseDetails {
   final String? description;
 
   /// Maps media types (e.g., application/json) to their content details
-  final Map<String, MediaTypeContent>? content;
+  final MediaTypeContent? content;
 
-  ResponseDetails({this.description, this.content});
+  ResponseDetails({required this.description, required this.content});
 
   /// Creates an instance from a JSON map
   factory ResponseDetails.fromJson(Map<String, dynamic> json) {
     return ResponseDetails(
       description: json['description'] as String?,
-      content: (json['content'] as Map<String, dynamic>?)?.map(
-        (key, value) => MapEntry(
-          key,
-          MediaTypeContent.fromJson(value as Map<String, dynamic>),
-        ),
-      ),
+      content: json['content'] == null
+          ? null
+          : MediaTypeContent.fromJson(
+              json['content'] as Map<String, dynamic>,
+            ),
     );
   }
 }
+
+
+/*
+example:
+ "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Elkood.Application.OperationResponses.OperationResponse`1[[DAN.Application.App..Queries.GetMyProfile.GetMyProfileQuery.Response, DAN.Application.App, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Elkood.Application.OperationResponses.OperationResponse`1[[DAN.Application.App..Queries.GetMyProfile.GetMyProfileQuery.Response, DAN.Application.App, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Elkood.Application.OperationResponses.OperationResponse`1[[DAN.Application.App..Queries.GetMyProfile.GetMyProfileQuery.Response, DAN.Application.App, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              }
+            }
+          }
+        }
+*/

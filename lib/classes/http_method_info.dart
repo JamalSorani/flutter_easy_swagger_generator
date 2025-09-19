@@ -4,17 +4,18 @@ import 'package:flutter_easy_swagger_generator/classes/response.dart';
 
 /// Represents information about an HTTP method in the OpenAPI specification.
 class HttpMethodInfo {
-  /// The summary or operation ID of the HTTP method.
-  final String? summary;
+  /// The summary of the HTTP method. for example "Auth policies: HasUserTypes_1_"
+  final String?
+      summary; //TODO add comment to tell user that this is the summary
 
   /// A detailed description of the HTTP method.
   final String? description;
 
   /// List of parameters for the HTTP method (query, path, header, etc.).
-  final List<IParameter>? parameters;
+  final List<Parameter>? parameters;
 
   /// Optional request body associated with the HTTP method.
-  final TRequestBody? requestBody;
+  final RequestBody? requestBody;
 
   /// The response information for the HTTP method, typically including status 200.
   final IResponse responses;
@@ -37,14 +38,14 @@ class HttpMethodInfo {
   /// Parses `parameters`, `requestBody`, `responses`, and `tags` from the JSON structure.
   factory HttpMethodInfo.fromJson(Map<String, dynamic> json) {
     return HttpMethodInfo(
-      summary: json["operationId"],
+      summary: json["summary"],
       description: json["description"],
       parameters: (json["parameters"] as List?)
-          ?.map((e) => IParameter.fromJson(e))
+          ?.map((e) => Parameter.fromJson(e))
           .toList(),
       requestBody: json["requestBody"] == null
           ? null
-          : TRequestBody.fromJson(json["requestBody"]),
+          : RequestBody.fromJson(json["requestBody"]),
       responses: IResponse.fromJson(json["responses"]),
       tags: (json["tags"] as List?)?.map((e) => e.toString()).toList() ?? [],
     );

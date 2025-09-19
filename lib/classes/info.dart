@@ -1,3 +1,5 @@
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
+
 import 'contact.dart';
 
 /// Represents the metadata information of an API.
@@ -26,6 +28,7 @@ class Info {
   ///
   /// Parses the `contact` field into a [Contact] object if it exists.
   factory Info.fromJson(Map<String, dynamic> json) {
+    printMap("The metadata information of an API:", json);
     return Info(
       title: json['title'] as String,
       description: json['description'] as String,
@@ -35,3 +38,12 @@ class Info {
     );
   }
 }
+
+/*Example:
+
+  "info": {
+    "title": "DAN.API Mobile - In Staging",
+    "description": "Published at 09/04/2025 08:42:23",
+    "version": "v1"
+  },
+*/

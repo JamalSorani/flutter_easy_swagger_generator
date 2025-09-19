@@ -1,46 +1,62 @@
-import 'dart:core';
-import 'property.dart';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Represents a parameter in an API endpoint, such as query, path, or header parameters.
-class IParameter {
+class Parameter {
   /// The name of the parameter.
   final String name;
 
   /// The location of the parameter. Must be one of `"query"`, `"header"`, or `"path"`.
-  final String inn;
+  final String inn; //TODO query"`, `"header"`, or `"path
 
   /// Optional schema describing the type of this parameter.
   final TProperty? schema;
 
   /// Optional flag indicating if the parameter is required.
-  final bool? required;
+  final bool required;
 
   /// Optional type of the parameter.
-  final String? type;
+  final TPropertyType? type;
 
-  /// Constructor for [IParameter].
+  final bool
+      allowEmptyValue; //TODO add comment to tell developer that it accept empty value
+
+  final dynamic
+      example; //TODO add comment to tell developer that it accept empty value
+
+  final String? format;
+
+  /// Constructor for [Parameter].
   ///
   /// Ensures that [inn] is one of `"query"`, `"header"`, or `"path"`.
-  IParameter({
+  Parameter({
     required this.name,
     required this.inn,
-    this.schema,
-    this.required,
-    this.type,
+    required this.schema,
+    required this.required,
+    required this.type,
+    required this.allowEmptyValue,
+    required this.example,
+    required this.format,
   }) : assert(
           inn == "query" || inn == "header" || inn == "path",
           'The "in" field must be either "query", "header", or "path"',
         );
 
-  /// Creates an [IParameter] instance from a JSON map.
-  factory IParameter.fromJson(Map<String, dynamic> json) {
-    return IParameter(
+  /// Creates an [Parameter] instance from a JSON map.
+  factory Parameter.fromJson(Map<String, dynamic> json) {
+    return Parameter(
       name: json["name"] ?? "",
       inn: json["in"] ?? "query",
       schema:
           json["schema"] == null ? null : TProperty.fromJson(json["schema"]),
-      required: json["required"],
-      type: json['type'],
+      required: json["required"] ?? false,
+      type: TPropertyType.values.firstWhere(
+        (e) => e.toString() == json['type']?.toString(),
+        orElse: () => TPropertyType.string,
+      ),
+      allowEmptyValue: json["allowEmptyValue"] ?? false,
+      example: json["example"],
+      format: json['format'] as String?,
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Generates the application layer (facade classes) for each API category.
@@ -8,7 +10,7 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 /// - Importing models and entities for each API route.
 class ApplicationGenerator {
   /// Swagger API paths.
-  final Map<String, Map<String, HttpMethodInfo>> paths;
+  final List<RouteInfo> paths;
 
   /// Swagger components (schemas, responses, etc.).
   final Components components;
@@ -31,13 +33,12 @@ class ApplicationGenerator {
   void generateApplication() {
     try {
       // Group paths by category
-      Map<String, List<MapEntry<String, Map<String, HttpMethodInfo>>>>
-          groupedPaths = {};
+      Map<String, List<RouteInfo>> groupedPaths = {};
 
-      for (var path in paths.keys) {
-        String category = getCategory(path);
+      for (var path in paths) {
+        String category = getCategory(path.fullRoute);
         groupedPaths.putIfAbsent(category, () => []);
-        groupedPaths[category]!.add(MapEntry(path, paths[path]!));
+        groupedPaths[category]!.add(path);
       }
 
       // Generate a facade for each category
@@ -55,7 +56,7 @@ class ApplicationGenerator {
   /// - [categoryPaths] is a list of API paths belonging to this category.
   void _generateApplicationForCategory(
     String category,
-    List<MapEntry<String, Map<String, HttpMethodInfo>>> categoryPaths,
+    List<RouteInfo> categoryPaths,
   ) {
     // Determine file path for facade
     String filePath = '$mainPath/$category/application/${category}_facade.dart';
@@ -71,16 +72,16 @@ class ApplicationGenerator {
 
     // Import models
     for (var pathEntry in categoryPaths) {
-      String routeName = getRouteName(pathEntry.key);
-      String actionName = convertToSnakeCase(routeName);
+      String routeName = getRouteName(pathEntry.fullRoute);
+      String actionName = routeName.toSnakeCase();
       buffer.writeln(
           "import '../infrastructure/models/${actionName}_model.dart';");
     }
 
     // Import entities (parameters)
     for (var pathEntry in categoryPaths) {
-      String routeName = getRouteName(pathEntry.key);
-      String actionName = convertToSnakeCase(routeName);
+      String routeName = getRouteName(pathEntry.fullRoute);
+      String actionName = routeName.toSnakeCase();
       buffer.writeln("import '../domain/entities/${actionName}_param.dart';");
     }
 
@@ -100,27 +101,24 @@ class ApplicationGenerator {
 
     // Generate methods for each API route
     for (var pathEntry in categoryPaths) {
-      String routeName = getRouteName(pathEntry.key);
+      String routeName = getRouteName(pathEntry.fullRoute);
       String actionName = routeName;
 
-      for (var method in pathEntry.value.entries) {
-        HttpMethodInfo info = method.value;
+      HttpMethodInfo info = pathEntry.httpMethodInfo;
 
-        // Skip if no 200 response
-        if (info.responses.response200 == null) continue;
+      // Skip if no 200 response
+      if (info.responses.response200 == null) continue;
 
-        // Method name: lowerCamelCase
-        String methodName =
-            actionName[0].toLowerCase() + actionName.substring(1);
+      // Method name: lowerCamelCase
+      String methodName = actionName[0].toLowerCase() + actionName.substring(1);
 
-        // Generate facade method
-        buffer.writeln("""
+      // Generate facade method
+      buffer.writeln("""
   Future<Either<String, ${actionName}Model>> $methodName({
     required ${actionName}Param ${methodName}Param,
   }) =>
       _repository.$methodName(${methodName}Param: ${methodName}Param);
 """);
-      }
     }
 
     buffer.writeln("}");

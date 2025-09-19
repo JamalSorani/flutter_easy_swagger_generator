@@ -1,20 +1,51 @@
+import 'package:flutter_easy_swagger_generator/enums/content_type.dart';
+
 import 'property.dart';
 
-/// Represents the content of a media type in a request or response.
 class MediaTypeContent {
-  /// Optional schema describing the structure of the media type content.
+  final TContentType contentType;
+
   final TProperty? schema;
 
-  /// Constructs a [MediaTypeContent] with an optional [schema].
-  MediaTypeContent({this.schema});
+  MediaTypeContent({
+    required this.contentType,
+    required this.schema,
+  });
 
-  /// Creates a [MediaTypeContent] from a JSON map.
-  ///
-  /// Parses the `schema` field into a [TProperty] if it exists.
   factory MediaTypeContent.fromJson(Map<String, dynamic> json) {
+    late TContentType contentType;
+    late TProperty schema;
+    json.forEach((key, value) {
+      final type = TContentType.fromString(key);
+      if (type == TContentType.applicationJson ||
+          type == TContentType.multipartFormData) {
+        contentType = type;
+        schema = TProperty.fromJson(value["schema"]);
+      }
+    });
     return MediaTypeContent(
-      schema:
-          json["schema"] == null ? null : TProperty.fromJson(json["schema"]),
+      contentType: contentType,
+      schema: schema,
     );
   }
 }
+
+/*Example:
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Elkood.Application.OperationResponses.OperationResponse`1[[DAN.Application.App..Queries.GetMyProfile.GetMyProfileQuery.Response, DAN.Application.App, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Elkood.Application.OperationResponses.OperationResponse`1[[DAN.Application.App..Queries.GetMyProfile.GetMyProfileQuery.Response, DAN.Application.App, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Elkood.Application.OperationResponses.OperationResponse`1[[DAN.Application.App..Queries.GetMyProfile.GetMyProfileQuery.Response, DAN.Application.App, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              }
+            }
+*/
