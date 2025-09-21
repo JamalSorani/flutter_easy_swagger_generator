@@ -1,6 +1,8 @@
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 class ParametarsGenerator {
+  static Set<String> generatedSubClassesNames = {};
+
   static List<GeneratedParameters> generateParametars({
     required List<Parameter>? parameters,
     required Components components,
@@ -43,8 +45,8 @@ class ParametarsGenerator {
           nullable: !param.required,
           isSubClass: param.schema?.ref != null,
           isDateTime: paramType.toLowerCase().contains("date"),
+          isList: paramType.toLowerCase().contains("list"),
         );
-
         generateParametars.add(
           GeneratedParameters(
             type: paramType,
@@ -54,9 +56,11 @@ class ParametarsGenerator {
               nullable: !param.required,
               generatedJsonLine: jsonLine,
             ),
-            enumValues: enumValues,
+            enumValues:
+                !generatedSubClassesNames.contains(paramType) ? enumValues : [],
             subClassName: paramType,
-            subClassParameters: param.schema?.ref != null
+            subClassParameters: !generatedSubClassesNames.contains(paramType) &&
+                    param.schema?.ref != null
                 ? (RequestBodyGenerator(components: components)
                     .generateRequestBody(
                     requestBody: RequestBody(
@@ -67,9 +71,10 @@ class ParametarsGenerator {
                       ),
                     ),
                   ))
-                : [],
+                : null,
           ),
         );
+        generatedSubClassesNames.add(paramType);
       }
     }
     return generateParametars;
@@ -83,7 +88,7 @@ class GeneratedParameters {
   final GeneratedJsonLine generatedJsonLine;
   final List<String> enumValues;
   final String subClassName;
-  final List<GeneratedParameters> subClassParameters;
+  final List<GeneratedParameters>? subClassParameters;
 
   GeneratedParameters({
     required this.type,

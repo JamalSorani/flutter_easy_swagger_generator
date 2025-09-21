@@ -56,7 +56,7 @@ class RoutesGenerator {
       // Final Dart class content
       final generatedClass = '''
 class AppUrl {
-${formattedGroups.join('\n')}
+${formattedGroups.join(LINE)}
 }
 ''';
 

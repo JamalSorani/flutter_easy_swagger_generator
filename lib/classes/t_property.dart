@@ -22,6 +22,9 @@ class PrimitiveProperty implements TProperty {
   @override
   final dynamic defaultValue;
 
+  @override
+  final TProperty? items;
+
   PrimitiveProperty({
     required this.type,
     this.ref,
@@ -29,6 +32,7 @@ class PrimitiveProperty implements TProperty {
     this.format,
     required this.enumValues,
     this.defaultValue,
+    this.items,
   });
 
   /// Creates a [PrimitiveProperty] from a JSON map.
@@ -77,7 +81,7 @@ class ArrayProperty implements TProperty {
   @override
   final String? format;
 
-  /// The type of items in the array.
+  @override
   final TProperty? items;
 
   @override
@@ -132,6 +136,9 @@ class RefProperty implements TProperty {
   @override
   final List<String> enumValues;
 
+  @override
+  final TProperty? items;
+
   RefProperty({
     this.ref,
     this.type = TPropertyType.RefProperty,
@@ -139,6 +146,7 @@ class RefProperty implements TProperty {
     required this.format,
     this.defaultValue,
     required this.enumValues,
+    this.items,
   });
 
   /// Creates a [RefProperty] from a JSON map.
@@ -181,6 +189,9 @@ class ObjectProperty implements TProperty {
   @override
   final List<String> enumValues;
 
+  @override
+  final TProperty? items;
+
   ObjectProperty({
     required this.properties,
     this.additionalProperties,
@@ -190,12 +201,15 @@ class ObjectProperty implements TProperty {
     required this.format,
     this.defaultValue,
     required this.enumValues,
+    this.items,
   });
 
   /// Creates an [ObjectProperty] from a JSON map.
   factory ObjectProperty.fromJson(Map<String, dynamic> json) {
     List<PropertyNameAndSchema> properties = [];
-    if (json['properties'] != null) {
+
+    if (json['properties'] != null &&
+        json['properties'] is Map<String, dynamic>) {
       (json['properties'] as Map<String, dynamic>).forEach(
         (key, value) {
           properties.add(
@@ -207,8 +221,9 @@ class ObjectProperty implements TProperty {
         },
       );
     }
+
     return ObjectProperty(
-      properties: properties,
+      properties: properties, // always non-null (empty if none)
       additionalProperties: json['additionalProperties'],
       format: json['format'] as String?,
       defaultValue: json['default'],
@@ -229,6 +244,7 @@ class TProperty {
   final dynamic
       defaultValue; //TODO add comment to tell developer the default value
   final List<String> enumValues;
+  final TProperty? items;
 
   TProperty({
     required this.type,
@@ -237,6 +253,7 @@ class TProperty {
     required this.format,
     required this.defaultValue,
     required this.enumValues,
+    required this.items,
   });
 
   /// Factory method that creates the appropriate subclass based on JSON content.
@@ -262,19 +279,6 @@ class PropertyNameAndSchema {
     required this.propertyName,
     required this.schema,
   });
-
-  factory PropertyNameAndSchema.fromJson(Map<String, dynamic> json) {
-    late String propertyName;
-    late TProperty schema;
-    json.forEach((key, value) {
-      propertyName = key;
-      schema = TProperty.fromJson(value);
-    });
-    return PropertyNameAndSchema(
-      propertyName: propertyName,
-      schema: schema,
-    );
-  }
 }
 
 enum TPropertyType {

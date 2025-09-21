@@ -8,7 +8,7 @@ class ClassGeneratorHelper {
     required dynamic example,
     required String? format,
   }) {
-    String nullAbleMark = isNullable ? "?" : "";
+    String nullAbleMark = isNullable && paramType != "dynamic" ? "?" : "";
     String vairable =
         '  final $paramType$nullAbleMark ${paramName.toCamelCase().replaceAll("/", "")};';
     if (example != null) {
@@ -35,14 +35,18 @@ class ClassGeneratorHelper {
     required bool nullable,
     required bool isSubClass,
     required bool isDateTime,
+    required bool isList,
   }) {
     String camelCaseName = paramName.replaceAll('.', '').toCamelCase();
     String nullableMark = nullable ? "?" : "";
     String enumName = isEnum ? "$nullableMark.name" : "";
     String subClassToJson =
-        isSubClass && !isEnum ? "$nullableMark.toJson()" : "";
+        isSubClass && !isEnum && !isList ? "$nullableMark.toJson()" : "";
     String dateToIso8601String =
         isDateTime ? "$nullableMark.toIso8601String()" : "";
-    return '      \'$paramName\': $camelCaseName$enumName$subClassToJson$dateToIso8601String,';
+    String listToJson = isList && isSubClass
+        ? "$nullableMark.map((e) => e.toJson()).toList()"
+        : "";
+    return '      \'$paramName\': $camelCaseName$enumName$subClassToJson$dateToIso8601String$listToJson,';
   }
 }

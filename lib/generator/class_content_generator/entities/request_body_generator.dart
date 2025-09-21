@@ -16,17 +16,18 @@ class RequestBodyGenerator {
   //! TProperty Generator=====================================================================
   List<GeneratedParameters> _tPropertyGenerator(TProperty? tProperty) {
     if (tProperty is RefProperty) {
-      // printInfo("tProperty is RefProperty");
+      // printDebug("tProperty is RefProperty ${tProperty.ref}");
       return _generateRequestBodyRef(
         ref: tProperty.ref!,
       );
     }
     if (tProperty is ObjectProperty) {
-      // printInfo("tProperty is ObjectProperty");
+      // printDebug("tProperty is ObjectProperty");
       return _generateObjectProperty(
         tProperty,
       );
     }
+
     return [];
   }
 
@@ -40,7 +41,8 @@ class RequestBodyGenerator {
 
   //! ObjectProperty Generator=====================================================================
   List<GeneratedParameters> _generateObjectProperty(
-      ObjectProperty objectProperty) {
+    ObjectProperty objectProperty,
+  ) {
     List<GeneratedParameters> generatedParameters = [];
     final properties = objectProperty.properties;
     for (var param in properties) {
@@ -52,7 +54,9 @@ class RequestBodyGenerator {
       );
       String paramType = dartTypeInfo.className;
       String paramNameWithoutDot = paramName.replaceAll('.', '');
-
+      if (paramType.contains("List<ProductDtoParam>")) {
+        printDebug(dartTypeInfo.schema?.items?.ref);
+      }
       String variable = ClassGeneratorHelper.formatVariable(
         paramType: paramType,
         paramName: paramNameWithoutDot,
@@ -66,14 +70,16 @@ class RequestBodyGenerator {
         isRequired: !param.schema.nullable,
       );
       final enumValues = dartTypeInfo.schema?.enumValues ?? [];
-
+      final ref = param.schema.ref ?? param.schema.items?.ref;
       String jsonLine = ClassGeneratorHelper.formatJsonLine(
         paramName: paramName,
         isEnum: enumValues.isNotEmpty,
         nullable: param.schema.nullable,
-        isSubClass: param.schema.ref != null,
+        isSubClass: ref != null,
         isDateTime: paramType.toLowerCase().contains("date"),
+        isList: paramType.toLowerCase().contains("list"),
       );
+
       generatedParameters.add(
         GeneratedParameters(
           type: paramType,
@@ -83,22 +89,28 @@ class RequestBodyGenerator {
             nullable: param.schema.nullable,
             generatedJsonLine: jsonLine,
           ),
-          enumValues: enumValues,
+          enumValues:
+              !ParametarsGenerator.generatedSubClassesNames.contains(paramType)
+                  ? enumValues
+                  : [],
           subClassName: paramType,
-          subClassParameters: param.schema.ref != null
+          subClassParameters: !ParametarsGenerator.generatedSubClassesNames
+                      .contains(paramType) &&
+                  ref != null
               ? (RequestBodyGenerator(components: components)
                   .generateRequestBody(
                   requestBody: RequestBody(
                     description: null,
                     content: MediaTypeContent(
                       contentType: TContentType.applicationJson,
-                      schema: components.schemas[param.schema.ref]!,
+                      schema: components.schemas[ref]!,
                     ),
                   ),
                 ))
-              : [],
+              : null,
         ),
       );
+      ParametarsGenerator.generatedSubClassesNames.add(paramType);
     }
     return generatedParameters;
   }

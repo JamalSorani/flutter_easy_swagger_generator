@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import '../../helpers/converters.dart';
-import '../../helpers/printer.dart';
+import '../../helpers/imports.dart';
 
 /// A generator responsible for creating dependency injection setup files.
 ///
@@ -123,7 +122,7 @@ final GetIt getIt = GetIt.instance;
 
 /// Initializes dependency injection for all modules.
 Future<void> initInjection() async {
-${moduleList.map((module) => "  await ${module}Injection();").join("\n")}
+${moduleList.map((module) => "  await ${module}Injection();").join(LINE)}
 }
 """);
     file.writeAsStringSync(buffer.toString());

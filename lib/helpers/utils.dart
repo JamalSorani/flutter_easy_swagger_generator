@@ -34,27 +34,41 @@ String getModelAndEntityFilePath(
 
 /// Extracts a **route name** from the given [path].
 ///
-/// - Removes `/api/` and braces `{}`.
+/// - Cleans the path using [cleanPath] (removes `/api/{something}/` and braces).
 /// - Removes prefixes defined in [ConstantsHelper.allPrefixesToRemove].
-/// - Converts each path segment to PascalCase and concatenates them.
+/// - Splits remaining parts into [entity] and [action].
+/// - Maps common API verbs (Get, Create, Add, etc.) to readable method names.
+/// - Ensures entity names are pluralized for `GetAll`.
+/// - Returns a PascalCase route name like `GetOrders`, `CreateStudent`.
 ///
 /// If the path is empty after cleaning, it falls back to
 /// [ConstantsHelper.generalCategory].
 String getRouteName(String path) {
   path = cleanPath(path);
-  List<String> parts = path.split('/');
+  List<String> parts = path.split('/')..removeWhere((p) => p.isEmpty);
+
   if (parts.isEmpty) return ConstantsHelper.generalCategory;
+
+  // Special handling for Hub routes
+  if (parts.first.toLowerCase() == 'hub' && parts.length >= 3) {
+    String entity = _toPascalCase(parts[1]); // e.g., SamePageWarning
+    String action = _toPascalCase(parts[2]); // e.g., CheckPage, PageLogout
+    return action + entity; // => CheckPageSamePageWarning
+  }
+
+  // Remove defined prefixes
   for (var prefix in ConstantsHelper.allPrefixesToRemove) {
-    if (parts.first.toLowerCase() == prefix.toLowerCase()) {
+    if (parts.isNotEmpty && parts.first.toLowerCase() == prefix.toLowerCase()) {
       parts.removeAt(0);
       break;
     }
   }
-  if (parts.isEmpty) return ConstantsHelper.generalCategory;
-  String entity = parts[0]; // Example: "Order", "Student", "Subject"
-  String action = parts.length > 1 ? parts[1] : "";
 
-  // Mapping of API verbs → readable method names
+  if (parts.isEmpty) return ConstantsHelper.generalCategory;
+
+  String entity = _toPascalCase(parts[0]);
+  String action = parts.length > 1 ? _toPascalCase(parts[1]) : "";
+
   final Map<String, String> verbMap = {
     "GetAll": "GetAll",
     "GetById": "GetById",
@@ -74,12 +88,10 @@ String getRouteName(String path) {
 
   String mappedAction = verbMap[action] ?? action;
 
-  // Special handling: pluralize if "GetAll"
-  if (mappedAction.startsWith("GetAll")) {
-    if (!entity.endsWith("s")) {
-      entity += "s"; // pluralize simple cases
-    }
+  if (mappedAction.startsWith("GetAll") && !entity.endsWith("s")) {
+    entity += "s";
   }
+
   if (!mappedAction.contains(entity)) {
     mappedAction = mappedAction + entity;
   }
@@ -87,12 +99,19 @@ String getRouteName(String path) {
   return mappedAction;
 }
 
+/// Converts a string to PascalCase.
+String _toPascalCase(String input) {
+  if (input.isEmpty) return input;
+  return input[0].toUpperCase() + input.substring(1);
+}
+
 /// Extracts the **category** (module name) from a given [path].
 ///
 /// - If the last segment contains `.Shared.`, returns the last part.
 /// - Otherwise, removes `/api/` and braces `{}`.
+/// - If path starts with `/api/{something}/`, removes both `api` and `{something}`.
 /// - Removes prefixes defined in [ConstantsHelper.allPrefixesToRemove].
-/// - Returns the first segment in lowercase.
+/// - Returns the first remaining segment in lowercase.
 ///
 /// If no category is found, it falls back to
 /// [ConstantsHelper.generalCategory].
@@ -105,24 +124,48 @@ String getCategory(String path) {
   }
 
   path = cleanPath(path);
-  List<String> parts = path.split('/');
+  List<String> parts = path.split('/')
+    ..removeWhere((p) => p.isEmpty); // remove empty strings from //
+
   if (parts.isEmpty) return ConstantsHelper.generalCategory;
+
+  // If starts with api/{something}, remove both
+  if (parts.length > 1 && parts.first.toLowerCase() == 'api') {
+    parts.removeAt(0); // remove "api"
+    parts.removeAt(0); // remove second part (e.g., "mobile", "warehouseapp")
+  }
+
+  // Remove defined prefixes
   for (var prefix in ConstantsHelper.allPrefixesToRemove) {
-    if (parts.first.toLowerCase() == prefix.toLowerCase()) {
+    if (parts.isNotEmpty && parts.first.toLowerCase() == prefix.toLowerCase()) {
       parts.removeAt(0);
       break;
     }
   }
+
   return parts.isNotEmpty
       ? parts.first.toLowerCase()
       : ConstantsHelper.generalCategory;
 }
 
-/// Cleans the given [path] by removing unwanted parts.
-///
-/// Specifically:
-/// - Removes `/api/`.
-/// - Removes `{}` placeholders.
+/// Cleans the [path] by:
+/// - Removing `/api/{something}/` if it exists
+/// - Removing braces `{}`
+/// - Returning the remaining normalized path
 String cleanPath(String path) {
-  return path.replaceAll('/api/', '').replaceAll('{', '').replaceAll('}', '');
+  // Normalize slashes
+  List<String> parts = path.split('/')
+    ..removeWhere((p) => p.isEmpty); // remove empty strings from //
+
+  if (parts.isNotEmpty && parts.first.toLowerCase() == 'api') {
+    // Remove "api"
+    parts.removeAt(0);
+
+    // Remove the next segment (like mobile, warehouseapp, etc.)
+    if (parts.isNotEmpty) {
+      parts.removeAt(0);
+    }
+  }
+
+  return parts.join('/').replaceAll('{', '').replaceAll('}', '');
 }

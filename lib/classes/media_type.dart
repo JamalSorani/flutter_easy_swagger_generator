@@ -1,6 +1,6 @@
 import 'package:flutter_easy_swagger_generator/enums/content_type.dart';
 
-import 'property.dart';
+import 't_property.dart';
 
 class MediaTypeContent {
   final TContentType contentType;

@@ -30,9 +30,10 @@ DartTypeInfo getDartType(
   if (schema is ArrayProperty) {
     final itemType = getDartType(schema.items, components, isForEntities);
     return DartTypeInfo(
-        className: 'List<${itemType.className}>',
-        schema: schema,
-        isRef: itemType.isRef);
+      className: 'List<${itemType.className}>',
+      schema: schema,
+      isSubclass: true,
+    );
   }
 
   // Handle referenced schemas
@@ -43,7 +44,10 @@ DartTypeInfo getDartType(
     // Shared reference types
     if (ref.contains('.Shared.')) {
       return DartTypeInfo(
-          className: refParts.last + endPoint, schema: schema, isRef: true);
+        className: refParts.last + endPoint,
+        schema: schema,
+        isSubclass: true,
+      );
     }
 
     // Handle request/response schema naming
@@ -57,7 +61,10 @@ DartTypeInfo getDartType(
       return _type(type, components.schemas[ref]!, enumName: schemaName);
     }
     return DartTypeInfo(
-        className: schemaName + endPoint, schema: schema, isRef: true);
+      className: schemaName + endPoint,
+      schema: schema,
+      isSubclass: true,
+    );
   }
 
   // Handle primitive Swagger types
@@ -105,17 +112,17 @@ DartTypeInfo _type(
 ///
 /// - [className] is the resolved Dart type or class name.
 /// - [schema] holds the original Swagger property.
-/// - [isRef] indicates if the type was resolved from a `$ref`.
+/// - [isSubclass] indicates if the type was resolved from a `$ref`.
 class DartTypeInfo {
   final String className;
   final TProperty? schema;
-  final bool isRef;
+  final bool isSubclass;
   final bool isEnum;
 
   DartTypeInfo({
     required this.className,
     required this.schema,
-    this.isRef = false,
+    this.isSubclass = false,
     this.isEnum = false,
   });
 }

@@ -1,4 +1,4 @@
-import 'property.dart';
+import 't_property.dart';
 
 /// Represents the components section of an OpenAPI specification,
 /// primarily holding reusable schema definitions.

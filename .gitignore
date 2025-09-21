@@ -29,3 +29,5 @@ migrate_working_dir/
 build/
 
 lib/swagger.json
+
+lib/app
