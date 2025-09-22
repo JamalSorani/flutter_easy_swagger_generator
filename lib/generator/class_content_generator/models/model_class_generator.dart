@@ -2,17 +2,17 @@ import 'dart:io';
 
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
-class EntityClassGenerator {
+class ModelClassGenerator {
   final Components components;
   final String mainPath;
 
-  EntityClassGenerator({
+  ModelClassGenerator({
     required this.components,
     required this.mainPath,
   });
 
   void generateClass(RouteInfo routeInfo) {
-    String endPoint = 'Param';
+    String endPoint = 'Model';
     String routeName = getRouteName(routeInfo.fullRoute);
     String className = '$routeName$endPoint';
 
@@ -20,15 +20,14 @@ class EntityClassGenerator {
     String filePath = getModelAndEntityFilePath(
       moduleName: moduleName,
       routeName: routeName,
-      isForEntities: true,
+      isForEntities: false,
       mainPath: mainPath,
     );
     List<String> contents = [];
 
     String classContent = _generateClassContent(
       className: className,
-      parameters: routeInfo.httpMethodInfo.parameters,
-      requestBody: routeInfo.httpMethodInfo.requestBody,
+      content: routeInfo.httpMethodInfo.responses.response200?.content,
     );
     contents.add(classContent);
 
@@ -41,28 +40,23 @@ class EntityClassGenerator {
 
   String _generateClassContent({
     required String className,
-    required List<Parameter>? parameters,
-    required RequestBody? requestBody,
+    MediaTypeContent? content,
     List<GeneratedParameters>? subClassParameters,
   }) {
     String generatedClassString = "";
     List<GeneratedParameters> generateParametars = [];
     final bool isMultiPart =
-        requestBody?.content?.contentType == TContentType.multipartFormData;
+        content?.contentType == TContentType.multipartFormData;
     ParametarsGenerator.generatedSubClassesNames.clear();
     if (subClassParameters == null) {
-      generateParametars = ParametarsGenerator.generateParametars(
-        parameters: parameters,
-        components: components,
-      );
       final requestBodyGenerator = RequestBodyGenerator(
         components: components,
-        isForEntities: true,
+        isForEntities: false,
       );
 
       generateParametars.addAll(
         requestBodyGenerator.generateRequestBody(
-          content: requestBody?.content,
+          content: content,
         ),
       );
     } else {
@@ -109,8 +103,7 @@ ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
         }
         refClassString = _generateClassContent(
           className: subClassName,
-          parameters: [],
-          requestBody: null,
+          content: content,
           subClassParameters: parameter.subClassParameters,
         );
       }
@@ -129,11 +122,13 @@ ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
     final generatedConstructorString =
         classSerializerGenerator.generateConstructor(
       params: generatedConstructorVariable,
-      isForEntities: true,
+      isForEntities: false,
     );
 
-    final generatedToJsonString = classSerializerGenerator.generateToJson(
-        generatedJsonLines, isMultiPart);
+    final generatedToJsonString = classSerializerGenerator.generateFromJson(
+      lines: generatedJsonLines,
+      className: className,
+    );
 
     final genereatedSubClasses =
         classSerializerGenerator.generateSubClasses(generatedSubClasses);

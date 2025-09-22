@@ -9,8 +9,16 @@ class ClassSerializerGenerator {
     required this.components,
   });
 
-  String generateConstructor(List<String> params) {
-    if (params.isEmpty) return "";
+  //! Constructor Generator=====================================================================
+  String generateConstructor({
+    required List<String> params,
+    required bool isForEntities,
+  }) {
+    bool isEmpty = params.isEmpty;
+    if (isEmpty) {
+      if (isForEntities) return "";
+      return "  $className();$LINE";
+    }
 
     final buffer = StringBuffer();
     buffer.writeln("");
@@ -23,6 +31,7 @@ class ClassSerializerGenerator {
     return buffer.toString();
   }
 
+  //! ToJson Generator=====================================================================
   String generateToJson(List<GeneratedJsonLine> lines, bool isMultiPart) {
     final buffer = StringBuffer();
 
@@ -49,6 +58,7 @@ class ClassSerializerGenerator {
     return buffer.toString();
   }
 
+  //! SubClasses Generator=====================================================================
   String generateSubClasses(List<String> enums) {
     final buffer = StringBuffer();
     for (int index = 0; index < enums.length; index++) {
@@ -57,6 +67,7 @@ class ClassSerializerGenerator {
     return buffer.toString();
   }
 
+  //! Imports Generator=====================================================================
   String generateImports(
       List<GeneratedParameters> generateParametars, bool isMultiPart) {
     final buffer = StringBuffer();
@@ -75,6 +86,28 @@ class ClassSerializerGenerator {
     if (addEmptyLine) {
       buffer.writeln("");
     }
+
+    return buffer.toString();
+  }
+
+  //! FromJson Generator=====================================================================
+  String generateFromJson({
+    required List<GeneratedJsonLine> lines,
+    required String className,
+  }) {
+    final buffer = StringBuffer();
+
+    buffer.writeln(
+      '''
+  factory $className.fromJson(Map<String, dynamic> json) {
+    return $className(''',
+    );
+    for (var line in lines) {
+      buffer.writeln(line.generatedJsonLine);
+    }
+    buffer.writeln('''
+    );
+  }''');
 
     return buffer.toString();
   }

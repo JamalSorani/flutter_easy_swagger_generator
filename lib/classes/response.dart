@@ -9,9 +9,10 @@ class IResponse {
 
   /// Creates an instance from a JSON map
   factory IResponse.fromJson(Map<String, dynamic> json) {
+    final response200 = json['200'] ?? json['201'] ?? json['202'];
     return IResponse(
-      response200: json['200'] != null
-          ? ResponseDetails.fromJson(json['200'] as Map<String, dynamic>)
+      response200: response200 != null
+          ? ResponseDetails.fromJson(response200 as Map<String, dynamic>)
           : null,
     );
   }

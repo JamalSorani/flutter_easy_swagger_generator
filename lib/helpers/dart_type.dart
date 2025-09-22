@@ -15,11 +15,11 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 /// - The Dart type/class name.
 /// - The original schema.
 /// - Whether the type was resolved from a `$ref`.
-DartTypeInfo getDartType(
-  TProperty? schema,
-  Components components,
-  bool isForEntities,
-) {
+DartTypeInfo getDartType({
+  required TProperty? schema,
+  required Components components,
+  required bool isForEntities,
+}) {
   if (schema == null) {
     return DartTypeInfo(className: 'dynamic', schema: null);
   }
@@ -28,7 +28,11 @@ DartTypeInfo getDartType(
 
   // Handle array types
   if (schema is ArrayProperty) {
-    final itemType = getDartType(schema.items, components, isForEntities);
+    final itemType = getDartType(
+      schema: schema.items,
+      components: components,
+      isForEntities: isForEntities,
+    );
     return DartTypeInfo(
       className: 'List<${itemType.className}>',
       schema: schema,

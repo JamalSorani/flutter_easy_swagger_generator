@@ -69,12 +69,11 @@ Future<void> swaggerGenerator(String swaggerPath,
     components: components,
     mainPath: mainPath,
   );
-  // ModelsGenerator responseModelsGenerator = ModelsGenerator(
-  //   moduleList: moduleList,
-  //   paths: paths,
-  //   components: components,
-  //   mainPath: mainPath,
-  // );
+  ModelsGenerator responseModelsGenerator = ModelsGenerator(
+    routesInfo: routesInfo,
+    components: components,
+    mainPath: mainPath,
+  );
   // RepositoryGenerator repositoryGenerator = RepositoryGenerator(
   //   groupedRoutes: groupedRoutes,
   //   mainPath: mainPath,
@@ -132,7 +131,7 @@ Future<void> swaggerGenerator(String swaggerPath,
   await Future.wait([
     Future(() => routesGenerator.generateRoutes()),
     Future(() => entitiesGenerator.generateEntities()),
-    // Future(() => responseModelsGenerator.generateModels()),
+    Future(() => responseModelsGenerator.generateModels()),
     // Future(() => repositoryGenerator.generateRepository()),
     // Future(() => networkGenerator.generateNetwork()),
     // Future(() => remoteGenerator.generateRemote()),

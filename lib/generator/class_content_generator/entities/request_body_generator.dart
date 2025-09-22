@@ -2,13 +2,14 @@ import '../../../helpers/imports.dart';
 
 class RequestBodyGenerator {
   final Components components;
-  RequestBodyGenerator({required this.components});
+  final bool isForEntities;
+  RequestBodyGenerator({required this.components, required this.isForEntities});
 
   List<GeneratedParameters> generateRequestBody({
-    required RequestBody? requestBody,
+    required MediaTypeContent? content,
   }) {
-    if (requestBody?.content != null) {
-      return _tPropertyGenerator(requestBody!.content!.schema);
+    if (content?.schema != null) {
+      return _tPropertyGenerator(content!.schema);
     }
     return [];
   }
@@ -48,15 +49,12 @@ class RequestBodyGenerator {
     for (var param in properties) {
       String paramName = param.propertyName;
       DartTypeInfo dartTypeInfo = getDartType(
-        param.schema,
-        components,
-        true,
+        schema: param.schema,
+        components: components,
+        isForEntities: isForEntities,
       );
       String paramType = dartTypeInfo.className;
       String paramNameWithoutDot = paramName.replaceAll('.', '');
-      if (paramType.contains("List<ProductDtoParam>")) {
-        printDebug(dartTypeInfo.schema?.items?.ref);
-      }
       String variable = ClassGeneratorHelper.formatVariable(
         paramType: paramType,
         paramName: paramNameWithoutDot,
@@ -70,15 +68,27 @@ class RequestBodyGenerator {
         isRequired: !param.schema.nullable,
       );
       final enumValues = dartTypeInfo.schema?.enumValues ?? [];
-      final ref = param.schema.ref ?? param.schema.items?.ref;
-      String jsonLine = ClassGeneratorHelper.formatJsonLine(
-        paramName: paramName,
-        isEnum: enumValues.isNotEmpty,
-        nullable: param.schema.nullable,
-        isSubClass: ref != null,
-        isDateTime: paramType.toLowerCase().contains("date"),
-        isList: paramType.toLowerCase().contains("list"),
-      );
+      final ref = param.schema.ref ??
+          param.schema.items?.ref ??
+          param.schema.items?.items?.ref;
+      String jsonLine = isForEntities
+          ? ClassGeneratorHelper.formatJsonLine(
+              paramName: paramName,
+              isEnum: enumValues.isNotEmpty,
+              nullable: param.schema.nullable,
+              isSubClass: ref != null,
+              isDateTime: paramType.toLowerCase().contains("date"),
+              isList: paramType.toLowerCase().contains("list"),
+            )
+          : ClassGeneratorHelper.formatFromJsonLine(
+              paramName: paramName,
+              isEnum: enumValues.isNotEmpty,
+              nullable: param.schema.nullable,
+              isSubClass: ref != null,
+              isDateTime: paramType.toLowerCase().contains("date"),
+              isList: paramType.toLowerCase().contains("list"),
+              subClassName: paramType,
+            );
 
       generatedParameters.add(
         GeneratedParameters(
@@ -97,14 +107,10 @@ class RequestBodyGenerator {
           subClassParameters: !ParametarsGenerator.generatedSubClassesNames
                       .contains(paramType) &&
                   ref != null
-              ? (RequestBodyGenerator(components: components)
-                  .generateRequestBody(
-                  requestBody: RequestBody(
-                    description: null,
-                    content: MediaTypeContent(
-                      contentType: TContentType.applicationJson,
-                      schema: components.schemas[ref]!,
-                    ),
+              ? (generateRequestBody(
+                  content: MediaTypeContent(
+                    contentType: TContentType.applicationJson,
+                    schema: components.schemas[ref]!,
                   ),
                 ))
               : null,

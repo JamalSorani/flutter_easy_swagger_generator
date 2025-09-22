@@ -14,7 +14,11 @@ class ParametarsGenerator {
           continue;
         }
         String paramName = param.name;
-        DartTypeInfo dartTypeInfo = getDartType(param.schema, components, true);
+        DartTypeInfo dartTypeInfo = getDartType(
+          schema: param.schema,
+          components: components,
+          isForEntities: true,
+        );
 
         // if (dartTypeInfo.isRef) {
         //   String refClassName = _getRefClassName(param.schema!.ref!);
@@ -61,14 +65,13 @@ class ParametarsGenerator {
             subClassName: paramType,
             subClassParameters: !generatedSubClassesNames.contains(paramType) &&
                     param.schema?.ref != null
-                ? (RequestBodyGenerator(components: components)
-                    .generateRequestBody(
-                    requestBody: RequestBody(
-                      description: null,
-                      content: MediaTypeContent(
-                        contentType: TContentType.applicationJson,
-                        schema: components.schemas[param.schema!.ref]!,
-                      ),
+                ? (RequestBodyGenerator(
+                    components: components,
+                    isForEntities: true,
+                  ).generateRequestBody(
+                    content: MediaTypeContent(
+                      contentType: TContentType.applicationJson,
+                      schema: components.schemas[param.schema!.ref]!,
                     ),
                   ))
                 : null,

@@ -25,8 +25,12 @@ String _getFileName(String moduleName, String routeName, bool isForEntities) {
 /// getModelAndEntityFilePath("order", "getOrder", true, "lib");
 /// // Returns: lib/order/domain/entities/get_order_param.dart
 /// ```
-String getModelAndEntityFilePath(
-    String moduleName, String routeName, bool isForEntities, String mainPath) {
+String getModelAndEntityFilePath({
+  required String moduleName,
+  required String routeName,
+  required bool isForEntities,
+  required String mainPath,
+}) {
   String fileName = _getFileName(moduleName, routeName, isForEntities);
   String subPath = isForEntities ? 'domain/entities' : 'infrastructure/models';
   return '$mainPath/$moduleName/$subPath/$fileName.dart';
@@ -87,15 +91,15 @@ String getRouteName(String path) {
   };
 
   String mappedAction = verbMap[action] ?? action;
+ if (!mappedAction.contains(entity)) {
+    mappedAction = mappedAction + entity;
+  }
 
   if (mappedAction.startsWith("GetAll") && !entity.endsWith("s")) {
     entity += "s";
   }
 
-  if (!mappedAction.contains(entity)) {
-    mappedAction = mappedAction + entity;
-  }
-
+ 
   return mappedAction;
 }
 

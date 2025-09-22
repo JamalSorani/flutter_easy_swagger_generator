@@ -15,10 +15,10 @@ class EntitiesGenerator {
 
   /// Generates entity classes for all paths.
   ///
-  /// Loops through each API path and uses [ClassGenerator] to create
+  /// Loops through each API path and uses [EntityClassGenerator] to create
   /// the corresponding Dart class for sending request data.
   void generateEntities() {
-    final classGenerator = ClassGenerator(
+    final classGenerator = EntityClassGenerator(
       components: components,
       mainPath: mainPath,
     );
