@@ -14,18 +14,6 @@ class RepositoryGenerator {
     required this.mainPath,
   });
 
-  /// Generates repository files for all modules/categories.
-  void generateRepository() {
-    try {
-      // Generate repository for each category
-      for (var category in groupedRoutes.keys) {
-        _generateRepositoryForCategory(category);
-      }
-    } catch (e) {
-      printError('Error while generating repositories: $e');
-    }
-  }
-
   /// Generates the repository abstract class for a specific category.
   ///
   /// Creates a file at:
@@ -33,7 +21,7 @@ class RepositoryGenerator {
   /// Each API path with a 200 response will have a corresponding method:
   /// - Method returns `Future<Either<String, Model>>`
   /// - Takes a required `{Action}Param` parameter.
-  void _generateRepositoryForCategory(
+  void generateRepositoryForCategory(
     String category,
   ) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
@@ -72,11 +60,6 @@ class RepositoryGenerator {
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName;
-
-      HttpMethodInfo info = path.httpMethodInfo;
-
-      // Skip if the endpoint has no 200 response
-      if (info.responses.response200 == null) continue;
 
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);
       buffer.writeln(

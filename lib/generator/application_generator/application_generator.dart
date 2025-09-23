@@ -10,54 +10,24 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 /// - Importing models and entities for each API route.
 class ApplicationGenerator {
   /// Swagger API paths.
-  final List<RouteInfo> paths;
-
-  /// Swagger components (schemas, responses, etc.).
-  final Components components;
-
-  /// List of module names.
-  final List<String> moduleList;
+  final Map<String, List<RouteInfo>> groupedRoutes;
 
   /// Root path where generated files will be stored.
   final String mainPath;
 
   /// Constructor.
   ApplicationGenerator({
-    required this.paths,
-    required this.components,
-    required this.moduleList,
+    required this.groupedRoutes,
     required this.mainPath,
   });
-
-  /// Generates the application layer for all categories.
-  void generateApplication() {
-    try {
-      // Group paths by category
-      Map<String, List<RouteInfo>> groupedPaths = {};
-
-      for (var path in paths) {
-        String category = getCategory(path.fullRoute);
-        groupedPaths.putIfAbsent(category, () => []);
-        groupedPaths[category]!.add(path);
-      }
-
-      // Generate a facade for each category
-      for (var category in groupedPaths.keys) {
-        _generateApplicationForCategory(category, groupedPaths[category]!);
-      }
-    } catch (e) {
-      printError('Error while generating application: $e');
-    }
-  }
 
   /// Generates a facade class for a single category.
   ///
   /// - [category] is the API category (e.g., `user`, `product`).
-  /// - [categoryPaths] is a list of API paths belonging to this category.
-  void _generateApplicationForCategory(
+  void generateApplicationForCategory(
     String category,
-    List<RouteInfo> categoryPaths,
   ) {
+    List<RouteInfo> categoryPaths = groupedRoutes[category]!;
     // Determine file path for facade
     String filePath = '$mainPath/$category/application/${category}_facade.dart';
     final file = File(filePath);
@@ -103,11 +73,6 @@ class ApplicationGenerator {
     for (var pathEntry in categoryPaths) {
       String routeName = getRouteName(pathEntry.fullRoute);
       String actionName = routeName;
-
-      HttpMethodInfo info = pathEntry.httpMethodInfo;
-
-      // Skip if no 200 response
-      if (info.responses.response200 == null) continue;
 
       // Method name: lowerCamelCase
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);

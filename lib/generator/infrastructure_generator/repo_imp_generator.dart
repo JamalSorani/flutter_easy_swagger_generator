@@ -10,52 +10,15 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 /// - Wraps responses using `Either` for error handling.
 /// - Uses `throwAppException` to safely catch and wrap exceptions.
 class RepoImpGenerator {
-  /// The map of API paths grouped by route and their corresponding methods.
-  final List<RouteInfo> paths;
+  final Map<String, List<RouteInfo>> groupedRoutes;
 
-  /// The components defined in the Swagger file.
-  final Components components;
-
-  /// The list of modules to include in generation.
-  final List<String> moduleList;
-
-  /// The main base path where files will be generated.
   final String mainPath;
 
   /// Creates a [RepoImpGenerator] instance with the required inputs.
   RepoImpGenerator({
-    required this.paths,
-    required this.components,
-    required this.moduleList,
+    required this.groupedRoutes,
     required this.mainPath,
   });
-
-  /// Generates repository implementation files for all grouped API paths.
-  ///
-  /// Steps:
-  /// 1. Group API paths by category.
-  /// 2. Generate repository implementation for each category.
-  void generateRepoImp() {
-    try {
-      Map<String, List<RouteInfo>> groupedPaths = {};
-
-      // Group paths by category
-      for (var path in paths) {
-        String category = getCategory(path.fullRoute);
-        if (!groupedPaths.containsKey(category)) {
-          groupedPaths[category] = [];
-        }
-        groupedPaths[category]!.add(path);
-      }
-
-      // Generate repository implementation for each category
-      for (var category in groupedPaths.keys) {
-        _generateRepositoryForCategory(category, groupedPaths[category]!);
-      }
-    } catch (e) {
-      printError('Error while generating repo imp: $e');
-    }
-  }
 
   /// Generates the repository implementation for a specific [category].
   ///
@@ -63,10 +26,10 @@ class RepoImpGenerator {
   /// - Registers methods corresponding to API endpoints.
   /// - Each method calls the remote API and wraps the response
   ///   in an `Either<String, Model>`.
-  void _generateRepositoryForCategory(
+  void generateRepositoryForCategory(
     String category,
-    List<RouteInfo> categoryPaths,
   ) {
+    List<RouteInfo> categoryPaths = groupedRoutes[category]!;
     String filePath =
         '$mainPath/$category/infrastructure/repo_imp/${category}_repo_imp.dart';
 
@@ -115,18 +78,11 @@ class RepoImpGenerator {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName;
       buffer.writeln();
-      HttpMethodInfo info = path.httpMethodInfo;
-
-      if (info.responses.response200 == null) continue;
 
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);
 
       buffer.writeln("  @override");
       buffer.writeln("""
-  /// Calls the remote [$actionName] API and returns an [Either].
-  ///
-  /// - On success: returns [${actionName}Model].
-  /// - On failure: returns an error message.
   Future<Either<String, ${actionName}Model>> $methodName({
     required ${actionName}Param ${methodName}Param,
   }) {

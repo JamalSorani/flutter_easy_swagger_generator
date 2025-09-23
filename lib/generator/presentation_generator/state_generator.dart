@@ -6,43 +6,17 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 /// Each state class contains `Result<T>` fields for each API action,
 /// along with constructor and `copyWith` method for immutable updates.
 class StateGenerator {
-  final List<RouteInfo> paths;
-  final Components components;
-  final List<String> moduleList;
+  final Map<String, List<RouteInfo>> groupedRoutes;
   final String mainPath;
 
   StateGenerator({
-    required this.paths,
-    required this.components,
-    required this.moduleList,
+    required this.groupedRoutes,
     required this.mainPath,
   });
 
-  /// Entry point to generate all state classes.
-  void generateState() {
-    try {
-      // Group paths by category
-      Map<String, List<RouteInfo>> groupedPaths = {};
-
-      for (var path in paths) {
-        String category = getCategory(path.fullRoute); // Get category from path
-        groupedPaths.putIfAbsent(category, () => []);
-        groupedPaths[category]!.add(path);
-      }
-
-      // Generate state for each category
-      for (var category in groupedPaths.keys) {
-        _generateState(category, groupedPaths[category]!);
-      }
-    } catch (e) {
-      printError('Error while generating state classes: $e');
-    }
-  }
-
   /// Generates a single state file for a given category
-  void _generateState(
+  void generateStateForCategory(
     String category,
-    List<RouteInfo> categoryPaths,
   ) {
     String filePath =
         '$mainPath/$category/presentation/state/${category}_state.dart';
@@ -62,15 +36,10 @@ class StateGenerator {
     List<String> actions = [];
 
     // Generate Result<T> fields for each route
-    for (var path in categoryPaths) {
+    for (var path in groupedRoutes[category]!) {
       String routeName =
           getRouteName(path.fullRoute); // Convert path to action name
       String actionName = routeName;
-
-      HttpMethodInfo info = path.httpMethodInfo;
-
-      // Only generate fields for routes with 200 response
-      if (info.responses.response200 == null) continue;
 
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);
       actions.add(actionName);
@@ -116,7 +85,8 @@ class StateGenerator {
     buffer.writeln("    return ${capitalizedCategory}State(");
 
     for (var actionName in actions) {
-      String methodName = actionName[0].toLowerCase() + actionName.substring(1);
+      String methodName =
+          "${actionName[0].toLowerCase()}${actionName.substring(1)}State";
       buffer.writeln("      $methodName: $methodName ?? this.$methodName,");
     }
 

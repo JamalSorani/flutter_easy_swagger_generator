@@ -146,7 +146,8 @@ ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
       lines: generatedJsonLines,
       className: className,
     );
-
+    generatedImportsString =
+        ClassGeneratorHelper.removeDuplicateImports(generatedImportsString);
     final genereatedSubClasses =
         classSerializerGenerator.generateSubClasses(generatedSubClasses);
     String result = """${generatedImportsString}class $className {

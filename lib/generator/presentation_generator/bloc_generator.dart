@@ -13,53 +13,16 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 /// The generated Bloc files integrate with the `Result` sealed class to
 /// represent different states (loading, success, error).
 class BlocGenerator {
-  /// The map of API paths grouped by route and their corresponding methods.
-  final List<RouteInfo> paths;
-
-  /// The components defined in the Swagger file.
-  final Components components;
-
-  /// The list of modules to include in generation.
-  final List<String> moduleList;
+  final Map<String, List<RouteInfo>> groupedRoutes;
 
   /// The main base path where files will be generated.
   final String mainPath;
 
   /// Creates a [BlocGenerator] instance with required inputs.
   BlocGenerator({
-    required this.paths,
-    required this.components,
-    required this.moduleList,
+    required this.groupedRoutes,
     required this.mainPath,
   });
-
-  /// Generates Bloc files for all grouped API paths.
-  ///
-  /// Steps:
-  /// 1. Group API paths by category.
-  /// 2. Generate a Bloc file for each category.
-  /// 3. Handle errors gracefully during generation.
-  void generateBloc() {
-    try {
-      Map<String, List<RouteInfo>> groupedPaths = {};
-
-      // Group paths by category
-      for (var path in paths) {
-        String category = getCategory(path.fullRoute);
-        if (!groupedPaths.containsKey(category)) {
-          groupedPaths[category] = [];
-        }
-        groupedPaths[category]!.add(path);
-      }
-
-      // Generate Bloc for each category
-      for (var category in groupedPaths.keys) {
-        _generateBlocForCategory(category, groupedPaths[category]!);
-      }
-    } catch (e) {
-      printError('Error while generating Bloc: $e');
-    }
-  }
 
   /// Generates a Bloc file for a specific [category].
   ///
@@ -68,10 +31,10 @@ class BlocGenerator {
   /// - The Bloc handles events and states for each method in the category.
   /// - Uses the corresponding Facade for making API calls.
   /// - Updates states based on the `Result` type (loading, error, loaded).
-  void _generateBlocForCategory(
+  void generateBlocForCategory(
     String category,
-    List<RouteInfo> categoryPaths,
   ) {
+    List<RouteInfo> categoryPaths = groupedRoutes[category]!;
     String filePath =
         '$mainPath/$category/presentation/state/${category}_bloc.dart';
 
@@ -127,15 +90,15 @@ class ${capitalizedCategory}Bloc extends Bloc<${capitalizedCategory}Event, ${cap
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName;
-
-      HttpMethodInfo info = path.httpMethodInfo;
-
-      if (info.responses.response200 == null) continue;
+      String actionEventName = actionName;
+      if (actionEventName == capitalizedCategory) {
+        actionEventName = "${actionEventName}Event";
+      }
 
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);
       buffer.writeln(
         """
-    on<${actionName}Event>(_$methodName);""",
+    on<${actionEventName}Event>(_$methodName);""",
       );
     }
     buffer.writeln("  }");
@@ -144,10 +107,10 @@ class ${capitalizedCategory}Bloc extends Bloc<${capitalizedCategory}Event, ${cap
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName;
-
-      HttpMethodInfo info = path.httpMethodInfo;
-
-      if (info.responses.response200 == null) continue;
+      String actionEventName = actionName;
+      if (actionEventName == capitalizedCategory) {
+        actionEventName = "${actionEventName}Event";
+      }
 
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);
       buffer.writeln(
@@ -159,7 +122,7 @@ class ${capitalizedCategory}Bloc extends Bloc<${capitalizedCategory}Event, ${cap
   /// 1. Emit loading state.
   /// 2. Call the facade method.
   /// 3. Emit error state on failure or loaded state on success.
-  _$methodName(${actionName}Event event, Emitter emit) async{
+  _$methodName(${actionEventName}Event event, Emitter emit) async{
     emit(state.copyWith(${methodName}State: const Result.loading()));
     final response = await _facade.$methodName(
         ${methodName}Param: event.${methodName}Param);

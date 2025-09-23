@@ -31,3 +31,5 @@ build/
 lib/swagger.json
 
 lib/app
+lib/common
+lib/core

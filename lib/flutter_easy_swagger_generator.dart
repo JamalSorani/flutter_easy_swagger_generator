@@ -83,56 +83,57 @@ Future<void> swaggerGenerator(String swaggerPath,
     globalEnumsFileString: globalEnumsFileString,
   );
 
-  // RepositoryGenerator repositoryGenerator = RepositoryGenerator(
-  //   groupedRoutes: groupedRoutes,
-  //   mainPath: mainPath,
-  // );
-  // NetworkGenerator networkGenerator = NetworkGenerator(
-  //   mainPath: mainPath,
-  // );
-  // RemoteGenerator remoteGenerator = RemoteGenerator(
-  //   paths: paths,
-  //   components: components,
-  //   moduleList: moduleList,
-  //   mainPath: mainPath,
-  // );
-  // RepoImpGenerator repoImpGenerator = RepoImpGenerator(
-  //   paths: paths,
-  //   components: components,
-  //   moduleList: moduleList,
-  //   mainPath: mainPath,
-  // );
-  // ApplicationGenerator applicationGenerator = ApplicationGenerator(
-  //   paths: paths,
-  //   components: components,
-  //   moduleList: moduleList,
-  //   mainPath: mainPath,
-  // );
-  // BlocGenerator blocGenerator = BlocGenerator(
-  //   paths: paths,
-  //   components: components,
-  //   moduleList: moduleList,
-  //   mainPath: mainPath,
-  // );
-  // EventGenerator eventGenerator = EventGenerator(
-  //   paths: paths,
-  //   components: components,
-  //   moduleList: moduleList,
-  //   mainPath: mainPath,
-  // );
-  // StateGenerator stateGenerator = StateGenerator(
-  //   paths: paths,
-  //   components: components,
-  //   moduleList: moduleList,
-  //   mainPath: mainPath,
-  // );
-  // ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator(
-  //   mainPath: mainPath,
-  // );
-  // InjectionGenerator injectionGenerator = InjectionGenerator(
-  //   mainPath: mainPath,
-  //   moduleList: moduleList,
-  // );
+  RepositoryGenerator repositoryGenerator = RepositoryGenerator(
+    groupedRoutes: groupedRoutes,
+    mainPath: mainPath,
+  );
+  RemoteGenerator remoteGenerator = RemoteGenerator(
+    groupedRoutes: groupedRoutes,
+    mainPath: mainPath,
+  );
+  RepoImpGenerator repoImpGenerator = RepoImpGenerator(
+    groupedRoutes: groupedRoutes,
+    mainPath: mainPath,
+  );
+  ApplicationGenerator applicationGenerator = ApplicationGenerator(
+    groupedRoutes: groupedRoutes,
+    mainPath: mainPath,
+  );
+  BlocGenerator blocGenerator = BlocGenerator(
+    groupedRoutes: groupedRoutes,
+    mainPath: mainPath,
+  );
+  EventGenerator eventGenerator = EventGenerator(
+    groupedRoutes: groupedRoutes,
+    mainPath: mainPath,
+  );
+  StateGenerator stateGenerator = StateGenerator(
+    groupedRoutes: groupedRoutes,
+    mainPath: mainPath,
+  );
+
+  for (var category in groupedRoutes.keys) {
+    repositoryGenerator.generateRepositoryForCategory(category);
+    remoteGenerator.generateRemoteForCategory(category);
+    repoImpGenerator.generateRepositoryForCategory(category);
+    applicationGenerator.generateApplicationForCategory(category);
+    blocGenerator.generateBlocForCategory(category);
+    eventGenerator.generateEventForCategory(category);
+    stateGenerator.generateStateForCategory(category);
+  }
+
+  NetworkGenerator networkGenerator = NetworkGenerator(
+    mainPath: mainPath,
+  );
+
+  ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator(
+    mainPath: mainPath,
+  );
+  List<String> moduleList = getModuleNames(routesInfo);
+  InjectionGenerator injectionGenerator = InjectionGenerator(
+    mainPath: mainPath,
+    moduleList: moduleList,
+  );
   //***************************************************************/
 
   //********************* Generating **********************/
@@ -141,17 +142,9 @@ Future<void> swaggerGenerator(String swaggerPath,
     Future(() => routesGenerator.generateRoutes()),
     Future(() => entitiesGenerator.generateEntities()),
     Future(() => responseModelsGenerator.generateModels()),
-    Future(() => enumsGenerator.generateEnums()),
-    // Future(() => repositoryGenerator.generateRepository()),
-    // Future(() => networkGenerator.generateNetwork()),
-    // Future(() => remoteGenerator.generateRemote()),
-    // Future(() => repoImpGenerator.generateRepoImp()),
-    // Future(() => applicationGenerator.generateApplication()),
-    // Future(() => blocGenerator.generateBloc()),
-    // Future(() => eventGenerator.generateEvent()),
-    // Future(() => stateGenerator.generateState()),
-    // Future(() => resultBuilderGenerator.generateResultBuilder()),
-    // Future(() => injectionGenerator.generateInjection()),
+    Future(() => networkGenerator.generateNetwork()),
+    Future(() => resultBuilderGenerator.generateResultBuilder()),
+    Future(() => injectionGenerator.generateInjection()),
   ]);
   printSuccess('Code generation completed!\n');
   //*******************************************************/

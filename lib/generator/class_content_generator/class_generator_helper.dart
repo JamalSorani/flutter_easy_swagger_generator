@@ -152,4 +152,24 @@ class ClassGeneratorHelper {
     subClassName = subClassName.replaceAll("List<", "").replaceAll(">", "");
     return variable;
   }
+
+  static String removeDuplicateImports(String imports) {
+    // Split by new lines
+    final lines = imports.split('\n');
+
+    // Use a Set to keep only unique lines
+    final seen = <String>{};
+    final uniqueLines = <String>[];
+
+    for (var line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue; // Skip empty lines
+      if (seen.add(trimmed)) {
+        uniqueLines.add(trimmed);
+      }
+    }
+
+    // Join back into a single string with new lines
+    return uniqueLines.join(LINE) + LINE;
+  }
 }
