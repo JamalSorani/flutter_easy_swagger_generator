@@ -7,6 +7,7 @@ class ClassGeneratorHelper {
     required bool isNullable,
     required dynamic example,
     required String? format,
+    required bool allowEmptyValue,
   }) {
     String nullAbleMark = isNullable && paramType != "dynamic" ? "?" : "";
     String vairable =
@@ -16,6 +17,9 @@ class ClassGeneratorHelper {
     }
     if (format != null) {
       vairable = "$vairable //!Format: ${format.toString()}";
+    }
+    if (allowEmptyValue) {
+      vairable = "$vairable //! This field accept empty value";
     }
 
     return vairable;

@@ -35,6 +35,7 @@ class ParametarsGenerator {
           isNullable: !param.required,
           example: param.example ?? param.schema?.defaultValue,
           format: param.format ?? param.schema?.format,
+          allowEmptyValue: param.allowEmptyValue,
         );
         String constructorVariable =
             ClassGeneratorHelper.formatConstructureVariable(

@@ -17,11 +17,9 @@ class Parameter {
   /// Optional type of the parameter.
   final TPropertyType? type;
 
-  final bool
-      allowEmptyValue; //TODO add comment to tell developer that it accept empty value
+  final bool allowEmptyValue;
 
-  final dynamic
-      example; //TODO add comment to tell developer that it accept empty value
+  final dynamic example;
 
   final String? format;
 

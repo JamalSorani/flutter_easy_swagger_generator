@@ -240,9 +240,8 @@ class TProperty {
   final TPropertyType type;
   final String? ref;
   final bool nullable;
-  final String? format; //TODO add comment to tell developer the format
-  final dynamic
-      defaultValue; //TODO add comment to tell developer the default value
+  final String? format;
+  final dynamic defaultValue;
   final List<String> enumValues;
   final TProperty? items;
 
@@ -258,7 +257,6 @@ class TProperty {
 
   /// Factory method that creates the appropriate subclass based on JSON content.
   factory TProperty.fromJson(Map<String, dynamic> json) {
-    //TODO check if it is correct
     if (json['type'] == 'array') {
       return ArrayProperty.fromJson(json);
     } else if (json['type'] == 'object') {

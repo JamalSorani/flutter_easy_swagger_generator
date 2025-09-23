@@ -80,10 +80,9 @@ String promptUser(String question) {
 }
 
 void printMap(String title, Map<String, dynamic> map) {
-  //TODO change colors
-  print(title);
+  printInfo(title);
   map.forEach((key, value) {
-    print("$key: $value");
+    printInfo("$key: $value");
   });
 }
 

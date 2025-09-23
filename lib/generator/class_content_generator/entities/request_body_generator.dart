@@ -61,6 +61,7 @@ class RequestBodyGenerator {
         isNullable: param.schema.nullable,
         example: param.schema.defaultValue,
         format: param.schema.format ?? objectProperty.format,
+        allowEmptyValue: false,
       );
       String constructorVariable =
           ClassGeneratorHelper.formatConstructureVariable(
