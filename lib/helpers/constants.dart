@@ -13,3 +13,4 @@ class ConstantsHelper {
 }
 
 const String LINE = "\n";
+const String ENUMS_IMPORT = "import '../../../enums.dart';$LINE";

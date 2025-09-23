@@ -92,8 +92,8 @@ class EntityClassGenerator {
       String enumClassString = '';
       if (parameter.enumValues.isNotEmpty) {
         if (globalEnumsFileString.contains(parameter.subClassName)) {
-          if (!generatedImportsString.contains("enums.dart")) {
-            generatedImportsString += "import '../../../enums.dart';$LINE";
+          if (!generatedImportsString.contains(ENUMS_IMPORT)) {
+            generatedImportsString += ENUMS_IMPORT;
           }
         } else {
           enumClassString = """
@@ -111,8 +111,8 @@ ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
       if (parameter.subClassParameters != null &&
           parameter.enumValues.isEmpty) {
         if (globalEnumsFileString.contains(parameter.subClassName)) {
-          if (!generatedImportsString.contains("enums.dart")) {
-            generatedImportsString += "import '../../../enums.dart';$LINE";
+          if (!generatedImportsString.contains(ENUMS_IMPORT)) {
+            generatedImportsString += ENUMS_IMPORT;
           }
         } else {
           String subClassName = parameter.subClassName;

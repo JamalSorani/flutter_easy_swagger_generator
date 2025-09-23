@@ -87,8 +87,8 @@ class ModelClassGenerator {
       String enumClassString = '';
       if (parameter.enumValues.isNotEmpty) {
         if (globalEnumsFileString.contains(parameter.subClassName)) {
-          if (!generatedImportsString.contains("enums.dart")) {
-            generatedImportsString += "import '../../../enums.dart';$LINE";
+          if (!generatedImportsString.contains(ENUMS_IMPORT)) {
+            generatedImportsString += ENUMS_IMPORT;
           }
         } else {
           enumClassString = """
@@ -108,8 +108,8 @@ ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
         final fixedParamType =
             parameter.subClassName.replaceAll("List<", "").replaceAll(">", "");
         if (globalEnumsFileString.contains(fixedParamType)) {
-          if (!generatedImportsString.contains("enums.dart")) {
-            generatedImportsString += "import '../../../enums.dart';$LINE";
+          if (!generatedImportsString.contains(ENUMS_IMPORT)) {
+            generatedImportsString += ENUMS_IMPORT;
           }
         } else {
           String subClassName = parameter.subClassName;
