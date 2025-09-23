@@ -6,7 +6,7 @@ class Parameter {
   final String name;
 
   /// The location of the parameter. Must be one of `"query"`, `"header"`, or `"path"`.
-  final String inn; //TODO query"`, `"header"`, or `"path
+  final String inn;
 
   /// Optional schema describing the type of this parameter.
   final TProperty? schema;

@@ -1,7 +1,6 @@
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 class RouteInfo {
-  //TODO add documentation
   final String fullRoute;
   final HttpMethodType httpMethod;
   final HttpMethodInfo httpMethodInfo;

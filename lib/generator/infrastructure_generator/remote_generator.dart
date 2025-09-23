@@ -19,16 +19,10 @@ class RemoteGenerator {
     required this.mainPath,
   });
 
-  /// Generates the remote data source for a specific [category].
-  ///
-  /// - Creates a class `<Category>Api` that wraps HTTP requests.
-  /// - Defines methods for each endpoint in the category.
-  /// - Converts request entities to JSON and parses responses into models.
   void generateRemoteForCategory(
     String category,
   ) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
-
     String filePath =
         '$mainPath/$category/infrastructure/datasource/remote/${category}_remote.dart';
 
@@ -36,13 +30,11 @@ class RemoteGenerator {
     file.parent.createSync(recursive: true);
     final buffer = StringBuffer();
 
-    // Imports
     buffer.writeln("import 'package:dio/dio.dart';");
     buffer.writeln("import '../../../../url.dart';");
     buffer.writeln(
         "import '../../../../../common/network/exception/error_handler.dart';");
 
-    // Add model imports
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
@@ -50,7 +42,6 @@ class RemoteGenerator {
       buffer.writeln("import '../../models/${actionName}_model.dart';");
     }
 
-    // Add entity imports
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
@@ -59,8 +50,6 @@ class RemoteGenerator {
     }
 
     buffer.writeln();
-
-    // Remote API class definition
     buffer.writeln(
         "class ${(category[0].toUpperCase() + category.substring(1))}Api {");
     buffer.writeln("  final Dio _dio;");
@@ -68,27 +57,40 @@ class RemoteGenerator {
     buffer.writeln(
         "  const ${(category[0].toUpperCase() + category.substring(1))}Api(Dio dio) : _dio = dio;");
 
-    // Generate methods for each API endpoint
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName;
 
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);
       HttpMethodType requestType = path.httpMethod;
-
+      String? summary = path.httpMethodInfo.summary;
+      if (summary != null && summary.isNotEmpty) {
+        buffer.writeln("  ///Summary: $summary");
+      }
+      String inn = "data";
+      if (path.httpMethodInfo.requestBody != null) {
+        inn = "data";
+      } else {
+        List<String> allIn =
+            (path.httpMethodInfo.parameters?.map((e) => e.inn).toList() ?? []);
+        for (var element in allIn) {
+          if (element != "header") {
+            inn = element;
+            break;
+          }
+        }
+      }
+      if (inn == "query") {
+        inn = "queryParameters";
+      }
       buffer.writeln("""
-  /// Sends a [$requestType] request to the [$actionName] endpoint.
-  ///
-  /// - Request body is created from [${methodName}Param].
-  /// - On success: returns [${actionName}Model].
-  /// - On error: throws an exception handled by [throwDioException].
   Future<${actionName}Model> $methodName({
     required ${actionName}Param ${methodName}Param,
   }) {
     return throwDioException(() async {
       final response = await _dio.${requestType.name}(
         AppUrl.${actionName.toCamelCase()},
-        data: ${methodName}Param.toJson(),
+        $inn: ${methodName}Param.toJson(),
       );
       return ${actionName}Model.fromJson(response.data);
     });

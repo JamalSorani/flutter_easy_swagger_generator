@@ -5,8 +5,7 @@ import 'package:flutter_easy_swagger_generator/classes/response.dart';
 /// Represents information about an HTTP method in the OpenAPI specification.
 class HttpMethodInfo {
   /// The summary of the HTTP method. for example "Auth policies: HasUserTypes_1_"
-  final String?
-      summary; //TODO add comment to tell user that this is the summary
+  final String? summary;
 
   /// A detailed description of the HTTP method.
   final String? description;
