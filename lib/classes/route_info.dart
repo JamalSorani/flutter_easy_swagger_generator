@@ -16,8 +16,9 @@ class RouteInfo {
     late HttpMethodInfo httpMethodInfo;
     json.forEach((method, info) {
       info as Map<String, dynamic>;
-      httpMethod = HttpMethodType.values
-          .firstWhere((e) => e.toString() == method, orElse: () {
+      httpMethod = HttpMethodType.values.firstWhere((e) {
+        return e.name.toLowerCase() == method.toLowerCase();
+      }, orElse: () {
         //TODO add error handler to add new type
         return HttpMethodType.values.first;
       });
