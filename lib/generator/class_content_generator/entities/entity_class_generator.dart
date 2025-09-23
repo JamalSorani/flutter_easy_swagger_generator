@@ -2,17 +2,28 @@ import 'dart:io';
 
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
+/// Generates Dart entity (parameter) classes for API endpoints.
+///
+/// For each route, this generator builds a `*Param` class representing
+/// query/header/path parameters and (if present) request body fields.
 class EntityClassGenerator {
+  /// The OpenAPI reusable components (schemas, etc.).
   final Components components;
+
+  /// Root output path where files are generated.
   final String mainPath;
+
+  /// The full text of the global enums file, used to detect already-declared enums.
   final String globalEnumsFileString;
 
+  /// Creates an [EntityClassGenerator] with required context.
   EntityClassGenerator({
     required this.components,
     required this.mainPath,
     required this.globalEnumsFileString,
   });
 
+  /// Generates the `*Param` class for the given [routeInfo] and writes it to disk.
   void generateClass(RouteInfo routeInfo) {
     String endPoint = 'Param';
     String routeName = getRouteName(routeInfo.fullRoute);
@@ -41,10 +52,16 @@ class EntityClassGenerator {
     }
   }
 
+  /// Creates the Dart class code for an entity (`*Param`) and any nested types.
+  ///
+  /// - [className]: The name of the class to generate.
+  /// - [parameters]: Query/header/path parameters for the route.
+  /// - [requestBody]: Optional request body spec for the route.
+  /// - [subClassParameters]: When provided, generates nested classes for complex refs.
   String _generateClassContent({
     required String className,
-    required List<Parameter>? parameters,
-    required RequestBody? requestBody,
+    required List<TParameter>? parameters,
+    required TRequestBody? requestBody,
     List<GeneratedParameters>? subClassParameters,
   }) {
     String generatedClassString = "";

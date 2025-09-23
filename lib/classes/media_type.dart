@@ -2,16 +2,27 @@ import 'package:flutter_easy_swagger_generator/enums/content_type.dart';
 
 import 't_property.dart';
 
+/// Represents a parsed media type entry from an OpenAPI `content` map.
+///
+/// Currently supports extracting schemas for `application/json` and
+/// `multipart/form-data` entries.
 class MediaTypeContent {
+  /// The recognized content type (e.g., `application/json`, `multipart/form-data`).
   final TContentType contentType;
 
+  /// The associated schema for this media type, if provided.
   final TProperty? schema;
 
+  /// Creates a [MediaTypeContent] with a specific [contentType] and [schema].
   MediaTypeContent({
     required this.contentType,
     required this.schema,
   });
 
+  /// Builds a [MediaTypeContent] from an OpenAPI `content` JSON object.
+  ///
+  /// Iterates the provided map and picks the first supported media type
+  /// (`application/json` or `multipart/form-data`) and parses its `schema`.
   factory MediaTypeContent.fromJson(Map<String, dynamic> json) {
     late TContentType contentType;
     late TProperty schema;

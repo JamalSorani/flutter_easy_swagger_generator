@@ -5,42 +5,40 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 /// Generates the application layer (facade classes) for each API category.
 ///
 /// This generator is responsible for:
-/// - Grouping Swagger paths by category.
+/// - Grouping Swagger paths by category (provided via [groupedRoutes]).
 /// - Generating a facade class per category that exposes repository methods.
 /// - Importing models and entities for each API route.
 class ApplicationGenerator {
-  /// Swagger API paths.
+  /// Grouped routes keyed by category name.
   final Map<String, List<RouteInfo>> groupedRoutes;
 
-  /// Root path where generated files will be stored.
+  /// Root output directory where generated files will be written.
   final String mainPath;
 
-  /// Constructor.
+  /// Creates an [ApplicationGenerator] with the necessary inputs.
   ApplicationGenerator({
     required this.groupedRoutes,
     required this.mainPath,
   });
 
-  /// Generates a facade class for a single category.
+  /// Generates a facade class for a single [category].
   ///
-  /// - [category] is the API category (e.g., `user`, `product`).
+  /// The facade wires domain repository methods and exposes typed methods that
+  /// return `Either<String, Model>` for error handling.
   void generateApplicationForCategory(
     String category,
   ) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
-    // Determine file path for facade
     String filePath = '$mainPath/$category/application/${category}_facade.dart';
     final file = File(filePath);
     file.parent.createSync(recursive: true);
 
     final buffer = StringBuffer();
 
-    // Base imports
     buffer.writeln("import 'package:either_dart/either.dart';");
     buffer
         .writeln("import '../domain/repository/${category}_repository.dart';");
 
-    // Import models
     for (var pathEntry in categoryPaths) {
       String routeName = getRouteName(pathEntry.fullRoute);
       String actionName = routeName.toSnakeCase();
@@ -48,7 +46,6 @@ class ApplicationGenerator {
           "import '../infrastructure/models/${actionName}_model.dart';");
     }
 
-    // Import entities (parameters)
     for (var pathEntry in categoryPaths) {
       String routeName = getRouteName(pathEntry.fullRoute);
       String actionName = routeName.toSnakeCase();
@@ -57,27 +54,22 @@ class ApplicationGenerator {
 
     buffer.writeln();
 
-    // Class name (capitalized category)
     String className = category[0].toUpperCase() + category.substring(1);
 
     buffer.writeln("class ${className}Facade {");
     buffer.writeln("  final ${className}Repository _repository;");
 
-    // Constructor
     buffer.writeln("""
   ${className}Facade({required ${className}Repository repository})
       : _repository = repository;
 """);
 
-    // Generate methods for each API route
     for (var pathEntry in categoryPaths) {
       String routeName = getRouteName(pathEntry.fullRoute);
       String actionName = routeName;
 
-      // Method name: lowerCamelCase
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);
 
-      // Generate facade method
       buffer.writeln("""
   Future<Either<String, ${actionName}Model>> $methodName({
     required ${actionName}Param ${methodName}Param,
@@ -88,7 +80,6 @@ class ApplicationGenerator {
 
     buffer.writeln("}");
 
-    // Write facade to file
     file.writeAsStringSync(buffer.toString());
   }
 }

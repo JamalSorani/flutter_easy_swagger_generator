@@ -1,7 +1,9 @@
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
-/// Represents a parameter in an API endpoint, such as query, path, or header parameters.
-class Parameter {
+/// Represents a parameter in an API endpoint, such as query, path, header, or cookie parameters.
+///
+/// Mirrors the OpenAPI Parameter Object for fields commonly used by this generator.
+class TParameter {
   /// The name of the parameter.
   final String name;
 
@@ -17,16 +19,24 @@ class Parameter {
   /// Optional type of the parameter.
   final TPropertyType? type;
 
+  /// Whether empty values are allowed for this parameter.
+  ///
+  /// Note: In OpenAPI 3.0, `allowEmptyValue` applies to `query` params only.
+  /// Some backends also interpret it for headers; this generator preserves the
+  /// flag for downstream handling and documentation.
   final bool allowEmptyValue;
 
+  /// Example value for this parameter, used for documentation and testing.
   final dynamic example;
 
+  /// Optional format hint (e.g., `uuid`, `date-time`, custom strings).
+  /// Consumers may use this to customize (de)serialization or display.
   final String? format;
 
-  /// Constructor for [Parameter].
+  /// Constructor for [TParameter].
   ///
   /// Ensures that [inn] is one of `"query"`, `"header"`, or `"path"`.
-  Parameter({
+  TParameter({
     required this.name,
     required this.inn,
     required this.schema,
@@ -40,9 +50,12 @@ class Parameter {
           'The "in" field must be either "query", "header", or "path"',
         );
 
-  /// Creates an [Parameter] instance from a JSON map.
-  factory Parameter.fromJson(Map<String, dynamic> json) {
-    return Parameter(
+  /// Creates a [TParameter] instance from a decoded OpenAPI Parameter JSON.
+  ///
+  /// Parses `name`, `in`, `schema`, `required`, `type` (when present),
+  /// `allowEmptyValue`, `example`, and `format`.
+  factory TParameter.fromJson(Map<String, dynamic> json) {
+    return TParameter(
       name: json["name"] ?? "",
       inn: json["in"] ?? "query",
       schema:

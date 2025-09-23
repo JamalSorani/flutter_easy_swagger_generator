@@ -1,28 +1,32 @@
-import 'package:flutter_easy_swagger_generator/classes/parameter.dart';
-import 'package:flutter_easy_swagger_generator/classes/request_body.dart';
+import 'package:flutter_easy_swagger_generator/classes/t_parameter.dart';
+import 'package:flutter_easy_swagger_generator/classes/t_request_body.dart';
 import 'package:flutter_easy_swagger_generator/classes/response.dart';
 
-/// Represents information about an HTTP method in the OpenAPI specification.
+/// Describes details of an HTTP operation (e.g., a `get` or `post` on a path)
+/// as defined in the OpenAPI specification.
+///
+/// Includes summary/description, parameters, an optional request body, the
+/// responses object, and associated tags for grouping.
 class HttpMethodInfo {
-  /// The summary of the HTTP method. for example "Auth policies: HasUserTypes_1_"
+  /// Short, human-readable summary of the operation.
   final String? summary;
 
-  /// A detailed description of the HTTP method.
+  /// A more detailed description of the operation.
   final String? description;
 
-  /// List of parameters for the HTTP method (query, path, header, etc.).
-  final List<Parameter>? parameters;
+  /// Operation parameters (query, header, path, cookie).
+  final List<TParameter>? parameters;
 
-  /// Optional request body associated with the HTTP method.
-  final RequestBody? requestBody;
+  /// Optional request body definition for this operation.
+  final TRequestBody? requestBody;
 
-  /// The response information for the HTTP method, typically including status 200.
+  /// Responses keyed by HTTP status code.
   final IResponse responses;
 
-  /// List of tags associated with the HTTP method for categorization.
+  /// Tags used to group this operation in API documentation.
   final List<String> tags;
 
-  /// Constructs an [HttpMethodInfo] object with all its fields.
+  /// Creates an [HttpMethodInfo] with all parsed operation details.
   HttpMethodInfo({
     required this.summary,
     required this.description,
@@ -32,19 +36,17 @@ class HttpMethodInfo {
     required this.tags,
   });
 
-  /// Creates an [HttpMethodInfo] instance from a JSON map.
-  ///
-  /// Parses `parameters`, `requestBody`, `responses`, and `tags` from the JSON structure.
+  /// Builds an [HttpMethodInfo] from an OpenAPI operation object JSON.
   factory HttpMethodInfo.fromJson(Map<String, dynamic> json) {
     return HttpMethodInfo(
       summary: json["summary"],
       description: json["description"],
       parameters: (json["parameters"] as List?)
-          ?.map((e) => Parameter.fromJson(e))
+          ?.map((e) => TParameter.fromJson(e))
           .toList(),
       requestBody: json["requestBody"] == null
           ? null
-          : RequestBody.fromJson(json["requestBody"]),
+          : TRequestBody.fromJson(json["requestBody"]),
       responses: IResponse.fromJson(json["responses"]),
       tags: (json["tags"] as List?)?.map((e) => e.toString()).toList() ?? [],
     );

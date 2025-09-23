@@ -1,10 +1,18 @@
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
+/// Builds parameter metadata used to generate `*Param` classes and JSON mapping.
 class ParametarsGenerator {
+  /// Tracks names of subclasses already generated to avoid duplicates.
   static Set<String> generatedSubClassesNames = {};
 
+  /// Converts OpenAPI parameters and component schemas into a list of
+  /// [GeneratedParameters] describing fields, constructor args, and JSON lines.
+  ///
+  /// - Skips header parameters (handled at runtime layer).
+  /// - Resolves Dart types via [getDartType].
+  /// - If a parameter references a schema, prepares nested class generation.
   static List<GeneratedParameters> generateParametars({
-    required List<Parameter>? parameters,
+    required List<TParameter>? parameters,
     required Components components,
   }) {
     final List<GeneratedParameters> generateParametars = [];
@@ -19,12 +27,6 @@ class ParametarsGenerator {
           components: components,
           isForEntities: true,
         );
-
-        // if (dartTypeInfo.isRef) {
-        //   String refClassName = _getRefClassName(param.schema!.ref!);
-        //   classBuffer.writeln(
-        //       'import \'${refClassName.toSnakeCase()}${isForEntities ? '_param' : '_model'}.dart\';');
-        // }
 
         String paramType = dartTypeInfo.className;
         String paramNameWithoutDot = paramName.replaceAll('.', '');
@@ -85,13 +87,27 @@ class ParametarsGenerator {
   }
 }
 
+/// Holds all generation artifacts for a single parameter field.
 class GeneratedParameters {
+  /// Dart type name of the field (may be a nested class name for refs).
   final String type;
+
+  /// Full Dart field declaration string.
   final String generatedVariable;
+
+  /// Constructor parameter snippet (with `required`/optional as needed).
   final String generatedConstructorVariable;
+
+  /// JSON serialization line information for this field.
   final GeneratedJsonLine generatedJsonLine;
+
+  /// Enum values (if any) for generating enum types.
   final List<String> enumValues;
+
+  /// Subclass name to generate for referenced schemas.
   final String subClassName;
+
+  /// Nested parameters for referenced schemas; null when not applicable.
   final List<GeneratedParameters>? subClassParameters;
 
   GeneratedParameters({
@@ -105,8 +121,12 @@ class GeneratedParameters {
   });
 }
 
+/// Represents a single line of JSON mapping along with nullability info.
 class GeneratedJsonLine {
+  /// True if the field is nullable in the Dart model.
   final bool nullable;
+
+  /// The generated `toJson` mapping snippet for this field.
   final String generatedJsonLine;
 
   GeneratedJsonLine({
