@@ -73,7 +73,7 @@ class ClassSerializerGenerator {
     final buffer = StringBuffer();
     bool addEmptyLine = false;
 
-    if (generateParametars.any((element) => element.type.contains("File"))) {
+    if (generateParametars.any((element) => element.type == "File")) {
       buffer.writeln("import 'dart:io';");
       addEmptyLine = true;
     }

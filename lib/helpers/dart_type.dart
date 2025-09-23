@@ -35,8 +35,9 @@ DartTypeInfo getDartType({
     );
     return DartTypeInfo(
       className: 'List<${itemType.className}>',
-      schema: schema,
+      schema: schema.items,
       isSubclass: true,
+      isEnum: itemType.isEnum,
     );
   }
 
@@ -89,7 +90,7 @@ DartTypeInfo _type(
 }) {
   if (enumName != null && (schema.enumValues.isNotEmpty)) {
     return DartTypeInfo(
-      className: "${enumName}Enum",
+      className: "${enumName}GlobalEnum",
       schema: schema,
       isEnum: true,
     );

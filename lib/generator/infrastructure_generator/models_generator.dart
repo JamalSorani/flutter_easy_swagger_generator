@@ -9,16 +9,20 @@ class ModelsGenerator {
 
   final String mainPath;
 
+  final String globalEnumsFileString;
+
   ModelsGenerator({
     required this.routesInfo,
     required this.components,
     required this.mainPath,
+    required this.globalEnumsFileString,
   });
 
   void generateModels() {
     final classGenerator = ModelClassGenerator(
       components: components,
       mainPath: mainPath,
+      globalEnumsFileString: globalEnumsFileString,
     );
     for (var routeInfo in routesInfo) {
       classGenerator.generateClass(routeInfo);

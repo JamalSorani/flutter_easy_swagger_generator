@@ -49,7 +49,7 @@ class ParametarsGenerator {
           nullable: !param.required,
           isSubClass: param.schema?.ref != null,
           isDateTime: paramType.toLowerCase().contains("date"),
-          isList: paramType.toLowerCase().contains("list"),
+          isList: paramType.toLowerCase().contains("list<"),
         );
         generateParametars.add(
           GeneratedParameters(

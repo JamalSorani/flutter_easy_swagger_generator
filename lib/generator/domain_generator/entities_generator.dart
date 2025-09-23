@@ -7,9 +7,12 @@ class EntitiesGenerator {
 
   final String mainPath;
 
+  final String globalEnumsFileString;
+
   EntitiesGenerator({
     required this.routesInfo,
     required this.components,
+    required this.globalEnumsFileString,
     required this.mainPath,
   });
 
@@ -21,6 +24,7 @@ class EntitiesGenerator {
     final classGenerator = EntityClassGenerator(
       components: components,
       mainPath: mainPath,
+      globalEnumsFileString: globalEnumsFileString,
     );
     for (var routeInfo in routesInfo) {
       classGenerator.generateClass(routeInfo);

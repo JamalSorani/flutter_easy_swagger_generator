@@ -1,3 +1,4 @@
+import 'package:flutter_easy_swagger_generator/generator/enums_generator.dart';
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 import 'dart:io';
 
@@ -64,16 +65,24 @@ Future<void> swaggerGenerator(String swaggerPath,
     groupedRoutes: groupedRoutes,
     mainPath: mainPath,
   );
+  EnumsGenerator enumsGenerator = EnumsGenerator(
+    components: components,
+    mainPath: mainPath,
+  );
+  String globalEnumsFileString = enumsGenerator.generateEnums();
   EntitiesGenerator entitiesGenerator = EntitiesGenerator(
     routesInfo: routesInfo,
     components: components,
     mainPath: mainPath,
+    globalEnumsFileString: globalEnumsFileString,
   );
   ModelsGenerator responseModelsGenerator = ModelsGenerator(
     routesInfo: routesInfo,
     components: components,
     mainPath: mainPath,
+    globalEnumsFileString: globalEnumsFileString,
   );
+
   // RepositoryGenerator repositoryGenerator = RepositoryGenerator(
   //   groupedRoutes: groupedRoutes,
   //   mainPath: mainPath,
@@ -132,6 +141,7 @@ Future<void> swaggerGenerator(String swaggerPath,
     Future(() => routesGenerator.generateRoutes()),
     Future(() => entitiesGenerator.generateEntities()),
     Future(() => responseModelsGenerator.generateModels()),
+    Future(() => enumsGenerator.generateEnums()),
     // Future(() => repositoryGenerator.generateRepository()),
     // Future(() => networkGenerator.generateNetwork()),
     // Future(() => remoteGenerator.generateRemote()),

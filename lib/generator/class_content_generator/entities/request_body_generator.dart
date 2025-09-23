@@ -78,7 +78,7 @@ class RequestBodyGenerator {
               nullable: param.schema.nullable,
               isSubClass: ref != null,
               isDateTime: paramType.toLowerCase().contains("date"),
-              isList: paramType.toLowerCase().contains("list"),
+              isList: paramType.toLowerCase().contains("list<"),
             )
           : ClassGeneratorHelper.formatFromJsonLine(
               paramName: paramName,
@@ -86,10 +86,12 @@ class RequestBodyGenerator {
               nullable: param.schema.nullable,
               isSubClass: ref != null,
               isDateTime: paramType.toLowerCase().contains("date"),
-              isList: paramType.toLowerCase().contains("list"),
+              isList: paramType.toLowerCase().contains("list<"),
+              isListItemIsEnum: dartTypeInfo.isEnum,
               subClassName: paramType,
             );
-
+      String fixedParamType =
+          paramType.replaceAll("List<", "").replaceAll(">", "");
       generatedParameters.add(
         GeneratedParameters(
           type: paramType,
@@ -99,13 +101,13 @@ class RequestBodyGenerator {
             nullable: param.schema.nullable,
             generatedJsonLine: jsonLine,
           ),
-          enumValues:
-              !ParametarsGenerator.generatedSubClassesNames.contains(paramType)
-                  ? enumValues
-                  : [],
+          enumValues: !ParametarsGenerator.generatedSubClassesNames
+                  .contains(fixedParamType)
+              ? enumValues
+              : [],
           subClassName: paramType,
           subClassParameters: !ParametarsGenerator.generatedSubClassesNames
-                      .contains(paramType) &&
+                      .contains(fixedParamType) &&
                   ref != null
               ? (generateRequestBody(
                   content: MediaTypeContent(
@@ -116,7 +118,7 @@ class RequestBodyGenerator {
               : null,
         ),
       );
-      ParametarsGenerator.generatedSubClassesNames.add(paramType);
+      ParametarsGenerator.generatedSubClassesNames.add(fixedParamType);
     }
     return generatedParameters;
   }

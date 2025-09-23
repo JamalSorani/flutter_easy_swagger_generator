@@ -5,10 +5,12 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 class ModelClassGenerator {
   final Components components;
   final String mainPath;
+  final String globalEnumsFileString;
 
   ModelClassGenerator({
     required this.components,
     required this.mainPath,
+    required this.globalEnumsFileString,
   });
 
   void generateClass(RouteInfo routeInfo) {
@@ -23,6 +25,7 @@ class ModelClassGenerator {
       isForEntities: false,
       mainPath: mainPath,
     );
+
     List<String> contents = [];
 
     String classContent = _generateClassContent(
@@ -83,11 +86,17 @@ class ModelClassGenerator {
 
       String enumClassString = '';
       if (parameter.enumValues.isNotEmpty) {
-        enumClassString = """
+        if (globalEnumsFileString.contains(parameter.subClassName)) {
+          if (!generatedImportsString.contains("enums.dart")) {
+            generatedImportsString += "import '../../../enums.dart';$LINE";
+          }
+        } else {
+          enumClassString = """
 
 enum ${parameter.subClassName} {
 ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
 }""";
+        }
       }
       if (enumClassString.isNotEmpty) {
         generatedSubClasses.add(enumClassString);
@@ -96,16 +105,24 @@ ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
       String refClassString = '';
       if (parameter.subClassParameters != null &&
           parameter.enumValues.isEmpty) {
-        String subClassName = parameter.subClassName;
-        if (subClassName.startsWith("List")) {
-          subClassName =
-              subClassName.replaceAll("List<", "").replaceAll(">", "");
+        final fixedParamType =
+            parameter.subClassName.replaceAll("List<", "").replaceAll(">", "");
+        if (globalEnumsFileString.contains(fixedParamType)) {
+          if (!generatedImportsString.contains("enums.dart")) {
+            generatedImportsString += "import '../../../enums.dart';$LINE";
+          }
+        } else {
+          String subClassName = parameter.subClassName;
+          if (subClassName.startsWith("List")) {
+            subClassName =
+                subClassName.replaceAll("List<", "").replaceAll(">", "");
+          }
+          refClassString = _generateClassContent(
+            className: subClassName,
+            content: content,
+            subClassParameters: parameter.subClassParameters,
+          );
         }
-        refClassString = _generateClassContent(
-          className: subClassName,
-          content: content,
-          subClassParameters: parameter.subClassParameters,
-        );
       }
       if (refClassString.isNotEmpty) {
         final map =

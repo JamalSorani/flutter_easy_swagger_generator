@@ -57,6 +57,7 @@ class ClassGeneratorHelper {
     required bool isSubClass,
     required bool isDateTime,
     required bool isList,
+    required bool isListItemIsEnum,
     required String subClassName,
   }) {
     String camelCaseName = paramName.replaceAll('.', '').toCamelCase();
@@ -73,18 +74,20 @@ class ClassGeneratorHelper {
     }
     if (isList) {
       final listString = "($value as List$nullableMark)$nullableMark";
-      final isDoubleList = subClassName.split("List").length > 2;
+      final isDoubleList = subClassName.split("List<").length > 2;
       final variable = _getVariableName(subClassName);
 
       final listValue = _getListValue(
         isSubClass: isSubClass,
         subClassName: subClassName,
+        isEnum: isListItemIsEnum,
       );
       subClassName = subClassName.replaceAll("List<", "").replaceAll(">", "");
       final finalListValue = isDoubleList
           ? "(list as List).map((e)=>${_getListValue(
               isSubClass: isSubClass,
               subClassName: subClassName,
+              isEnum: isListItemIsEnum,
             )}).toList()"
           : listValue;
 
@@ -92,8 +95,10 @@ class ClassGeneratorHelper {
         value = "$listString.map(($variable) => $finalListValue).toList()";
       } else {
         String toStr = subClassName.contains("String") ? ".toString()" : "";
+        String toInt = subClassName.contains("int") ? ".toInt()" : "";
+        String toDouble = subClassName.contains("double") ? ".toDouble()" : "";
         value =
-            "$listString.map(($variable) => $finalListValue$toStr).toList()";
+            "$listString.map(($variable) => $finalListValue$toStr$toInt$toDouble).toList()";
       }
     }
     if (isDateTime) {
@@ -111,10 +116,15 @@ class ClassGeneratorHelper {
   static String _getListValue({
     required bool isSubClass,
     required String subClassName,
+    required bool isEnum,
   }) {
     final variable = _getVariableName(subClassName);
     subClassName = subClassName.replaceAll("List<", "").replaceAll(">", "");
-    return isSubClass ? "$subClassName.fromJson($variable)" : variable;
+    return isSubClass
+        ? (isEnum
+            ? "$subClassName.values.firstWhere((e) => e == $variable)"
+            : "$subClassName.fromJson($variable)")
+        : variable;
   }
 
   static Map<String, String> splitImportsAndBody(String classString) {
@@ -138,7 +148,7 @@ class ClassGeneratorHelper {
   }
 
   static String _getVariableName(String subClassName) {
-    final variable = subClassName.split("List").length > 1 ? "list" : "e";
+    final variable = subClassName.split("List<").length > 2 ? "list" : "e";
     subClassName = subClassName.replaceAll("List<", "").replaceAll(">", "");
     return variable;
   }
