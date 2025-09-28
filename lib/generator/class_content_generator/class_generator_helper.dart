@@ -1,6 +1,22 @@
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
+/// Utility helpers for generating Dart class source from OpenAPI schemas.
+///
+/// Provides string-formatting utilities to render:
+/// - Field declarations
+/// - Constructor parameter entries
+/// - JSON serialization and deserialization lines
+/// - Import/body splitting
+/// - Misc helpers for nested list handling and import deduplication
 class ClassGeneratorHelper {
+  /// Formats a Dart `final` field declaration line.
+  ///
+  /// - [paramType]: Dart type name (e.g., `String`, `int`, `List<User>`).
+  /// - [paramName]: Original schema/property name (will be camelCased).
+  /// - [isNullable]: Whether the field is nullable.
+  /// - [example]: Optional example value appended as a comment.
+  /// - [format]: Optional OpenAPI `format`, appended as a comment.
+  /// - [allowEmptyValue]: Appends a comment indicating empty values are allowed.
   static String formatVariable({
     required String paramType,
     required String paramName,
@@ -25,6 +41,10 @@ class ClassGeneratorHelper {
     return vairable;
   }
 
+  /// Formats a constructor parameter entry like `required this.foo` or `this.foo`.
+  ///
+  /// - [paramName]: Property/field name (will be camelCased).
+  /// - [isRequired]: Whether the parameter is marked as `required`.
   static String formatConstructureVariable({
     required String paramName,
     required bool isRequired,
@@ -33,6 +53,12 @@ class ClassGeneratorHelper {
     return '${requiredString}this.${paramName.toCamelCase().replaceAll("/", "")}';
   }
 
+  /// Formats a single `toJson` map entry line for a property.
+  ///
+  /// Handles enums (`.name`), nested objects (`toJson()`), DateTime
+  /// (`toIso8601String()`), and lists of nested objects.
+  ///
+  /// Returns a line like: `'foo': bar?.toJson(),`
   static String formatJsonLine({
     required String paramName,
     required bool isEnum,
@@ -54,6 +80,12 @@ class ClassGeneratorHelper {
     return '      \'$paramName\': $camelCaseName$enumName$subClassToJson$dateToIso8601String$listToJson,';
   }
 
+  /// Formats a single `fromJson` named argument line for a property.
+  ///
+  /// Handles enums (by `.name`), nested objects (via `fromJson`), lists
+  /// (including double-nested lists), and `DateTime.parse` for date values.
+  ///
+  /// Returns a line like: `foo: Foo.fromJson(json['foo']),`
   static String formatFromJsonLine({
     required String paramName,
     required bool isEnum,
@@ -117,6 +149,10 @@ class ClassGeneratorHelper {
     return '      $camelCaseName: $value,';
   }
 
+  /// Returns the mapped expression for a list element while deserializing.
+  ///
+  /// If [isSubClass] is true, returns either enum resolution or `fromJson` call;
+  /// otherwise returns the variable name directly.
   static String _getListValue({
     required bool isSubClass,
     required String subClassName,
@@ -131,6 +167,10 @@ class ClassGeneratorHelper {
         : variable;
   }
 
+  /// Splits a class source string into its import lines and body lines.
+  ///
+  /// Useful when composing nested class strings so imports can be deduplicated
+  /// and moved to the top while appending bodies below.
   static Map<String, String> splitImportsAndBody(String classString) {
     final lines = classString.split('\n');
 
@@ -151,12 +191,18 @@ class ClassGeneratorHelper {
     };
   }
 
+  /// Chooses a loop variable name based on list nesting depth.
+  ///
+  /// Returns `list` for double-nested lists, else `e`.
   static String _getVariableName(String subClassName) {
     final variable = subClassName.split("List<").length > 2 ? "list" : "e";
     subClassName = subClassName.replaceAll("List<", "").replaceAll(">", "");
     return variable;
   }
 
+  /// Removes duplicate `import` lines from a composed imports string.
+  ///
+  /// Preserves order of first occurrence and removes blank lines.
   static String removeDuplicateImports(String imports) {
     // Split by new lines
     final lines = imports.split('\n');

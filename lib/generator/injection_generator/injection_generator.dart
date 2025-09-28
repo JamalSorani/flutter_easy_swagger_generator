@@ -34,8 +34,9 @@ class InjectionGenerator {
         _generateInjectionForEachCategory(module);
       }
       _generateMainInjection();
-    } catch (e) {
-      printError('Error while generating routes: $e');
+    } catch (e,s) {
+      printError('Error while generating injection: $e');
+      printError(s.toString());
     }
   }
 
@@ -45,6 +46,9 @@ class InjectionGenerator {
   /// - For `user`, generates `user_injection.dart`.
   /// - Registers API, Repository, Facade, and Bloc into [GetIt].
   _generateInjectionForEachCategory(String category) {
+    if(category.isEmpty){
+      category=ConstantsHelper.generalCategory;
+    }
     String filePath =
         '${mainPath.contains("example") ? "example/" : ""}lib/common/injection/src/${category.toSnakeCase()}_injection.dart';
     final file = File(filePath);

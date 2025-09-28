@@ -1,3 +1,4 @@
+import 'package:flutter_easy_swagger_generator/generator/class_content_generator/components_generator.dart';
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Builds parameter metadata used to generate `*Param` classes and JSON mapping.
@@ -68,10 +69,10 @@ class ParametarsGenerator {
             subClassName: paramType,
             subClassParameters: !generatedSubClassesNames.contains(paramType) &&
                     param.schema?.ref != null
-                ? (RequestBodyGenerator(
+                ? (ComponentsGenerator(
                     components: components,
                     isForEntities: true,
-                  ).generateRequestBody(
+                  ).generateComponents(
                     content: MediaTypeContent(
                       contentType: TContentType.applicationJson,
                       schema: components.schemas[param.schema!.ref]!,

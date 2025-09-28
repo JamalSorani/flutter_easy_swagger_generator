@@ -41,7 +41,6 @@ class ResponseDetails {
   }
 }
 
-
 /*
 example:
  "responses": {

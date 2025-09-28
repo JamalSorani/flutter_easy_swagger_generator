@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_easy_swagger_generator/generator/class_content_generator/components_generator.dart';
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Generates Dart entity (parameter) classes for API endpoints.
@@ -74,13 +75,13 @@ class EntityClassGenerator {
         parameters: parameters,
         components: components,
       );
-      final requestBodyGenerator = RequestBodyGenerator(
+      final componentsGenerator = ComponentsGenerator(
         components: components,
         isForEntities: true,
       );
 
       generateParametars.addAll(
-        requestBodyGenerator.generateRequestBody(
+        componentsGenerator.generateComponents(
           content: requestBody?.content,
         ),
       );

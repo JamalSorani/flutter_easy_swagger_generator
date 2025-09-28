@@ -91,7 +91,7 @@ String getRouteName(String path) {
   };
 
   String mappedAction = verbMap[action] ?? action;
- if (!mappedAction.contains(entity)) {
+  if (!mappedAction.contains(entity)) {
     mappedAction = mappedAction + entity;
   }
 
@@ -99,7 +99,6 @@ String getRouteName(String path) {
     entity += "s";
   }
 
- 
   return mappedAction;
 }
 

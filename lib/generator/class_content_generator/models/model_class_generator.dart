@@ -1,18 +1,41 @@
 import 'dart:io';
 
+import 'package:flutter_easy_swagger_generator/generator/class_content_generator/components_generator.dart';
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
+/// Generates Dart model classes for API responses based on OpenAPI/Swagger specs.
+///
+/// This generator reads route information and content schemas to create
+/// strongly-typed model classes, including handling of enums, nested
+/// subclasses, imports, constructors, and JSON (de)serialization helpers.
 class ModelClassGenerator {
+  /// OpenAPI components providing access to schemas and references.
   final Components components;
+
+  /// The root path where generated files should be written.
   final String mainPath;
+
+  /// The concatenated contents of the global enums file, used to avoid
+  /// regenerating enums that already exist globally.
   final String globalEnumsFileString;
 
+  /// Creates a new [ModelClassGenerator].
+  ///
+  /// - [components]: OpenAPI components for schema lookup.
+  /// - [mainPath]: Base output path for generated model files.
+  /// - [globalEnumsFileString]: The full text of the global enums file
+  ///   (used to check if an enum already exists and import it instead).
   ModelClassGenerator({
     required this.components,
     required this.mainPath,
     required this.globalEnumsFileString,
   });
 
+  /// Generates a model class file for the given [routeInfo].
+  ///
+  /// Determines the class name and output file path based on the route, then
+  /// produces the class contents and writes them to disk. The generated class
+  /// represents the 200-response body for the route (if present).
   void generateClass(RouteInfo routeInfo) {
     String endPoint = 'Model';
     String routeName = getRouteName(routeInfo.fullRoute);
@@ -41,6 +64,18 @@ class ModelClassGenerator {
     }
   }
 
+  /// Builds the full Dart source for a single model class.
+  ///
+  /// When [subClassParameters] is provided, this method generates a nested
+  /// class using those parameters, otherwise it derives parameters from the
+  /// provided [content] schema. It also handles:
+  /// - Resolving and importing enums (or generating inline enums when needed)
+  /// - Recursively generating referenced nested classes
+  /// - Creating variables, constructor, and fromJson helpers
+  /// - Deduplicating imports
+  ///
+  /// Returns the complete Dart source string for the class and its nested
+  /// subclasses, including necessary imports.
   String _generateClassContent({
     required String className,
     MediaTypeContent? content,
@@ -52,13 +87,13 @@ class ModelClassGenerator {
         content?.contentType == TContentType.multipartFormData;
     ParametarsGenerator.generatedSubClassesNames.clear();
     if (subClassParameters == null) {
-      final requestBodyGenerator = RequestBodyGenerator(
+      final componentsGenerator = ComponentsGenerator(
         components: components,
         isForEntities: false,
       );
 
       generateParametars.addAll(
-        requestBodyGenerator.generateRequestBody(
+        componentsGenerator.generateComponents(
           content: content,
         ),
       );

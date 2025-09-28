@@ -66,8 +66,9 @@ ${formattedGroups.join(LINE)}
       // Write to file
       final outputFile = File("$mainPath/url.dart");
       outputFile.writeAsStringSync(generatedClass);
-    } catch (e) {
+    } catch (e,s) {
       printError('Error while generating routes: $e');
+      printError(s.toString());
     }
   }
 }

@@ -47,8 +47,6 @@ class RouteInfo {
   }
 }
 
-
-
 /*Example:
 
     "/api/Mobile//GetMyProfile": {

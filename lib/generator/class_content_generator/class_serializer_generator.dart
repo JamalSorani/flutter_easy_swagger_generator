@@ -1,15 +1,34 @@
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
+/// Generates serialization-related source for model/entity classes.
+///
+/// Responsible for producing:
+/// - Class constructors
+/// - `toJson()` method (supports FormData for multipart)
+/// - `fromJson` factory
+/// - Enum/nested subclass blocks composition
+/// - Conditional imports
 class ClassSerializerGenerator {
+  /// Name of the target Dart class to generate helpers for.
   final String className;
+
+  /// OpenAPI components for reference (not directly used in all methods).
   final Components components;
 
+  /// Creates a new [ClassSerializerGenerator].
+  ///
+  /// - [className]: Target class name for which helpers are generated.
+  /// - [components]: OpenAPI components providing schema context.
   ClassSerializerGenerator({
     required this.className,
     required this.components,
   });
 
-  //! Constructor Generator=====================================================================
+  /// Generates the Dart constructor for the target class.
+  ///
+  /// - [params]: Constructor parameter entries (e.g., `required this.id`).
+  /// - [isForEntities]: If true and params are empty, returns empty string
+  ///   (entities may omit an empty constructor). Otherwise returns `ClassName();`.
   String generateConstructor({
     required List<String> params,
     required bool isForEntities,
@@ -31,7 +50,10 @@ class ClassSerializerGenerator {
     return buffer.toString();
   }
 
-  //! ToJson Generator=====================================================================
+  /// Generates the `toJson` method body.
+  ///
+  /// When [isMultiPart] is true, returns a `FormData` map representation and
+  /// removes null values accordingly. Otherwise produces a `Map<String, dynamic>`.
   String generateToJson(List<GeneratedJsonLine> lines, bool isMultiPart) {
     final buffer = StringBuffer();
 
@@ -58,7 +80,9 @@ class ClassSerializerGenerator {
     return buffer.toString();
   }
 
-  //! SubClasses Generator=====================================================================
+  /// Concatenates generated enum and nested class blocks.
+  ///
+  /// Returns the combined source string.
   String generateSubClasses(List<String> enums) {
     final buffer = StringBuffer();
     for (int index = 0; index < enums.length; index++) {
@@ -67,7 +91,11 @@ class ClassSerializerGenerator {
     return buffer.toString();
   }
 
-  //! Imports Generator=====================================================================
+  /// Generates necessary import statements based on parameters and multipart.
+  ///
+  /// Adds `dart:io` if any parameter type is `File` or `List<File>`, and adds
+  /// `package:dio/dio.dart` when [isMultiPart] is true. Inserts a blank line
+  /// after imports if any were added.
   String generateImports(
       List<GeneratedParameters> generateParametars, bool isMultiPart) {
     final buffer = StringBuffer();
@@ -91,7 +119,9 @@ class ClassSerializerGenerator {
     return buffer.toString();
   }
 
-  //! FromJson Generator=====================================================================
+  /// Generates the `factory ClassName.fromJson(Map<String, dynamic> json)`.
+  ///
+  /// Writes all provided [lines] inside the constructor call, one per field.
   String generateFromJson({
     required List<GeneratedJsonLine> lines,
     required String className,
