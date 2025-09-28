@@ -1,32 +1,28 @@
 <!--
 This README describes the package. If you publish this package to pub.dev,
 this README's contents appear on the landing page for your package.
-
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
 -->
 
 # Flutter Easy Swagger Generator
 
-A Flutter package that automatically generates clean architecture code from Swagger/OpenAPI specifications.
+A Flutter package that automatically generates **Clean Architecture code** from Swagger/OpenAPI specifications.
+
+This version (`1.0.0`) adds a **standalone CLI**, improved model generation, multipart/form-data support, full HTTP method support, and enhanced developer experience.
 
 ## Features
 
-- Generates complete clean architecture structure
-- Supports all OpenAPI 3.0 features
-- Generates models, repositories, and network layers
-- Handles complex data types and references
-- Supports multipart/form-data
-- Includes code formatting
-- Supports both local files and remote URLs
-- Generates BLoC pattern for state management
-- Includes dependency injection setup
-- Creates result builders for better state mangment
+* Generates a **complete Clean Architecture structure** (`domain`, `infrastructure`, `presentation`, `application`)
+* Supports **OpenAPI 3.0 features**
+* Generates models, repositories, and network layers
+* Handles **nested objects**, arrays, and complex data types
+* Supports **multipart/form-data requests**
+* Handles **all HTTP methods** (`GET`, `POST`, `PUT`, `DELETE`)
+* Automatically serializes **header, query, and body parameters**
+* Generates **BLoC pattern** for state management
+* Includes **dependency injection setup** with `get_it`
+* Creates **result builders** for consistent state and error management
+* Supports **local files** and **remote URLs**
+* Automatically formats generated code according to Dart guidelines
 
 ## Installation
 
@@ -34,80 +30,50 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_easy_swagger_generator: ^latest
+  flutter_easy_swagger_generator: ^1.0.0
 ```
 
 ## Usage
 
-### Basic Usage
+### CLI Usage
+
+```bash
+# Generate from a local file
+dart run flutter_easy_swagger_generator path/to/swagger.json
+
+# Generate from a remote URL
+dart run flutter_easy_swagger_generator https://api.example.com/swagger.json
+```
+
+
+### Dart API Usage
 
 ```dart
 import 'package:flutter_easy_swagger_generator/flutter_easy_swagger_generator.dart';
 
-void main(List<String> arguments) async {
-  // Generate code from a local swagger file
+void main() async {
+  // Generate code from a local Swagger file
   await swaggerGenerator('path/to/swagger.json');
-  
-  // Or generate from a remote URL
+
+  // Or generate from a remote Swagger URL
   await swaggerGenerator('https://api.example.com/swagger.json');
 }
 ```
 
 #### Parameters
-- `swaggerPath` (**String**): Path to the Swagger file or URL to the Swagger specification.
-- `category` (**String?**, optional): If provided, only generates code for API paths containing this category.
-- `prefixesToRemove` (**List<String>?**, optional): List of prefixes to remove from generated class and file names.
 
-### Command Line
+* `swaggerPath` (**String**): Path or URL to the Swagger JSON file.
+* `category` (**String?**, optional): Generate code only for a specific API path category.
+* `prefixesToRemove` (**List<String>?**, optional): Remove specified prefixes from generated class/file names.
 
-```bash
-# Generate from local file
-dart run main.dart path/to/swagger.json
-
-# Generate from remote URL
-dart run main.dart https://api.example.com/swagger.json
-```
-
-### Example
-
-See the `example` directory for a complete working example:
-
-```dart
-import 'package:flutter_easy_swagger_generator/generator/swagger_generator.dart';
-
-void main() async {
-  // Example 1: Generate from local swagger file
-  await swaggerGenerator('example/swagger.json');
-
-  // Example 2: Generate from remote swagger URL
-  await swaggerGenerator('https://petstore.swagger.io/v2/swagger.json');
-}
-```
-
-### Generate Code for a Single Category
-
-You can generate code for only a specific category of API paths using `swaggerSingleCategoryGenerator`:
-
-```dart
-import 'package:flutter_easy_swagger_generator/flutter_easy_swagger_generator.dart';
-
-void main(List<String> arguments) async {
-  // Generate code for only the 'user' category
-  await swaggerSingleCategoryGenerator('path/to/swagger.json', 'user');
-
-  // Generate code for the 'order' category, removing specific prefixes
-  await swaggerSingleCategoryGenerator('path/to/swagger.json', 'order', prefixesToRemove: ['Api', 'Dto']);
-}
-```
 
 #### Parameters
-- `swaggerPath` (**String**): Path to the Swagger file or URL to the Swagger specification.
-- `category` (**String**): The category string to filter API paths.
-- `prefixesToRemove` (**List<String>?**, optional): List of prefixes to remove from generated class and file names.
+
+* `swaggerPath` (**String**): Path or URL to the Swagger JSON file.
+* `category` (**String**): The category string to filter API paths.
+* `prefixesToRemove` (**List<String>?**, optional): List of prefixes to remove from generated class and file names.
 
 ## Generated Structure
-
-The generator creates the following structure:
 
 ```
 lib/
@@ -130,55 +96,56 @@ lib/
   │   └── injection/
 ```
 
-## Features
+## Layer Features
 
 ### Entity Generation
-- Automatically generates Dart classes from OpenAPI schemas
-- Handles nested objects and arrays
-- Supports all primitive types
-- Generates proper null safety
+
+* Converts OpenAPI schemas into Dart classes
+* Handles nested objects and arrays
+* Supports null safety
 
 ### Repository Generation
-- Creates repository interfaces
-- Generates repository implementations
-- Handles CRUD operations
-- Supports custom methods
+
+* Creates repository interfaces and implementations
+* Supports CRUD operations and custom methods
 
 ### Network Layer
-- Generates API clients
-- Handles authentication
-- Supports all HTTP methods
-- Manages request/response types
+
+* Generates API clients
+* Handles authentication
+* Supports all HTTP methods
+* Correctly maps request and response types
 
 ### Presentation Layer
-- Generates BLoC pattern implementation
-- Creates events for user actions
-- Generates state classes for UI updates
-- Follows Flutter best practices
+
+* Generates BLoC implementation
+* Creates events and state classes for UI
+* Follows Flutter best practices
 
 ### Application Layer
-- Generates use cases for business logic
-- Separates concerns between layers
-- Follows clean architecture principles
+
+* Generates use cases for business logic
+* Separates concerns between layers
+* Implements clean architecture principles
 
 ### Dependency Injection
-- Sets up dependency injection
-- Configures service locators
-- Manages module dependencies
+
+* Sets up service locators
+* Configures module dependencies
 
 ### Result Handling
-- Generates result builders for error handling
-- Provides consistent error management
-- Supports all patterns for success/failure/loading
+
+* Generates result builders
+* Provides consistent success/failure/loading handling
 
 ### Code Formatting
-- Automatically formats generated code
-- Follows Dart style guidelines
-- Maintains consistent formatting
+
+* Auto-formats all generated files
+* Maintains consistent Dart style
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please submit a Pull Request.
 
 ## License
 

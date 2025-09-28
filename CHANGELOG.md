@@ -1,8 +1,46 @@
+## 1.0.0
+### Major Changes
+* **CLI Generator Added**
+  * Added a standalone CLI entry point (`bin/flutter_easy_swagger_generator.dart`) to run the generator directly:
+    ```bash
+    dart run flutter_easy_swagger_generator <path_to_swagger.json> [--watch]
+    ```
+  * Fully independent of `build_runner`, but works similarly with live regeneration.
+
+* **Improved Response Model Generation**
+  * Models for API responses are now generated with correct and strongly typed `fromJson` and `toJson` methods for requests.
+  * Automatically resolves `$ref` objects and nested types into separate model classes.
+  * Added null safety and list handling (`List<T>` parsing).
+
+* **Enhanced Request Handling**
+  * Now supports **all HTTP methods**:
+    - `GET`, `POST`, `PUT`, `DELETE`, and others.
+  * Automatically detects and generates correct API call methods.
+
+* **Multipart Form Request Support**
+  * Automatically detects endpoints requiring multipart/form-data.
+  * Generates correct Dio multipart request handling with `FormData` and `MultipartFile`.
+
+* **Comprehensive Parameter Support**
+  * Handles all request parameter types:
+    - **Header parameters**
+    - **Query parameters**
+    - **Body parameters**
+  * Automatically maps them to generated entity classes and serializes them in `toJson()`.
+
+* **Documentation Improvements**
+  * Added clear inline documentation for:
+    - CLI usage
+    - Swagger generator functions
+    - Generated code examples
+  * Updated README with new usage instructions and examples for CLI mode.
+
+---
+
 ## 0.0.3
-* fix LICENSE file error
+* Fixed LICENSE file error
 
 ## 0.0.2
-
 * Added new parameters to `swaggerGenerator`:
   * `category` for filtering generated code by API path category
   * `prefixesToRemove` for removing specific prefixes from generated class and file names
@@ -13,7 +51,6 @@
 * Improved code generation flexibility and customization
 
 ## 0.0.1
-
 * Initial release of flutter_easy_swagger_generator
 * Features:
   * Automatic generation of Dart models from Swagger/OpenAPI specifications
