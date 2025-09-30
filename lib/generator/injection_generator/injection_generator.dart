@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_easy_swagger_generator/flutter_easy_swagger_generator.dart';
 import '../../helpers/imports.dart';
 
 /// A generator responsible for creating dependency injection setup files.
@@ -9,7 +10,7 @@ import '../../helpers/imports.dart';
 /// - A main `injection.dart` file that initializes all module injections.
 ///
 /// The generated code uses the [GetIt] service locator for managing
-/// dependencies such as API clients, repositories, facades, and blocs.
+/// dependencies such as API clients, repositories, facades, and state management.
 class InjectionGenerator {
   /// The list of modules for which injection code will be generated.
   final List<String> moduleList;
@@ -17,10 +18,14 @@ class InjectionGenerator {
   /// The base path where generated files will be stored.
   final String mainPath;
 
+  /// The state management type.
+  final StateManagementType stateManagementType;
+
   /// Creates a new [InjectionGenerator].
   InjectionGenerator({
     required this.mainPath,
     required this.moduleList,
+    required this.stateManagementType,
   });
 
   /// Generates dependency injection setup files.
@@ -44,11 +49,12 @@ class InjectionGenerator {
   ///
   /// Example:
   /// - For `user`, generates `user_injection.dart`.
-  /// - Registers API, Repository, Facade, and Bloc into [GetIt].
+  /// - Registers API, Repository, Facade, and all selected state management into [GetIt].
   void _generateInjectionForEachCategory(String category) {
     if (category.isEmpty) {
       category = ConstantsHelper.generalCategory;
     }
+
     String filePath =
         '${mainPath.contains("example") ? "example/" : ""}lib/common/injection/src/${category.toSnakeCase()}_injection.dart';
     final file = File(filePath);
@@ -59,16 +65,33 @@ class InjectionGenerator {
         category[0].toUpperCase() + category.substring(1);
 
     // Generate DI setup code for this category
-    buffer.writeln(
-      """
+    buffer.writeln("""
 import 'package:dio/dio.dart';
 import '../../../app/$category/application/${category}_facade.dart';
 import '../../../app/$category/domain/repository/${category}_repository.dart';
 import '../../../app/$category/infrastructure/datasource/remote/${category}_remote.dart';
 import '../../../app/$category/infrastructure/repo_imp/${category}_repo_imp.dart';
-import '../../../app/$category/presentation/state/${category}_bloc.dart';
 import '../injection.dart';
+""");
 
+    // Conditionally import state management files
+    if (stateManagementType == StateManagementType.bloc ||
+        stateManagementType == StateManagementType.all) {
+      buffer.writeln(
+          "import '../../../app/$category/presentation/state/${category}_bloc.dart';");
+    }
+    if (stateManagementType == StateManagementType.provider ||
+        stateManagementType == StateManagementType.all) {
+      buffer.writeln(
+          "import '../../../app/$category/presentation/state/${category}_provider.dart';");
+    }
+    if (stateManagementType == StateManagementType.riverpod ||
+        stateManagementType == StateManagementType.all) {
+      buffer.writeln(
+          "import '../../../app/$category/presentation/state/${category}_riverpod.dart';");
+    }
+
+    buffer.writeln("""
 /// Registers all dependencies for the [$category] module.
 Future<void> ${category}Injection() async {
   getIt.registerSingleton<${capitalizedCategory}Api>(
@@ -88,14 +111,44 @@ Future<void> ${category}Injection() async {
       repository: getIt<${capitalizedCategory}Repository>(),
     ),
   );
+""");
 
+    // Register selected state management
+    if (stateManagementType == StateManagementType.bloc ||
+        stateManagementType == StateManagementType.all) {
+      buffer.writeln("""
   getIt.registerSingleton<${capitalizedCategory}Bloc>(
     ${capitalizedCategory}Bloc(
       facade: getIt<${capitalizedCategory}Facade>(),
     ),
   );
-}""",
-    );
+""");
+    }
+
+    if (stateManagementType == StateManagementType.provider ||
+        stateManagementType == StateManagementType.all) {
+      buffer.writeln("""
+  getIt.registerSingleton<${capitalizedCategory}Provider>(
+    ${capitalizedCategory}Provider(
+      facade: getIt<${capitalizedCategory}Facade>(),
+    ),
+  );
+""");
+    }
+
+    if (stateManagementType == StateManagementType.riverpod ||
+        stateManagementType == StateManagementType.all) {
+      buffer.writeln("""
+  getIt.registerSingleton<${capitalizedCategory}Notifier>(
+    ${capitalizedCategory}Notifier(
+      facade: getIt<${capitalizedCategory}Facade>(),
+    ),
+  );
+""");
+    }
+
+    buffer.writeln("}");
+
     file.writeAsStringSync(buffer.toString());
   }
 
@@ -111,16 +164,12 @@ Future<void> ${category}Injection() async {
     file.parent.createSync(recursive: true);
     final StringBuffer buffer = StringBuffer();
 
-    // Import GetIt and module injections
     buffer.writeln("import 'package:get_it/get_it.dart';");
 
     for (var module in moduleList) {
       buffer.writeln("import 'src/${module.toSnakeCase()}_injection.dart';");
     }
 
-    buffer.writeln();
-
-    // Generate main GetIt initialization code
     buffer.writeln("""
 final GetIt getIt = GetIt.instance;
 
@@ -129,6 +178,7 @@ Future<void> initInjection() async {
 ${moduleList.map((module) => "  await ${module}Injection();").join(line)}
 }
 """);
+
     file.writeAsStringSync(buffer.toString());
   }
 }

@@ -18,7 +18,7 @@ This version adds a **standalone CLI**, improved model generation, multipart/for
 * Supports **multipart/form-data requests**
 * Handles **all HTTP methods** (`GET`, `POST`, `PUT`, `DELETE`)
 * Automatically serializes **header, query, and body parameters**
-* Generates **BLoC pattern** for state management
+* Generates **BLoC, Provider, or Riverpod** for state management
 * Includes **dependency injection setup** with `get_it`
 * Creates **result builders** for consistent state and error management
 * Supports **local files** and **remote URLs**
@@ -31,7 +31,6 @@ Add this package to your `pubspec.yaml`:
 ```yaml
 dependencies:
   flutter_easy_swagger_generator: ^1.0.2
-```
 
 ## Usage
 
@@ -90,7 +89,9 @@ lib/
   │   ├── presentation/
   │   │   ├── bloc/
   │   │   ├── event/
-  │   │   └── state/
+  │   │   ├── state/
+  │   │   ├── provider/
+  │   │   └── riverpod/
   │   ├── application/
   │   │   └── use_cases/
   │   └── injection/
@@ -118,9 +119,10 @@ lib/
 
 ### Presentation Layer
 
-* Generates BLoC implementation
-* Creates events and state classes for UI
+* Generates code according to the selected state management type (BLoC, Provider, or Riverpod)
+* Creates events, states, or notifier classes for UI
 * Follows Flutter best practices
+* Integrates state management with dependency injection
 
 ### Application Layer
 

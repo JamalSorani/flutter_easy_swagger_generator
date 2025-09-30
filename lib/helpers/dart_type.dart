@@ -28,7 +28,6 @@ DartTypeInfo getDartType({
 
   // Handle array types
   if (schema is ArrayProperty) {
-    printDebug(schema.items?.ref);
     final itemType = getDartType(
       schema: schema.items,
       components: components,
@@ -36,7 +35,6 @@ DartTypeInfo getDartType({
     );
     final ref = schema.items?.ref;
     final refLast = ref?.split('/').last.split('.').last;
-    printDebug(refLast);
     return DartTypeInfo(
       className: 'List<${refLast ?? itemType.className}>',
       schema: schema.items,

@@ -1,6 +1,6 @@
 name: flutter_easy_swagger_generator
 description: "A Flutter package for generating Dart models and API clients from Swagger/OpenAPI specifications."
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/JamalSorani/flutter_easy_swagger_generator
 repository: https://github.com/JamalSorani/flutter_easy_swagger_generator
 environment:
@@ -13,6 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
+  flutter_riverpod: ^2.6.1
   freezed_annotation: ^3.1.0
   get_it: ^8.2.0
   yaml: ^3.1.3
