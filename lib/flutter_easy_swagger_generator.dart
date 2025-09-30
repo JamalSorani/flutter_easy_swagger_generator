@@ -125,6 +125,3 @@ Future<void> swaggerGenerator(String swaggerPath,
   // }
   //*******************************************************/
 }
-
-
-
