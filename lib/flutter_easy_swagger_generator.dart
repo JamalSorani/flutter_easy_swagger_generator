@@ -1,50 +1,87 @@
-import 'package:flutter_easy_swagger_generator/generator/enums_generator.dart';
-import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 import 'dart:io';
+import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
-Future<void> swaggerGenerator(String swaggerPath,
-    {List<String>? prefixesToRemove}) async {
+/// Enum for choosing state management type
+enum StateManagementType { bloc, provider, riverpod, all }
+
+Future<void> swaggerGenerator(
+  String swaggerPath, {
+  List<String>? prefixesToRemove,
+}) async {
   String mainPath = "lib/app";
 
-  // Check if swagger file exists
+  //********************* Check swagger file *******************************/
   if (!File(swaggerPath).existsSync()) {
     printError('Error: Swagger file not found at $swaggerPath');
     printInfo('Usage: dart run main.dart [path_to_swagger.json]');
     return;
   }
+
   if (prefixesToRemove != null) {
     ConstantsHelper.allPrefixesToRemove.addAll(prefixesToRemove);
   }
 
-  //********************* Variables *******************************/
+  //********************* Load swagger *******************************/
   String jsonString = File(swaggerPath).readAsStringSync();
   Map<String, dynamic> swaggerJson = jsonDecode(jsonString);
   OpenApiJSON openApiJSON = OpenApiJSON.fromJson(swaggerJson);
   Components components = openApiJSON.components;
   List<RouteInfo> routesInfo = openApiJSON.paths;
+
+  //********************* Group routes by category *******************************/
   Map<String, List<RouteInfo>> groupedRoutes = {};
   for (var routeInfo in routesInfo) {
     String category = getCategory(routeInfo.fullRoute);
     groupedRoutes.putIfAbsent(category, () => []).add(routeInfo);
   }
-  //***************************************************************/
+
+  //********************* Ask user for state management *******************************/
+  printInfo(
+      '\nChoose your state management type (comma-separated for multiple):');
+  printInfo('1️⃣  BLoC');
+  printInfo('2️⃣  Provider');
+  printInfo('3️⃣  Riverpod');
+  stdout.write('Enter choices (e.g., 1,3 for BLoC + Riverpod): ');
+  String? choice = stdin.readLineSync();
+
+  final Set<StateManagementType> selectedTypes = {};
+  if (choice != null) {
+    for (var c in choice.split(',')) {
+      switch (c.trim()) {
+        case '1':
+          selectedTypes.add(StateManagementType.bloc);
+          break;
+        case '2':
+          selectedTypes.add(StateManagementType.provider);
+          break;
+        case '3':
+          selectedTypes.add(StateManagementType.riverpod);
+          break;
+      }
+    }
+  }
+  if (selectedTypes.isEmpty) selectedTypes.add(StateManagementType.bloc);
+  printInfo('Selected: ${selectedTypes.map((e) => e.name).join(', ')}');
 
   //********************* Generators Objects **********************/
   RoutesGenerator routesGenerator = RoutesGenerator(
     groupedRoutes: groupedRoutes,
     mainPath: mainPath,
   );
+
   EnumsGenerator enumsGenerator = EnumsGenerator(
     components: components,
     mainPath: mainPath,
   );
   String globalEnumsFileString = enumsGenerator.generateEnums();
+
   EntitiesGenerator entitiesGenerator = EntitiesGenerator(
     routesInfo: routesInfo,
     components: components,
     mainPath: mainPath,
     globalEnumsFileString: globalEnumsFileString,
   );
+
   ModelsGenerator responseModelsGenerator = ModelsGenerator(
     routesInfo: routesInfo,
     components: components,
@@ -68,44 +105,71 @@ Future<void> swaggerGenerator(String swaggerPath,
     groupedRoutes: groupedRoutes,
     mainPath: mainPath,
   );
-  BlocGenerator blocGenerator = BlocGenerator(
-    groupedRoutes: groupedRoutes,
-    mainPath: mainPath,
-  );
-  EventGenerator eventGenerator = EventGenerator(
-    groupedRoutes: groupedRoutes,
-    mainPath: mainPath,
-  );
-  StateGenerator stateGenerator = StateGenerator(
-    groupedRoutes: groupedRoutes,
-    mainPath: mainPath,
-  );
 
+  // Initialize only selected state management generators
+  BlocGenerator? blocGenerator;
+  EventGenerator? eventGenerator;
+  StateGenerator? stateGenerator;
+  ProviderGenerator? providerGenerator;
+  RiverpodGenerator? riverpodGenerator;
+
+  if (selectedTypes.contains(StateManagementType.bloc)) {
+    blocGenerator =
+        BlocGenerator(groupedRoutes: groupedRoutes, mainPath: mainPath);
+    eventGenerator =
+        EventGenerator(groupedRoutes: groupedRoutes, mainPath: mainPath);
+    stateGenerator =
+        StateGenerator(groupedRoutes: groupedRoutes, mainPath: mainPath);
+  }
+
+  if (selectedTypes.contains(StateManagementType.provider)) {
+    providerGenerator =
+        ProviderGenerator(groupedRoutes: groupedRoutes, mainPath: mainPath);
+  }
+
+  if (selectedTypes.contains(StateManagementType.riverpod)) {
+    riverpodGenerator =
+        RiverpodGenerator(groupedRoutes: groupedRoutes, mainPath: mainPath);
+  }
+
+  //********************* Generate per category **********************/
   for (var category in groupedRoutes.keys) {
     repositoryGenerator.generateRepositoryForCategory(category);
     remoteGenerator.generateRemoteForCategory(category);
     repoImpGenerator.generateRepositoryForCategory(category);
     applicationGenerator.generateApplicationForCategory(category);
-    blocGenerator.generateBlocForCategory(category);
-    eventGenerator.generateEventForCategory(category);
-    stateGenerator.generateStateForCategory(category);
+
+    if (selectedTypes.contains(StateManagementType.bloc)) {
+      blocGenerator?.generateBlocForCategory(category);
+      eventGenerator?.generateEventForCategory(category);
+      stateGenerator?.generateStateForCategory(category);
+    }
+
+    if (selectedTypes.contains(StateManagementType.provider)) {
+      providerGenerator?.generateProviderForCategory(category);
+    }
+
+    if (selectedTypes.contains(StateManagementType.riverpod)) {
+      riverpodGenerator?.generateRiverpodForCategory(category);
+    }
   }
 
-  NetworkGenerator networkGenerator = NetworkGenerator(
-    mainPath: mainPath,
-  );
+  //********************* Shared generators **********************/
+  NetworkGenerator networkGenerator = NetworkGenerator(mainPath: mainPath);
+  ResultBuilderGenerator resultBuilderGenerator =
+      ResultBuilderGenerator(mainPath: mainPath);
 
-  ResultBuilderGenerator resultBuilderGenerator = ResultBuilderGenerator(
-    mainPath: mainPath,
-  );
   List<String> moduleList = getModuleNames(routesInfo);
+
   InjectionGenerator injectionGenerator = InjectionGenerator(
     mainPath: mainPath,
     moduleList: moduleList,
+    stateManagementType: selectedTypes.length == 1
+        ? selectedTypes.first
+        : StateManagementType.all, // optional: pass all if multiple selected
   );
-  //***************************************************************/
 
-  //********************* Generating **********************/
+  //********************* Generate shared code **********************/
   printInfo('\nGenerating code from swagger file: $swaggerPath');
   await Future.wait([
     Future(() => routesGenerator.generateRoutes()),
@@ -115,13 +179,6 @@ Future<void> swaggerGenerator(String swaggerPath,
     Future(() => resultBuilderGenerator.generateResultBuilder()),
     Future(() => injectionGenerator.generateInjection()),
   ]);
-  printSuccess('Code generation completed!\n');
-  //*******************************************************/
 
-  //********************* Formatting **********************/
-  // if (promptUser('Do you want to format the generated files?') == 'y') {
-  //   printInfo('\nFormatting generated files...');
-  //   await formatDirectory('$mainPath');
-  // }
-  //*******************************************************/
+  printSuccess('Code generation completed!\n');
 }

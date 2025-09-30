@@ -1,3 +1,35 @@
+## 1.0.2
+* **State Management Selection Enhanced**
+Users can now choose the state management type during code generation:
+
+* **BLoC**
+* **Provider**
+* **Riverpod**
+
+* **swaggerGenerator and InjectionGenerator updated to handle multiple state management types.**
+
+* **Dependency injection files now conditionally import and register the selected state management modules for each feature.**
+
+* **Generated code is fully compatible with any combination of state management patterns.**
+
+* **Default selection remains BLoC if no input is provided.**
+
+* **Injection Generator Update**
+
+* **Automatically generates DI setup for all selected state management types.**
+
+* **Avoids redundant imports and registrations when only one type is selected.**
+
+* **Simplifies module injection for multi-pattern projects.**
+
+* **CLI Updates**
+
+* **Added option to select state management type via CLI prompt.**
+
+* **Shows clear instructions for selecting single or all state management types.**
+
+* **Ensures consistent code generation for multi-pattern projects.**
+
 ## 1.0.1
 * Update lints
 

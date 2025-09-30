@@ -33,8 +33,10 @@ DartTypeInfo getDartType({
       components: components,
       isForEntities: isForEntities,
     );
+    final ref = schema.items?.ref;
+    final refLast = ref?.split('/').last.split('.').last;
     return DartTypeInfo(
-      className: 'List<${itemType.className}>',
+      className: 'List<${refLast ?? itemType.className}>',
       schema: schema.items,
       isSubclass: true,
       isEnum: itemType.isEnum,
@@ -47,26 +49,8 @@ DartTypeInfo getDartType({
     final refParts = ref.split('.');
 
     // Shared reference types
-    if (ref.contains('.Shared.')) {
-      return DartTypeInfo(
-        className: refParts.last + endPoint,
-        schema: schema,
-        isSubclass: true,
-      );
-    }
-
-    // Handle request/response schema naming
-    final schemaName = refParts.last.toString().toLowerCase() == "request"
-        ? refParts[refParts.length - 2]
-        : refParts.last;
-
-    // Map primitive types directly, otherwise use referenced class
-    String? type = components.schemas[ref]?.type.name;
-    if (type != null && type != "ObjectProperty") {
-      return _type(type, components.schemas[ref]!, enumName: schemaName);
-    }
     return DartTypeInfo(
-      className: schemaName + endPoint,
+      className: refParts.last + endPoint,
       schema: schema,
       isSubclass: true,
     );
