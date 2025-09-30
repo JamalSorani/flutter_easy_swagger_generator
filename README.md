@@ -7,7 +7,7 @@ this README's contents appear on the landing page for your package.
 
 A Flutter package that automatically generates **Clean Architecture code** from Swagger/OpenAPI specifications.
 
-This version (`1.0.0`) adds a **standalone CLI**, improved model generation, multipart/form-data support, full HTTP method support, and enhanced developer experience.
+This version adds a **standalone CLI**, improved model generation, multipart/form-data support, full HTTP method support, and enhanced developer experience.
 
 ## Features
 
@@ -30,7 +30,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_easy_swagger_generator: ^1.0.0
+  flutter_easy_swagger_generator: ^1.0.2
 ```
 
 ## Usage
