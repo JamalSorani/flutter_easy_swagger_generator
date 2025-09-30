@@ -34,7 +34,7 @@ class InjectionGenerator {
         _generateInjectionForEachCategory(module);
       }
       _generateMainInjection();
-    } catch (e,s) {
+    } catch (e, s) {
       printError('Error while generating injection: $e');
       printError(s.toString());
     }
@@ -45,9 +45,9 @@ class InjectionGenerator {
   /// Example:
   /// - For `user`, generates `user_injection.dart`.
   /// - Registers API, Repository, Facade, and Bloc into [GetIt].
-  _generateInjectionForEachCategory(String category) {
-    if(category.isEmpty){
-      category=ConstantsHelper.generalCategory;
+  void _generateInjectionForEachCategory(String category) {
+    if (category.isEmpty) {
+      category = ConstantsHelper.generalCategory;
     }
     String filePath =
         '${mainPath.contains("example") ? "example/" : ""}lib/common/injection/src/${category.toSnakeCase()}_injection.dart';
@@ -104,7 +104,7 @@ Future<void> ${category}Injection() async {
   /// - Imports all module-specific injection files.
   /// - Exposes a global [GetIt] instance named [getIt].
   /// - Provides [initInjection] function to initialize all modules.
-  _generateMainInjection() {
+  void _generateMainInjection() {
     String filePath =
         '${mainPath.contains("example") ? "example/" : ""}lib/common/injection/injection.dart';
     final file = File(filePath);

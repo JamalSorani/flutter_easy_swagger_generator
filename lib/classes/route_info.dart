@@ -34,7 +34,6 @@ class RouteInfo {
       httpMethod = HttpMethodType.values.firstWhere((e) {
         return e.name.toLowerCase() == method.toLowerCase();
       }, orElse: () {
-        //TODO add error handler to add new type
         return HttpMethodType.values.first;
       });
       httpMethodInfo = HttpMethodInfo.fromJson(info);

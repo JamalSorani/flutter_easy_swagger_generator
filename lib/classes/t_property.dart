@@ -1,5 +1,3 @@
-import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
-
 /// Represents a primitive schema property (e.g., string, integer, number, boolean).
 ///
 /// Captures optional `format`, `enum` values, and `default` when present.
@@ -48,9 +46,6 @@ class PrimitiveProperty implements TProperty {
           return e.name == (json['type'].toString());
         },
         orElse: () {
-          printDebug(
-              "siiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii ADD THIS TYPE: ${json['type']}");
-          //TODO add error handler to add new type;
           return TPropertyType.string;
         },
       );
