@@ -126,7 +126,7 @@ final GetIt getIt = GetIt.instance;
 
 /// Initializes dependency injection for all modules.
 Future<void> initInjection() async {
-${moduleList.map((module) => "  await ${module}Injection();").join(LINE)}
+${moduleList.map((module) => "  await ${module}Injection();").join(line)}
 }
 """);
     file.writeAsStringSync(buffer.toString());

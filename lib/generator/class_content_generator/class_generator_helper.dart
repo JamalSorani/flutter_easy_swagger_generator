@@ -220,6 +220,6 @@ class ClassGeneratorHelper {
     }
 
     // Join back into a single string with new lines
-    return uniqueLines.join(LINE) + LINE;
+    return uniqueLines.join(line) + line;
   }
 }

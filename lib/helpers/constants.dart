@@ -12,5 +12,5 @@ class ConstantsHelper {
   static const String generalCategory = 'General';
 }
 
-const String LINE = "\n";
-const String ENUMS_IMPORT = "import '../../../enums.dart';$LINE";
+const String line = "\n";
+const String enumsImport = "import '../../../enums.dart';$line";

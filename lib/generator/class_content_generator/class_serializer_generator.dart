@@ -36,7 +36,7 @@ class ClassSerializerGenerator {
     bool isEmpty = params.isEmpty;
     if (isEmpty) {
       if (isForEntities) return "";
-      return "  $className();$LINE";
+      return "  $className();$line";
     }
 
     final buffer = StringBuffer();

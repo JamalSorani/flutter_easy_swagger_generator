@@ -91,7 +91,7 @@ class ArrayProperty implements TProperty {
     this.items,
     this.ref,
     required this.nullable,
-    this.type = TPropertyType.ArrayProperty,
+    this.type = TPropertyType.arrayProperty,
     required this.format,
     this.defaultValue,
     required this.enumValues,
@@ -138,7 +138,7 @@ class RefProperty implements TProperty {
 
   RefProperty({
     this.ref,
-    this.type = TPropertyType.RefProperty,
+    this.type = TPropertyType.refProperty,
     required this.nullable,
     required this.format,
     this.defaultValue,
@@ -194,7 +194,7 @@ class ObjectProperty implements TProperty {
     this.additionalProperties,
     this.ref,
     required this.nullable,
-    this.type = TPropertyType.ObjectProperty,
+    this.type = TPropertyType.objectProperty,
     required this.format,
     this.defaultValue,
     required this.enumValues,
@@ -280,10 +280,10 @@ class PropertyNameAndSchema {
 
 /// Enumeration of supported schema property kinds and primitive types.
 enum TPropertyType {
-  PrimitiveProperty,
-  RefProperty,
-  ObjectProperty,
-  ArrayProperty,
+  primitiveProperty,
+  refProperty,
+  objectProperty,
+  arrayProperty,
   string,
   integer,
   number,

@@ -86,7 +86,7 @@ class EntityClassGenerator {
         ),
       );
     } else {
-      generatedClassString = "$generatedClassString$LINE";
+      generatedClassString = "$generatedClassString$line";
       generateParametars = subClassParameters;
     }
     final classSerializerGenerator = ClassSerializerGenerator(
@@ -105,19 +105,19 @@ class EntityClassGenerator {
     for (var parameter in generateParametars) {
       generatedConstructorVariable.add(parameter.generatedConstructorVariable);
       generatedJsonLines.add(parameter.generatedJsonLine);
-      generatedVariablesString += (parameter.generatedVariable + LINE);
+      generatedVariablesString += (parameter.generatedVariable + line);
 
       String enumClassString = '';
       if (parameter.enumValues.isNotEmpty) {
         if (globalEnumsFileString.contains(parameter.subClassName)) {
-          if (!generatedImportsString.contains(ENUMS_IMPORT)) {
-            generatedImportsString += ENUMS_IMPORT;
+          if (!generatedImportsString.contains(enumsImport)) {
+            generatedImportsString += enumsImport;
           }
         } else {
           enumClassString = """
 
 enum ${parameter.subClassName} {
-${parameter.enumValues.map((e) => "  $e,").join(LINE)}
+${parameter.enumValues.map((e) => "  $e,").join(line)}
 }""";
         }
       }
@@ -129,8 +129,8 @@ ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
       if (parameter.subClassParameters != null &&
           parameter.enumValues.isEmpty) {
         if (globalEnumsFileString.contains(parameter.subClassName)) {
-          if (!generatedImportsString.contains(ENUMS_IMPORT)) {
-            generatedImportsString += ENUMS_IMPORT;
+          if (!generatedImportsString.contains(enumsImport)) {
+            generatedImportsString += enumsImport;
           }
         } else {
           String subClassName = parameter.subClassName;
@@ -148,12 +148,12 @@ ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
       }
       if (refClassString.isNotEmpty) {
         final map =
-            ClassGeneratorHelper.splitImportsAndBody(refClassString + LINE);
+            ClassGeneratorHelper.splitImportsAndBody(refClassString + line);
         final imports = map["imports"]!;
         final body = map["body"]!;
         generatedSubClasses.add(body);
         if (!generatedImportsString.contains(imports)) {
-          generatedImportsString += (imports + LINE);
+          generatedImportsString += (imports + line);
         }
       }
     }
@@ -173,6 +173,6 @@ ${parameter.enumValues.map((e) => "  $e,").join(LINE)}
     String result = """${generatedImportsString}class $className {
 $generatedVariablesString$generatedConstructorString$generatedToJsonString}
 $genereatedSubClasses""";
-    return result.trim() + LINE;
+    return result.trim() + line;
   }
 }

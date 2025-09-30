@@ -56,7 +56,7 @@ class RoutesGenerator {
       // Final Dart class content
       final generatedClass = '''
 class AppUrl {
-${formattedGroups.join(LINE)}
+${formattedGroups.join(line)}
 }
 ''';
 
@@ -66,7 +66,7 @@ ${formattedGroups.join(LINE)}
       // Write to file
       final outputFile = File("$mainPath/url.dart");
       outputFile.writeAsStringSync(generatedClass);
-    } catch (e,s) {
+    } catch (e, s) {
       printError('Error while generating routes: $e');
       printError(s.toString());
     }
