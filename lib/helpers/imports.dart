@@ -36,3 +36,5 @@ export 'package:flutter_easy_swagger_generator/classes/media_type.dart';
 export 'package:flutter_easy_swagger_generator/generator/enums_generator.dart';
 export 'package:flutter_easy_swagger_generator/generator/presentation_generator/provider/provider_generator.dart';
 export 'package:flutter_easy_swagger_generator/generator/presentation_generator/riverpod/riverpod_generator.dart';
+export 'package:flutter_easy_swagger_generator/helpers/file_path.dart';
+export 'package:flutter_easy_swagger_generator/helpers/import_path.dart';

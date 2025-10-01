@@ -6,23 +6,28 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 /// Each generated Provider:
 /// - Uses `ChangeNotifier`
 /// - Contains `Result<T>` fields for all API actions
-/// - Provides async methods to call facade functions and notify listeners
+/// - Provides async methods to call repository functions and notify listeners
 /// - Replaces Bloc/Event/State trio with a single clean Provider file
 class ProviderGenerator {
   final Map<String, List<RouteInfo>> groupedRoutes;
   final String mainPath;
 
+  final bool isMVVM;
+
   ProviderGenerator({
     required this.groupedRoutes,
     required this.mainPath,
+    required this.isMVVM,
   });
 
   /// Generates a Provider file for a specific category
   void generateProviderForCategory(String category) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
-    String filePath =
-        '$mainPath/$category/presentation/state/provider/${category}_provider.dart';
-
+    String filePath = FilePath(
+      mainPath: mainPath,
+      category: category,
+      isMVVM: isMVVM,
+    ).providerFilePath;
     final file = File(filePath);
     file.parent.createSync(recursive: true);
     final buffer = StringBuffer();
@@ -35,34 +40,42 @@ class ProviderGenerator {
     buffer.writeln("""
 import 'package:flutter/foundation.dart';
 import '../../../../../core/result_builder/result.dart';
-import '../../../application/${category}_facade.dart';
-""");
+${isMVVM ? "import '../data/repositories/${category}_repository.dart';" : "import '../../../domain/repository/${category}_repository.dart';"}""");
 
     // Models
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
-      buffer.writeln(
-          "import '../../../infrastructure/models/${actionName}_model.dart';");
+      final importPath = ImportPath(
+        isMVVM: isMVVM,
+        actionName: actionName,
+      );
+      final dots = isMVVM ? "../" : "../../../";
+      buffer.writeln("import '$dots${importPath.modelFilePath}';");
     }
 
     // Entities
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
-      buffer.writeln(
-          "import '../../../domain/entities/${actionName}_param.dart';");
+      final importPath = ImportPath(
+        isMVVM: isMVVM,
+        actionName: actionName,
+      );
+      final dots = isMVVM ? "../" : "../../../";
+      buffer.writeln("import '$dots${importPath.entityFilePath}';");
     }
 
     buffer.writeln();
 
     // ---------- CLASS START ----------
+    final nameComplement = isMVVM ? "ViewModel" : "Provider";
     buffer.writeln("""
-class ${capitalizedCategory}Provider extends ChangeNotifier {
-  final ${capitalizedCategory}Facade _facade;
+class $capitalizedCategory$nameComplement extends ChangeNotifier {
+  final ${capitalizedCategory}Repository _repository;
 
-  ${capitalizedCategory}Provider({required ${capitalizedCategory}Facade facade})
-      : _facade = facade;
+  $capitalizedCategory$nameComplement({required ${capitalizedCategory}Repository repository})
+      : _repository = repository;
 """);
 
     // ---------- STATE VARIABLES ----------
@@ -86,7 +99,7 @@ class ${capitalizedCategory}Provider extends ChangeNotifier {
     ${methodName}State = const Result.loading();
     notifyListeners();
 
-    final response = await _facade.$methodName(${methodName}Param: param);
+    final response = await _repository.$methodName(${methodName}Param: param);
     response.fold(
       (l) => ${methodName}State = Result.error(error: l),
       (r) => ${methodName}State = Result.loaded(data: r),

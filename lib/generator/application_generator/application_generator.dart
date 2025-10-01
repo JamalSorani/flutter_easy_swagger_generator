@@ -29,7 +29,11 @@ class ApplicationGenerator {
     String category,
   ) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
-    String filePath = '$mainPath/$category/application/${category}_facade.dart';
+    String filePath = FilePath(
+      mainPath: mainPath,
+      category: category,
+      isMVVM: false,
+    ).applicationFilePath;
     final file = File(filePath);
     file.parent.createSync(recursive: true);
 

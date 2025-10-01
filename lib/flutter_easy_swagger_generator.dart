@@ -4,6 +4,9 @@ import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 /// Enum for choosing state management type
 enum StateManagementType { bloc, provider, riverpod, all }
 
+/// Enum for choosing architecture type
+enum ArchitectureType { clean, mvvm }
+
 Future<void> swaggerGenerator(
   String swaggerPath, {
   List<String>? prefixesToRemove,
@@ -28,6 +31,20 @@ Future<void> swaggerGenerator(
   Components components = openApiJSON.components;
   List<RouteInfo> routesInfo = openApiJSON.paths;
 
+  //********************* Ask user for architecture type *******************************/
+  printInfo('\nChoose your architecture type:');
+  printInfo('1️⃣  Clean Architecture');
+  printInfo('2️⃣  MVVM');
+  stdout.write('Enter choice (1 or 2): ');
+  String? archChoice = stdin.readLineSync();
+
+  ArchitectureType architectureType = (archChoice?.trim() == '2')
+      ? ArchitectureType.mvvm
+      : ArchitectureType.clean;
+
+  final bool isMVVM = architectureType == ArchitectureType.mvvm;
+  printInfo('Selected architecture: ${isMVVM ? "MVVM" : "Clean Architecture"}');
+
   //********************* Group routes by category *******************************/
   Map<String, List<RouteInfo>> groupedRoutes = {};
   for (var routeInfo in routesInfo) {
@@ -36,32 +53,37 @@ Future<void> swaggerGenerator(
   }
 
   //********************* Ask user for state management *******************************/
-  printInfo(
-      '\nChoose your state management type (comma-separated for multiple):');
-  printInfo('1️⃣  BLoC');
-  printInfo('2️⃣  Provider');
-  printInfo('3️⃣  Riverpod');
-  stdout.write('Enter choices (e.g., 1,3 for BLoC + Riverpod): ');
-  String? choice = stdin.readLineSync();
-
   final Set<StateManagementType> selectedTypes = {};
-  if (choice != null) {
-    for (var c in choice.split(',')) {
-      switch (c.trim()) {
-        case '1':
-          selectedTypes.add(StateManagementType.bloc);
-          break;
-        case '2':
-          selectedTypes.add(StateManagementType.provider);
-          break;
-        case '3':
-          selectedTypes.add(StateManagementType.riverpod);
-          break;
+  if (isMVVM) {
+    selectedTypes.add(StateManagementType.provider);
+  } else {
+    printInfo(
+        '\nChoose your state management type (comma-separated for multiple):');
+    printInfo('1️⃣  BLoC');
+    printInfo('2️⃣  Provider');
+    printInfo('3️⃣  Riverpod');
+    stdout.write('Enter choices (e.g., 1,3 for BLoC + Riverpod): ');
+    String? choice = stdin.readLineSync();
+
+    if (choice != null) {
+      for (var c in choice.split(',')) {
+        switch (c.trim()) {
+          case '1':
+            selectedTypes.add(StateManagementType.bloc);
+            break;
+          case '2':
+            selectedTypes.add(StateManagementType.provider);
+            break;
+          case '3':
+            selectedTypes.add(StateManagementType.riverpod);
+            break;
+        }
       }
     }
+    if (selectedTypes.isEmpty) selectedTypes.add(StateManagementType.bloc);
+    printInfo(
+        'Selected state management: ${selectedTypes.map((e) => e.name).join(', ')}');
   }
-  if (selectedTypes.isEmpty) selectedTypes.add(StateManagementType.bloc);
-  printInfo('Selected: ${selectedTypes.map((e) => e.name).join(', ')}');
 
   //********************* Generators Objects **********************/
   RoutesGenerator routesGenerator = RoutesGenerator(
@@ -80,6 +102,7 @@ Future<void> swaggerGenerator(
     components: components,
     mainPath: mainPath,
     globalEnumsFileString: globalEnumsFileString,
+    isMVVM: isMVVM,
   );
 
   ModelsGenerator responseModelsGenerator = ModelsGenerator(
@@ -87,26 +110,34 @@ Future<void> swaggerGenerator(
     components: components,
     mainPath: mainPath,
     globalEnumsFileString: globalEnumsFileString,
+    isMVVM: isMVVM,
   );
 
   RepositoryGenerator repositoryGenerator = RepositoryGenerator(
     groupedRoutes: groupedRoutes,
     mainPath: mainPath,
+    isMVVM: isMVVM,
   );
+
   RemoteGenerator remoteGenerator = RemoteGenerator(
     groupedRoutes: groupedRoutes,
     mainPath: mainPath,
+    isMVVM: isMVVM,
   );
+
+  // Clean Architecture specific
   RepoImpGenerator repoImpGenerator = RepoImpGenerator(
     groupedRoutes: groupedRoutes,
     mainPath: mainPath,
-  );
-  ApplicationGenerator applicationGenerator = ApplicationGenerator(
-    groupedRoutes: groupedRoutes,
-    mainPath: mainPath,
+    isMVVM: isMVVM,
   );
 
-  // Initialize only selected state management generators
+  // ApplicationGenerator applicationGenerator = ApplicationGenerator(
+  //   groupedRoutes: groupedRoutes,
+  //   mainPath: mainPath,
+  // );
+
+  //********************* State management generators **********************/
   BlocGenerator? blocGenerator;
   EventGenerator? eventGenerator;
   StateGenerator? stateGenerator;
@@ -123,8 +154,11 @@ Future<void> swaggerGenerator(
   }
 
   if (selectedTypes.contains(StateManagementType.provider)) {
-    providerGenerator =
-        ProviderGenerator(groupedRoutes: groupedRoutes, mainPath: mainPath);
+    providerGenerator = ProviderGenerator(
+      groupedRoutes: groupedRoutes,
+      mainPath: mainPath,
+      isMVVM: isMVVM,
+    );
   }
 
   if (selectedTypes.contains(StateManagementType.riverpod)) {
@@ -137,7 +171,10 @@ Future<void> swaggerGenerator(
     repositoryGenerator.generateRepositoryForCategory(category);
     remoteGenerator.generateRemoteForCategory(category);
     repoImpGenerator.generateRepositoryForCategory(category);
-    applicationGenerator.generateApplicationForCategory(category);
+
+    if (!isMVVM) {
+      // applicationGenerator.generateApplicationForCategory(category);
+    }
 
     if (selectedTypes.contains(StateManagementType.bloc)) {
       blocGenerator?.generateBlocForCategory(category);
@@ -158,7 +195,6 @@ Future<void> swaggerGenerator(
   NetworkGenerator networkGenerator = NetworkGenerator(mainPath: mainPath);
   ResultBuilderGenerator resultBuilderGenerator =
       ResultBuilderGenerator(mainPath: mainPath);
-
   List<String> moduleList = getModuleNames(routesInfo);
 
   InjectionGenerator injectionGenerator = InjectionGenerator(
@@ -166,7 +202,8 @@ Future<void> swaggerGenerator(
     moduleList: moduleList,
     stateManagementType: selectedTypes.length == 1
         ? selectedTypes.first
-        : StateManagementType.all, // optional: pass all if multiple selected
+        : StateManagementType.all,
+    isMVVM: isMVVM,
   );
 
   //********************* Generate shared code **********************/
