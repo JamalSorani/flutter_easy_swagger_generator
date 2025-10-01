@@ -78,31 +78,31 @@ import '../injection.dart';
     if (stateManagementType == StateManagementType.bloc ||
         stateManagementType == StateManagementType.all) {
       buffer.writeln(
-          "import '../../../app/$category/presentation/state/${category}_bloc.dart';");
+          "import '../../../../app/$category/presentation/state/bloc/${category}_bloc.dart';");
     }
     if (stateManagementType == StateManagementType.provider ||
         stateManagementType == StateManagementType.all) {
       buffer.writeln(
-          "import '../../../app/$category/presentation/state/${category}_provider.dart';");
+          "import '../../../../app/$category/presentation/state/provider/${category}_provider.dart';");
     }
     if (stateManagementType == StateManagementType.riverpod ||
         stateManagementType == StateManagementType.all) {
       buffer.writeln(
-          "import '../../../app/$category/presentation/state/${category}_riverpod.dart';");
+          "import '../../../../app/$category/presentation/state/riverpod/${category}_riverpod.dart';");
     }
 
     buffer.writeln("""
 /// Registers all dependencies for the [$category] module.
 Future<void> ${category}Injection() async {
-  getIt.registerSingleton<${capitalizedCategory}Api>(
-    ${capitalizedCategory}Api(
+  getIt.registerSingleton<${capitalizedCategory}Remote>(
+    ${capitalizedCategory}Remote(
       getIt<Dio>(),
     ),
   );
 
   getIt.registerSingleton<${capitalizedCategory}Repository>(
     ${capitalizedCategory}RepoImp(
-      api: getIt<${capitalizedCategory}Api>(),
+      remote: getIt<${capitalizedCategory}Remote>(),
     ),
   );
 

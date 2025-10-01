@@ -36,7 +36,7 @@ class BlocGenerator {
   ) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
     String filePath =
-        '$mainPath/$category/presentation/state/${category}_bloc.dart';
+        '$mainPath/$category/presentation/state/bloc/${category}_bloc.dart';
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);
@@ -45,8 +45,8 @@ class BlocGenerator {
     // Import statements
     buffer.writeln("""
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/result_builder/result.dart';
-import '../../application/${category}_facade.dart';""");
+import '../../../../../core/result_builder/result.dart';
+import '../../../application/${category}_facade.dart';""");
 
     // Add model imports for each route
     for (var path in categoryPaths) {
@@ -54,15 +54,15 @@ import '../../application/${category}_facade.dart';""");
       String actionName = routeName.toSnakeCase();
 
       buffer.writeln(
-          "import '../../infrastructure/models/${actionName}_model.dart';");
+          "import '../../../infrastructure/models/${actionName}_model.dart';");
     }
 
     // Add entity imports for each route
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
-      buffer
-          .writeln("import '../../domain/entities/${actionName}_param.dart';");
+      buffer.writeln(
+          "import '../../../domain/entities/${actionName}_param.dart';");
     }
 
     buffer.writeln(

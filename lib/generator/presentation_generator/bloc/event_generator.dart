@@ -19,7 +19,7 @@ class EventGenerator {
   ) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
     String filePath =
-        '$mainPath/$category/presentation/state/${category}_event.dart';
+        '$mainPath/$category/presentation/state/bloc/${category}_event.dart';
     final file = File(filePath);
     file.parent.createSync(recursive: true); // Ensure folder exists
     final buffer = StringBuffer();

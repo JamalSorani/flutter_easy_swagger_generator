@@ -69,9 +69,9 @@ class RepoImpGenerator {
         "class ${className}RepoImp implements ${className}Repository {");
 
     // Remote API reference
-    buffer.writeln("  final ${className}Api _remote;");
+    buffer.writeln("  final ${className}Remote _remote;");
     buffer.writeln(
-        "  ${className}RepoImp({required ${className}Api api}) : _remote = api;");
+        "  ${className}RepoImp({required ${className}Remote remote}) : _remote = remote;");
 
     // Methods for each endpoint
     for (var path in categoryPaths) {

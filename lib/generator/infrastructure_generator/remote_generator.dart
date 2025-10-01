@@ -51,11 +51,11 @@ class RemoteGenerator {
 
     buffer.writeln();
     buffer.writeln(
-        "class ${(category[0].toUpperCase() + category.substring(1))}Api {");
+        "class ${(category[0].toUpperCase() + category.substring(1))}Remote {");
     buffer.writeln("  final Dio _dio;");
 
     buffer.writeln(
-        "  const ${(category[0].toUpperCase() + category.substring(1))}Api(Dio dio) : _dio = dio;");
+        "  const ${(category[0].toUpperCase() + category.substring(1))}Remote(Dio dio) : _dio = dio;");
 
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);

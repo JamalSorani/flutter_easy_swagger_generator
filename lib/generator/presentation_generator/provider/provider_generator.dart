@@ -21,7 +21,7 @@ class ProviderGenerator {
   void generateProviderForCategory(String category) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
     String filePath =
-        '$mainPath/$category/presentation/state/${category}_provider.dart';
+        '$mainPath/$category/presentation/state/provider/${category}_provider.dart';
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);
@@ -34,8 +34,8 @@ class ProviderGenerator {
     // ---------- IMPORTS ----------
     buffer.writeln("""
 import 'package:flutter/foundation.dart';
-import '../../../../core/result_builder/result.dart';
-import '../../application/${category}_facade.dart';
+import '../../../../../core/result_builder/result.dart';
+import '../../../application/${category}_facade.dart';
 """);
 
     // Models
@@ -43,15 +43,15 @@ import '../../application/${category}_facade.dart';
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
       buffer.writeln(
-          "import '../../infrastructure/models/${actionName}_model.dart';");
+          "import '../../../infrastructure/models/${actionName}_model.dart';");
     }
 
     // Entities
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
-      buffer
-          .writeln("import '../../domain/entities/${actionName}_param.dart';");
+      buffer.writeln(
+          "import '../../../domain/entities/${actionName}_param.dart';");
     }
 
     buffer.writeln();
