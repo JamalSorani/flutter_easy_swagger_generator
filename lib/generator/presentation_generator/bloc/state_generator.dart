@@ -18,8 +18,11 @@ class StateGenerator {
   void generateStateForCategory(
     String category,
   ) {
-    String filePath =
-        '$mainPath/$category/presentation/state/${category}_state.dart';
+    String filePath = FilePath(
+      mainPath: mainPath,
+      category: category,
+      isMVVM: false,
+    ).stateFilePath;
     final file = File(filePath);
     file.parent.createSync(recursive: true); // Ensure folder exists
     final buffer = StringBuffer();

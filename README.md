@@ -5,13 +5,13 @@ this README's contents appear on the landing page for your package.
 
 # Flutter Easy Swagger Generator
 
-A Flutter package that automatically generates **Clean Architecture code** from Swagger/OpenAPI specifications.
+A Flutter package that automatically generates **Clean Architecture or MVVM code** from Swagger/OpenAPI specifications.
 
 This version adds a **standalone CLI**, improved model generation, multipart/form-data support, full HTTP method support, and enhanced developer experience.
 
 ## Features
 
-* Generates a **complete Clean Architecture structure** (`domain`, `infrastructure`, `presentation`, `application`)
+* Generates a **complete Clean Architecture structure** (`domain`, `infrastructure`, `presentation`) or 
 * Supports **OpenAPI 3.0 features**
 * Generates models, repositories, and network layers
 * Handles **nested objects**, arrays, and complex data types
@@ -30,7 +30,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_easy_swagger_generator: ^1.0.2
+  flutter_easy_swagger_generator: ^1.0.3
 
 ## Usage
 
@@ -72,7 +72,7 @@ void main() async {
 * `category` (**String**): The category string to filter API paths.
 * `prefixesToRemove` (**List<String>?**, optional): List of prefixes to remove from generated class and file names.
 
-## Generated Structure
+## Clean Architecture Structure
 
 ```
 lib/
@@ -92,9 +92,32 @@ lib/
   │   │   ├── state/
   │   │   ├── provider/
   │   │   └── riverpod/
-  │   ├── application/
-  │   │   └── use_cases/
   │   └── injection/
+```
+
+## MVVM Structure
+```
+lib/
+└── feature_name/
+├── models/
+│ ├── response_model.dart
+│ ├── request/
+│ │ ├── request_param.dart
+│ │ └── ...
+│
+├── data/
+│ ├── remote/
+│ │ └── api_service.dart
+│ ├── repositories/
+│ │ ├── repository.dart
+│ │ └── repository_impl.dart
+│
+├── viewmodels/
+│ └── feature_view_model.dart
+│
+├── views/
+│ ├── feature_view.dart
+│ └── ...
 ```
 
 ## Layer Features
@@ -124,11 +147,6 @@ lib/
 * Follows Flutter best practices
 * Integrates state management with dependency injection
 
-### Application Layer
-
-* Generates use cases for business logic
-* Separates concerns between layers
-* Implements clean architecture principles
 
 ### Dependency Injection
 

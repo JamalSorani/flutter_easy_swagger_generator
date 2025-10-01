@@ -19,6 +19,8 @@ class ModelClassGenerator {
   /// regenerating enums that already exist globally.
   final String globalEnumsFileString;
 
+  final bool isMVVM;
+
   /// Creates a new [ModelClassGenerator].
   ///
   /// - [components]: OpenAPI components for schema lookup.
@@ -29,6 +31,7 @@ class ModelClassGenerator {
     required this.components,
     required this.mainPath,
     required this.globalEnumsFileString,
+    required this.isMVVM,
   });
 
   /// Generates a model class file for the given [routeInfo].
@@ -42,12 +45,6 @@ class ModelClassGenerator {
     String className = '$routeName$endPoint';
 
     String moduleName = getCategory(routeInfo.fullRoute);
-    String filePath = getModelAndEntityFilePath(
-      moduleName: moduleName,
-      routeName: routeName,
-      isForEntities: false,
-      mainPath: mainPath,
-    );
 
     List<String> contents = [];
 
@@ -56,6 +53,13 @@ class ModelClassGenerator {
       content: routeInfo.httpMethodInfo.responses.response200?.content,
     );
     contents.add(classContent);
+
+    String filePath = FilePath(
+      mainPath: mainPath,
+      category: moduleName,
+      routeName: routeName,
+      isMVVM: isMVVM,
+    ).modelFilePath;
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);

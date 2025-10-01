@@ -21,8 +21,11 @@ class RiverpodGenerator {
   /// Generates a Riverpod file for a specific category
   void generateRiverpodForCategory(String category) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
-    String filePath =
-        '$mainPath/$category/presentation/state/${category}_riverpod.dart';
+    String filePath = FilePath(
+      mainPath: mainPath,
+      category: category,
+      isMVVM: false,
+    ).riverpodFilePath;
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);
@@ -35,9 +38,9 @@ class RiverpodGenerator {
     // ---------- IMPORTS ----------
     buffer.writeln("""
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/result_builder/result.dart';
-import '../../../../common/injection/injection.dart';
-import '../../application/${category}_facade.dart';
+import '../../../../../core/result_builder/result.dart';
+import '../../../../../common/injection/injection.dart';
+import '../../../domain/repository/${category}_repository.dart';
 """);
 
     // Models imports
@@ -45,15 +48,15 @@ import '../../application/${category}_facade.dart';
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
       buffer.writeln(
-          "import '../../infrastructure/models/${actionName}_model.dart';");
+          "import '../../../infrastructure/models/${actionName}_model.dart';");
     }
 
     // Entities imports
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
-      buffer
-          .writeln("import '../../domain/entities/${actionName}_param.dart';");
+      buffer.writeln(
+          "import '../../../domain/entities/${actionName}_param.dart';");
     }
 
     buffer.writeln();
@@ -112,9 +115,9 @@ class ${capitalizedCategory}State {
     // ---------- NOTIFIER CLASS ----------
     buffer.writeln("""
 class ${capitalizedCategory}Notifier extends StateNotifier<${capitalizedCategory}State> {
-  final ${capitalizedCategory}Facade _facade;
+  final ${capitalizedCategory}Repository _repository;
 
-  ${capitalizedCategory}Notifier({required ${capitalizedCategory}Facade facade}) : _facade = facade, super(const ${capitalizedCategory}State());
+  ${capitalizedCategory}Notifier({required ${capitalizedCategory}Repository repository}) : _repository = repository, super(const ${capitalizedCategory}State());
 """);
 
     for (var path in categoryPaths) {
@@ -126,7 +129,7 @@ class ${capitalizedCategory}Notifier extends StateNotifier<${capitalizedCategory
   Future<void> $methodName(${routeName}Param param) async {
     state = state.copyWith(${methodName}State: const Result.loading());
 
-    final response = await _facade.$methodName(${methodName}Param: param);
+    final response = await _repository.$methodName(${methodName}Param: param);
     response.fold(
       (l) => state = state.copyWith(${methodName}State: Result.error(error: l)),
       (r) => state = state.copyWith(${methodName}State: Result.loaded(data: r)),
@@ -147,8 +150,8 @@ class ${capitalizedCategory}Notifier extends StateNotifier<${capitalizedCategory
     buffer.writeln("""
 final ${category}Provider = StateNotifierProvider<${capitalizedCategory}Notifier, ${capitalizedCategory}State>(
   (ref) {
-    final facade =getIt<${capitalizedCategory}Facade>();
-    return ${capitalizedCategory}Notifier(facade: facade);
+    final repository =getIt<${capitalizedCategory}Repository>();
+    return ${capitalizedCategory}Notifier(repository: repository);
   },
 );
 """);

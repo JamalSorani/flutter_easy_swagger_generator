@@ -1,41 +1,5 @@
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
-/// Returns the file name for a given [moduleName] and [routeName].
-///
-/// - If [isForEntities] is `true`, the suffix `_param` is added.
-/// - Otherwise, the suffix `_model` is added.
-///
-/// The [routeName] is first converted to `snake_case` format.
-String _getFileName(String moduleName, String routeName, bool isForEntities) {
-  String snakeCaseRoute = routeName.toSnakeCase();
-
-  return isForEntities ? '${snakeCaseRoute}_param' : '${snakeCaseRoute}_model';
-}
-
-/// Builds the complete file path for either an entity or a model.
-///
-/// - [moduleName]: The module folder name (e.g., `order`, `cart`).
-/// - [routeName]: The route name to be converted into a file name.
-/// - [isForEntities]: Determines whether the path should point to
-///   `domain/entities` (if `true`) or `infrastructure/models` (if `false`).
-/// - [mainPath]: The root path where module folders are located.
-///
-/// Example:
-/// ```dart
-/// getModelAndEntityFilePath("order", "getOrder", true, "lib");
-/// // Returns: lib/order/domain/entities/get_order_param.dart
-/// ```
-String getModelAndEntityFilePath({
-  required String moduleName,
-  required String routeName,
-  required bool isForEntities,
-  required String mainPath,
-}) {
-  String fileName = _getFileName(moduleName, routeName, isForEntities);
-  String subPath = isForEntities ? 'domain/entities' : 'infrastructure/models';
-  return '$mainPath/$moduleName/$subPath/$fileName.dart';
-}
-
 /// Extracts a **route name** from the given [path].
 ///
 /// - Cleans the path using [cleanPath] (removes `/api/{something}/` and braces).

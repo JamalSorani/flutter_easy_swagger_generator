@@ -1,3 +1,14 @@
+### 1.0.3
+* **Major Update — MVVM Architecture Support**
+
+* **MVVM Architecture Added**
+
+* **Users can now generate code following the Model-View-ViewModel (MVVM) pattern.**
+
+* **Fully compatible with existing Clean Architecture structure.**
+
+* **MVVM seamlessly integrates with ChangeNotifier (Provider)**
+
 ## 1.0.2
 * **State Management Selection Enhanced**
 Users can now choose the state management type during code generation:

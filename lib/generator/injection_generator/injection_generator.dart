@@ -21,11 +21,14 @@ class InjectionGenerator {
   /// The state management type.
   final StateManagementType stateManagementType;
 
+  final bool isMVVM;
+
   /// Creates a new [InjectionGenerator].
   InjectionGenerator({
     required this.mainPath,
     required this.moduleList,
     required this.stateManagementType,
+    required this.isMVVM,
   });
 
   /// Generates dependency injection setup files.
@@ -67,10 +70,9 @@ class InjectionGenerator {
     // Generate DI setup code for this category
     buffer.writeln("""
 import 'package:dio/dio.dart';
-import '../../../app/$category/application/${category}_facade.dart';
-import '../../../app/$category/domain/repository/${category}_repository.dart';
-import '../../../app/$category/infrastructure/datasource/remote/${category}_remote.dart';
-import '../../../app/$category/infrastructure/repo_imp/${category}_repo_imp.dart';
+${isMVVM ? "import '../../../app/$category/data/repositories/${category}_repository.dart';" : "import '../../../app/$category/domain/repository/${category}_repository.dart';"}
+${isMVVM ? "import '../../../app/$category/data/remote/${category}_remote.dart';" : "import '../../../app/$category/infrastructure/datasource/remote/${category}_remote.dart';"}
+${isMVVM ? "import '../../../app/$category/data/repositories/${category}_repo_imp.dart';" : "import '../../../app/$category/infrastructure/repo_imp/${category}_repo_imp.dart';"}
 import '../injection.dart';
 """);
 
@@ -78,39 +80,39 @@ import '../injection.dart';
     if (stateManagementType == StateManagementType.bloc ||
         stateManagementType == StateManagementType.all) {
       buffer.writeln(
-          "import '../../../app/$category/presentation/state/${category}_bloc.dart';");
+          "import '../../../../app/$category/presentation/state/bloc/${category}_bloc.dart';");
     }
     if (stateManagementType == StateManagementType.provider ||
         stateManagementType == StateManagementType.all) {
-      buffer.writeln(
-          "import '../../../app/$category/presentation/state/${category}_provider.dart';");
+      if (isMVVM) {
+        buffer.writeln(
+            "import '../../../app/$category/viewmodels/${category}_view_model.dart';");
+      } else {
+        buffer.writeln(
+            "import '../../../../app/$category/presentation/state/provider/${category}_provider.dart';");
+      }
     }
     if (stateManagementType == StateManagementType.riverpod ||
         stateManagementType == StateManagementType.all) {
       buffer.writeln(
-          "import '../../../app/$category/presentation/state/${category}_riverpod.dart';");
+          "import '../../../../app/$category/presentation/state/riverpod/${category}_riverpod.dart';");
     }
 
     buffer.writeln("""
 /// Registers all dependencies for the [$category] module.
 Future<void> ${category}Injection() async {
-  getIt.registerSingleton<${capitalizedCategory}Api>(
-    ${capitalizedCategory}Api(
+  getIt.registerSingleton<${capitalizedCategory}Remote>(
+    ${capitalizedCategory}Remote(
       getIt<Dio>(),
     ),
   );
 
   getIt.registerSingleton<${capitalizedCategory}Repository>(
     ${capitalizedCategory}RepoImp(
-      api: getIt<${capitalizedCategory}Api>(),
+      remote: getIt<${capitalizedCategory}Remote>(),
     ),
   );
 
-  getIt.registerSingleton<${capitalizedCategory}Facade>(
-    ${capitalizedCategory}Facade(
-      repository: getIt<${capitalizedCategory}Repository>(),
-    ),
-  );
 """);
 
     // Register selected state management
@@ -119,7 +121,7 @@ Future<void> ${category}Injection() async {
       buffer.writeln("""
   getIt.registerSingleton<${capitalizedCategory}Bloc>(
     ${capitalizedCategory}Bloc(
-      facade: getIt<${capitalizedCategory}Facade>(),
+      repository: getIt<${capitalizedCategory}Repository>(),
     ),
   );
 """);
@@ -127,10 +129,13 @@ Future<void> ${category}Injection() async {
 
     if (stateManagementType == StateManagementType.provider ||
         stateManagementType == StateManagementType.all) {
+      final providerClassName = isMVVM
+          ? "${capitalizedCategory}ViewModel"
+          : "${capitalizedCategory}Provider";
       buffer.writeln("""
-  getIt.registerSingleton<${capitalizedCategory}Provider>(
-    ${capitalizedCategory}Provider(
-      facade: getIt<${capitalizedCategory}Facade>(),
+  getIt.registerSingleton<$providerClassName>(
+    $providerClassName(
+      repository: getIt<${capitalizedCategory}Repository>(),
     ),
   );
 """);
@@ -141,7 +146,7 @@ Future<void> ${category}Injection() async {
       buffer.writeln("""
   getIt.registerSingleton<${capitalizedCategory}Notifier>(
     ${capitalizedCategory}Notifier(
-      facade: getIt<${capitalizedCategory}Facade>(),
+      repository: getIt<${capitalizedCategory}Repository>(),
     ),
   );
 """);

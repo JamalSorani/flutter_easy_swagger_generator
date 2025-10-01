@@ -29,14 +29,17 @@ class BlocGenerator {
   /// Each category represents a group of API endpoints.
   ///
   /// - The Bloc handles events and states for each method in the category.
-  /// - Uses the corresponding Facade for making API calls.
+  /// - Uses the corresponding Repository for making API calls.
   /// - Updates states based on the `Result` type (loading, error, loaded).
   void generateBlocForCategory(
     String category,
   ) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
-    String filePath =
-        '$mainPath/$category/presentation/state/${category}_bloc.dart';
+    String filePath = FilePath(
+      mainPath: mainPath,
+      category: category,
+      isMVVM: false,
+    ).blocFilePath;
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);
@@ -45,8 +48,8 @@ class BlocGenerator {
     // Import statements
     buffer.writeln("""
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/result_builder/result.dart';
-import '../../application/${category}_facade.dart';""");
+import '../../../../../core/result_builder/result.dart';
+import '../../../domain/repository/${category}_repository.dart';""");
 
     // Add model imports for each route
     for (var path in categoryPaths) {
@@ -54,15 +57,15 @@ import '../../application/${category}_facade.dart';""");
       String actionName = routeName.toSnakeCase();
 
       buffer.writeln(
-          "import '../../infrastructure/models/${actionName}_model.dart';");
+          "import '../../../infrastructure/models/${actionName}_model.dart';");
     }
 
     // Add entity imports for each route
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
-      buffer
-          .writeln("import '../../domain/entities/${actionName}_param.dart';");
+      buffer.writeln(
+          "import '../../../domain/entities/${actionName}_param.dart';");
     }
 
     buffer.writeln(
@@ -80,9 +83,9 @@ part '${category}_state.dart';
     buffer.writeln(
       """
 class ${capitalizedCategory}Bloc extends Bloc<${capitalizedCategory}Event, ${capitalizedCategory}State> {
-  final ${capitalizedCategory}Facade _facade;
-  ${capitalizedCategory}Bloc({required ${capitalizedCategory}Facade facade})
-      : _facade = facade,
+  final ${capitalizedCategory}Repository _repository;
+  ${capitalizedCategory}Bloc({required ${capitalizedCategory}Repository repository})
+      : _repository = repository,
         super(${capitalizedCategory}State()) {""",
     );
 
@@ -120,11 +123,11 @@ class ${capitalizedCategory}Bloc extends Bloc<${capitalizedCategory}Event, ${cap
   ///
   /// Steps:
   /// 1. Emit loading state.
-  /// 2. Call the facade method.
+  /// 2. Call the repository method.
   /// 3. Emit error state on failure or loaded state on success.
   _$methodName(${actionEventName}Event event, Emitter emit) async{
     emit(state.copyWith(${methodName}State: const Result.loading()));
-    final response = await _facade.$methodName(
+    final response = await _repository.$methodName(
         ${methodName}Param: event.${methodName}Param);
     response.fold(
       (l) => emit(state.copyWith(${methodName}State: Result.error(error: l))),

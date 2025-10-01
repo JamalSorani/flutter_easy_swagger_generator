@@ -14,10 +14,13 @@ class RepoImpGenerator {
 
   final String mainPath;
 
+  final bool isMVVM;
+
   /// Creates a [RepoImpGenerator] instance with the required inputs.
   RepoImpGenerator({
     required this.groupedRoutes,
     required this.mainPath,
+    required this.isMVVM,
   });
 
   /// Generates the repository implementation for a specific [category].
@@ -30,8 +33,11 @@ class RepoImpGenerator {
     String category,
   ) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
-    String filePath =
-        '$mainPath/$category/infrastructure/repo_imp/${category}_repo_imp.dart';
+    String filePath = FilePath(
+      mainPath: mainPath,
+      category: category,
+      isMVVM: isMVVM,
+    ).repoImpFilePath;
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);
@@ -39,26 +45,39 @@ class RepoImpGenerator {
 
     // Imports
     buffer.writeln("import 'package:either_dart/either.dart';");
-    buffer.writeln(
-        "import '../../domain/repository/${category}_repository.dart';");
+    if (isMVVM) {
+      buffer.writeln("import '${category}_repository.dart';");
+      buffer.writeln("import '../remote/${category}_remote.dart';");
+    } else {
+      buffer.writeln(
+          "import '../../domain/repository/${category}_repository.dart';");
+      buffer.writeln("import '../datasource/remote/${category}_remote.dart';");
+    }
     buffer.writeln(
         "import '../../../../common/network/exception/error_handler.dart';");
-    buffer.writeln("import '../datasource/remote/${category}_remote.dart';");
 
     // Add model imports for each route
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
-
-      buffer.writeln("import '../models/${actionName}_model.dart';");
+      final importPath = ImportPath(
+        isMVVM: isMVVM,
+        actionName: actionName,
+      );
+      final dots = "../../";
+      buffer.writeln("import '$dots${importPath.modelFilePath}';");
     }
 
     // Add entity imports for each route
     for (var path in categoryPaths) {
       String routeName = getRouteName(path.fullRoute);
       String actionName = routeName.toSnakeCase();
-      buffer
-          .writeln("import '../../domain/entities/${actionName}_param.dart';");
+      final importPath = ImportPath(
+        isMVVM: isMVVM,
+        actionName: actionName,
+      );
+      final dots = "../../";
+      buffer.writeln("import '$dots${importPath.entityFilePath}';");
     }
 
     buffer.writeln();
@@ -69,9 +88,9 @@ class RepoImpGenerator {
         "class ${className}RepoImp implements ${className}Repository {");
 
     // Remote API reference
-    buffer.writeln("  final ${className}Api _remote;");
+    buffer.writeln("  final ${className}Remote _remote;");
     buffer.writeln(
-        "  ${className}RepoImp({required ${className}Api api}) : _remote = api;");
+        "  ${className}RepoImp({required ${className}Remote remote}) : _remote = remote;");
 
     // Methods for each endpoint
     for (var path in categoryPaths) {
