@@ -1,3 +1,6 @@
+### 1.0.4
+* **Update README.md**
+
 ### 1.0.3
 * **Major Update — MVVM Architecture Support**
 
