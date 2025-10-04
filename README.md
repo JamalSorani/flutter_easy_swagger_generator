@@ -65,13 +65,6 @@ void main() async {
 * `category` (**String?**, optional): Generate code only for a specific API path category.
 * `prefixesToRemove` (**List<String>?**, optional): Remove specified prefixes from generated class/file names.
 
-
-#### Parameters
-
-* `swaggerPath` (**String**): Path or URL to the Swagger JSON file.
-* `category` (**String**): The category string to filter API paths.
-* `prefixesToRemove` (**List<String>?**, optional): List of prefixes to remove from generated class and file names.
-
 ## Clean Architecture Structure
 
 ```
