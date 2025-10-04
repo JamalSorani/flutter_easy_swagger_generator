@@ -30,7 +30,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_easy_swagger_generator: ^1.0.3
+  flutter_easy_swagger_generator: ^1.0.4
 
 ## Usage
 
