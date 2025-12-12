@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_easy_swagger_generator/generator/class_content_generator/components_generator.dart';
+import 'package:flutter_easy_swagger_generator/generator/class_content_generator/models/copy_with_generator.dart';
 import 'package:flutter_easy_swagger_generator/helpers/imports.dart';
 
 /// Generates Dart model classes for API responses based on OpenAPI/Swagger specs.
@@ -189,9 +190,14 @@ ${parameter.enumValues.map((e) => "  $e,").join(line)}
         ClassGeneratorHelper.removeDuplicateImports(generatedImportsString);
     final genereatedSubClasses =
         classSerializerGenerator.generateSubClasses(generatedSubClasses);
+    final generatedCopyWith = CopyWithGenerator.generateCopyWith(
+      className: className,
+      params: generateParametars,
+    );
     String result = """${generatedImportsString}class $className {
-$generatedVariablesString$generatedConstructorString$generatedToJsonString}
-$genereatedSubClasses""";
+$generatedVariablesString$generatedConstructorString$generatedToJsonString$generatedCopyWith}
+$genereatedSubClasses
+""";
     return result.trim() + line;
   }
 }

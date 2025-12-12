@@ -127,10 +127,11 @@ class ClassSerializerGenerator {
     required String className,
   }) {
     final buffer = StringBuffer();
+    final isEmpty = lines.isEmpty;
 
     buffer.writeln(
       '''
-  factory $className.fromJson(Map<String, dynamic> json) {
+  factory $className.fromJson(${isEmpty ? "dynamic" : "Map<String, dynamic> json"}) {
     return $className(''',
     );
     for (var line in lines) {
