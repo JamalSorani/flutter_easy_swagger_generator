@@ -1,9 +1,5 @@
 include: package:lints/recommended.yaml
 
 analyzer:
-  errors:
-    constant_identifier_names: ignore
 
 linter:
-  rules:
-    avoid_types_on_closure_parameters: false
