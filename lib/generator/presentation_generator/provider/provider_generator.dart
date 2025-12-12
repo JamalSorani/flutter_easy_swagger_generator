@@ -23,9 +23,10 @@ class ProviderGenerator {
   /// Generates a Provider file for a specific category
   void generateProviderForCategory(String category) {
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
+    final snakeCaseCategory = category.toSnakeCase().toLowerCase();
     String filePath = FilePath(
       mainPath: mainPath,
-      category: category,
+      category: snakeCaseCategory,
       isMVVM: isMVVM,
     ).providerFilePath;
     final file = File(filePath);
@@ -40,7 +41,7 @@ class ProviderGenerator {
     buffer.writeln("""
 import 'package:flutter/foundation.dart';
 import '../../../../../core/result_builder/result.dart';
-${isMVVM ? "import '../data/repositories/${category}_repository.dart';" : "import '../../../domain/repository/${category}_repository.dart';"}""");
+${isMVVM ? "import '../data/repositories/${snakeCaseCategory}_repository.dart';" : "import '../../../domain/repository/${snakeCaseCategory}_repository.dart';"}""");
 
     // Models
     for (var path in categoryPaths) {

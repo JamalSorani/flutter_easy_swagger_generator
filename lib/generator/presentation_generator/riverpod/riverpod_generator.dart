@@ -20,10 +20,11 @@ class RiverpodGenerator {
 
   /// Generates a Riverpod file for a specific category
   void generateRiverpodForCategory(String category) {
+    final snakeCaseCategory = category.toSnakeCase().toLowerCase();
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
     String filePath = FilePath(
       mainPath: mainPath,
-      category: category,
+      category: snakeCaseCategory,
       isMVVM: false,
     ).riverpodFilePath;
 
@@ -40,7 +41,7 @@ class RiverpodGenerator {
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/result_builder/result.dart';
 import '../../../../../common/injection/injection.dart';
-import '../../../domain/repository/${category}_repository.dart';
+import '../../../domain/repository/${snakeCaseCategory}_repository.dart';
 """);
 
     // Models imports
@@ -148,7 +149,7 @@ class ${capitalizedCategory}Notifier extends StateNotifier<${capitalizedCategory
 
     // ---------- PROVIDER ----------
     buffer.writeln("""
-final ${category}Provider = StateNotifierProvider<${capitalizedCategory}Notifier, ${capitalizedCategory}State>(
+final ${category.toCamelCase()}Provider = StateNotifierProvider<${capitalizedCategory}Notifier, ${capitalizedCategory}State>(
   (ref) {
     final repository =getIt<${capitalizedCategory}Repository>();
     return ${capitalizedCategory}Notifier(repository: repository);
