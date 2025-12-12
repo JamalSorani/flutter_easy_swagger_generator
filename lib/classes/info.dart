@@ -8,7 +8,7 @@ class Info {
   final String title;
 
   /// A brief description of the API.
-  final String description;
+  final String? description;
 
   /// The version of the API.
   final String version;
@@ -31,7 +31,7 @@ class Info {
     printMap("The metadata information of an API:", json);
     return Info(
       title: json['title'] as String,
-      description: json['description'] as String,
+      description: json['description'] as String?,
       version: json['version'] as String,
       contact:
           json['contact'] != null ? Contact.fromJson(json['contact']) : null,

@@ -28,7 +28,7 @@ class EventGenerator {
     final buffer = StringBuffer();
 
     // Part directive to connect with the BLoC file
-    buffer.writeln("part of '${category}_bloc.dart';");
+    buffer.writeln("part of '${category.toSnakeCase()}_bloc.dart';");
 
     String capitalizedCategory =
         category[0].toUpperCase() + category.substring(1);

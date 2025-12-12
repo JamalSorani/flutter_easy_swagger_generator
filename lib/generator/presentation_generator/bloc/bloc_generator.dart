@@ -39,7 +39,7 @@ class BlocGenerator {
       mainPath: mainPath,
       category: category,
       isMVVM: false,
-    ).blocFilePath;
+    ).blocFilePath.toLowerCase();
 
     final file = File(filePath);
     file.parent.createSync(recursive: true);
@@ -49,7 +49,7 @@ class BlocGenerator {
     buffer.writeln("""
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/result_builder/result.dart';
-import '../../../domain/repository/${category}_repository.dart';""");
+import '../../../domain/repository/${category.toSnakeCase()}_repository.dart';""");
 
     // Add model imports for each route
     for (var path in categoryPaths) {
@@ -70,8 +70,8 @@ import '../../../domain/repository/${category}_repository.dart';""");
 
     buffer.writeln(
       """
-part '${category}_event.dart';
-part '${category}_state.dart';
+part '${category.toSnakeCase()}_event.dart';
+part '${category.toSnakeCase()}_state.dart';
 """,
     );
 

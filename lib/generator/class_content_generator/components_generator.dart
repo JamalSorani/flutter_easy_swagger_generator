@@ -117,7 +117,7 @@ class ComponentsGenerator {
               isEnum: enumValues.isNotEmpty,
               nullable: param.schema.nullable,
               isSubClass: ref != null,
-              isDateTime: paramType.toLowerCase().contains("date"),
+              isDateTime: paramType.toLowerCase().contains("datetime"),
               isList: paramType.toLowerCase().contains("list<"),
             )
           : ClassGeneratorHelper.formatFromJsonLine(
@@ -125,7 +125,7 @@ class ComponentsGenerator {
               isEnum: enumValues.isNotEmpty,
               nullable: param.schema.nullable,
               isSubClass: ref != null,
-              isDateTime: paramType.toLowerCase().contains("date"),
+              isDateTime: paramType.toLowerCase().contains("datetime"),
               isList: paramType.toLowerCase().contains("list<"),
               isListItemIsEnum: dartTypeInfo.isEnum,
               subClassName: paramType,

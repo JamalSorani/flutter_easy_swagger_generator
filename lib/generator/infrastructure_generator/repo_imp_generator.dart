@@ -23,7 +23,7 @@ class RepoImpGenerator {
     required this.isMVVM,
   });
 
-  /// Generates the repository implementation for a specific [category].
+  /// Generates the repository implementation for a specific [_category].
   ///
   /// - Implements the repository interface.
   /// - Registers methods corresponding to API endpoints.
@@ -32,10 +32,11 @@ class RepoImpGenerator {
   void generateRepositoryForCategory(
     String category,
   ) {
+    final snakeCaseCategory = category.toSnakeCase();
     List<RouteInfo> categoryPaths = groupedRoutes[category]!;
     String filePath = FilePath(
       mainPath: mainPath,
-      category: category,
+      category: snakeCaseCategory,
       isMVVM: isMVVM,
     ).repoImpFilePath;
 
@@ -46,12 +47,13 @@ class RepoImpGenerator {
     // Imports
     buffer.writeln("import 'package:either_dart/either.dart';");
     if (isMVVM) {
-      buffer.writeln("import '${category}_repository.dart';");
-      buffer.writeln("import '../remote/${category}_remote.dart';");
+      buffer.writeln("import '${snakeCaseCategory}_repository.dart';");
+      buffer.writeln("import '../remote/${snakeCaseCategory}_remote.dart';");
     } else {
       buffer.writeln(
-          "import '../../domain/repository/${category}_repository.dart';");
-      buffer.writeln("import '../datasource/remote/${category}_remote.dart';");
+          "import '../../domain/repository/${snakeCaseCategory}_repository.dart';");
+      buffer.writeln(
+          "import '../datasource/remote/${snakeCaseCategory}_remote.dart';");
     }
     buffer.writeln(
         "import '../../../../common/network/exception/error_handler.dart';");

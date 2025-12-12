@@ -57,9 +57,10 @@ class InjectionGenerator {
     if (category.isEmpty) {
       category = ConstantsHelper.generalCategory;
     }
+    final snakeCaseCategory = category.toSnakeCase().toLowerCase();
 
     String filePath =
-        '${mainPath.contains("example") ? "example/" : ""}lib/common/injection/src/${category.toSnakeCase()}_injection.dart';
+        '${mainPath.contains("example") ? "example/" : ""}lib/common/injection/src/${snakeCaseCategory}_injection.dart';
     final file = File(filePath);
     file.parent.createSync(recursive: true);
     final StringBuffer buffer = StringBuffer();
@@ -70,9 +71,9 @@ class InjectionGenerator {
     // Generate DI setup code for this category
     buffer.writeln("""
 import 'package:dio/dio.dart';
-${isMVVM ? "import '../../../app/$category/data/repositories/${category}_repository.dart';" : "import '../../../app/$category/domain/repository/${category}_repository.dart';"}
-${isMVVM ? "import '../../../app/$category/data/remote/${category}_remote.dart';" : "import '../../../app/$category/infrastructure/datasource/remote/${category}_remote.dart';"}
-${isMVVM ? "import '../../../app/$category/data/repositories/${category}_repo_imp.dart';" : "import '../../../app/$category/infrastructure/repo_imp/${category}_repo_imp.dart';"}
+${isMVVM ? "import '../../../app/$snakeCaseCategory/data/repositories/${snakeCaseCategory}_repository.dart';" : "import '../../../app/$snakeCaseCategory/domain/repository/${snakeCaseCategory}_repository.dart';"}
+${isMVVM ? "import '../../../app/$snakeCaseCategory/data/remote/${snakeCaseCategory}_remote.dart';" : "import '../../../app/$snakeCaseCategory/infrastructure/datasource/remote/${snakeCaseCategory}_remote.dart';"}
+${isMVVM ? "import '../../../app/$snakeCaseCategory/data/repositories/${snakeCaseCategory}_repo_imp.dart';" : "import '../../../app/$snakeCaseCategory/infrastructure/repo_imp/${snakeCaseCategory}_repo_imp.dart';"}
 import '../injection.dart';
 """);
 
@@ -80,27 +81,27 @@ import '../injection.dart';
     if (stateManagementType == StateManagementType.bloc ||
         stateManagementType == StateManagementType.all) {
       buffer.writeln(
-          "import '../../../../app/$category/presentation/state/bloc/${category}_bloc.dart';");
+          "import '../../../../app/$snakeCaseCategory/presentation/state/bloc/${snakeCaseCategory}_bloc.dart';");
     }
     if (stateManagementType == StateManagementType.provider ||
         stateManagementType == StateManagementType.all) {
       if (isMVVM) {
         buffer.writeln(
-            "import '../../../app/$category/viewmodels/${category}_view_model.dart';");
+            "import '../../../app/$snakeCaseCategory/viewmodels/${snakeCaseCategory}_view_model.dart';");
       } else {
         buffer.writeln(
-            "import '../../../../app/$category/presentation/state/provider/${category}_provider.dart';");
+            "import '../../../../app/$snakeCaseCategory/presentation/state/provider/${snakeCaseCategory}_provider.dart';");
       }
     }
     if (stateManagementType == StateManagementType.riverpod ||
         stateManagementType == StateManagementType.all) {
       buffer.writeln(
-          "import '../../../../app/$category/presentation/state/riverpod/${category}_riverpod.dart';");
+          "import '../../../../app/$snakeCaseCategory/presentation/state/riverpod/${snakeCaseCategory}_riverpod.dart';");
     }
 
     buffer.writeln("""
 /// Registers all dependencies for the [$category] module.
-Future<void> ${category}Injection() async {
+Future<void> ${category.toCamelCase()}Injection() async {
   getIt.registerSingleton<${capitalizedCategory}Remote>(
     ${capitalizedCategory}Remote(
       getIt<Dio>(),
@@ -180,7 +181,7 @@ final GetIt getIt = GetIt.instance;
 
 /// Initializes dependency injection for all modules.
 Future<void> initInjection() async {
-${moduleList.map((module) => "  await ${module}Injection();").join(line)}
+${moduleList.map((module) => "  await ${module.toCamelCase()}Injection();").join(line)}
 }
 """);
 

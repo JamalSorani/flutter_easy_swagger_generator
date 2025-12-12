@@ -52,7 +52,7 @@ class ParametarsGenerator {
           isEnum: enumValues.isNotEmpty,
           nullable: !param.required,
           isSubClass: param.schema?.ref != null,
-          isDateTime: paramType.toLowerCase().contains("date"),
+          isDateTime: paramType.toLowerCase().contains("datetime"),
           isList: paramType.toLowerCase().contains("list<"),
         );
         generateParametars.add(

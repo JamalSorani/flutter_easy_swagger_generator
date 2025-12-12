@@ -28,7 +28,7 @@ List<String> getModuleNames(List<RouteInfo> paths) {
   // Try to extract tags directly from HttpMethodInfo
   for (var path in paths) {
     for (var tag in path.httpMethodInfo.tags) {
-      tags.add(tag.toLowerCase());
+      tags.add(tag);
     }
   }
 
@@ -44,7 +44,7 @@ List<String> getModuleNames(List<RouteInfo> paths) {
         moduleName = moduleName.substring(3);
       }
 
-      tags.add(moduleName.toLowerCase());
+      tags.add(moduleName);
     }
   }
 

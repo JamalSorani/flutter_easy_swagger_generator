@@ -20,8 +20,8 @@ class ImportPath {
   String get modelFilePath {
     String actionName2 = actionName.toSnakeCase();
     if (isMVVM) {
-      return "models/${actionName2}_model.dart";
+      return "models/${actionName2}_model.dart".toSnakeCase();
     }
-    return "infrastructure/models/${actionName2}_model.dart";
+    return "infrastructure/models/${actionName2}_model.dart".toSnakeCase();
   }
 }

@@ -99,7 +99,6 @@ String getCategory(String path) {
   // If starts with api/{something}, remove both
   if (parts.length > 1 && parts.first.toLowerCase() == 'api') {
     parts.removeAt(0); // remove "api"
-    parts.removeAt(0); // remove second part (e.g., "mobile", "warehouseapp")
   }
 
   // Remove defined prefixes
@@ -110,9 +109,7 @@ String getCategory(String path) {
     }
   }
 
-  return parts.isNotEmpty
-      ? parts.first.toLowerCase()
-      : ConstantsHelper.generalCategory;
+  return parts.isNotEmpty ? parts.first : ConstantsHelper.generalCategory;
 }
 
 /// Cleans the [path] by:
@@ -127,11 +124,6 @@ String cleanPath(String path) {
   if (parts.isNotEmpty && parts.first.toLowerCase() == 'api') {
     // Remove "api"
     parts.removeAt(0);
-
-    // Remove the next segment (like mobile, warehouseapp, etc.)
-    if (parts.isNotEmpty) {
-      parts.removeAt(0);
-    }
   }
 
   return parts.join('/').replaceAll('{', '').replaceAll('}', '');
