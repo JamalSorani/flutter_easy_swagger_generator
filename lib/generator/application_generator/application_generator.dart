@@ -24,7 +24,7 @@ class ApplicationGenerator {
   /// Generates a facade class for a single [category].
   ///
   /// The facade wires domain repository methods and exposes typed methods that
-  /// return `Either<String, Model>` for error handling.
+  /// return `Either<Failure, Model>` for error handling.
   void generateApplicationForCategory(
     String category,
   ) {
@@ -39,7 +39,8 @@ class ApplicationGenerator {
 
     final buffer = StringBuffer();
 
-    buffer.writeln("import 'package:either_dart/either.dart';");
+    buffer.writeln("import 'package:dartz/dartz.dart';");
+    buffer.writeln("import '../../../common/network/failure.dart';");
     buffer
         .writeln("import '../domain/repository/${category}_repository.dart';");
 
@@ -75,7 +76,7 @@ class ApplicationGenerator {
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);
 
       buffer.writeln("""
-  Future<Either<String, ${actionName}Model>> $methodName({
+  Future<Either<Failure, ${actionName}Model>> $methodName({
     required ${actionName}Param ${methodName}Param,
   }) =>
       _repository.$methodName(${methodName}Param: ${methodName}Param);

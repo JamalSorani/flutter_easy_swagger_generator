@@ -42,6 +42,7 @@ class ResultBuilderGenerator {
     buffer.writeln(
       """
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../common/network/failure.dart';
 
 part 'result.freezed.dart';
 
@@ -53,7 +54,7 @@ class Result<T> with _\$Result<T> {
 
   const factory Result.loaded({required T data}) = _Loaded<T>;
 
-  const factory Result.error({required String error}) = _Error<T>;
+  const factory Result.error({required Failure error}) = _Error<T>;
 }
 
 extension ResultExtension<T> on Result<T> {
@@ -69,13 +70,21 @@ extension ResultExtension<T> on Result<T> {
       maybeWhen(orElse: () => null, loaded: (data) => data);
 
   String? get error => maybeWhen(
-        orElse: () {
-          return null;
-        },
-        error: (error) {
-          return error;
-        },
-      );
+    orElse: () {
+      return null;
+    },
+    error: (error) {
+      return error.message;
+    },
+  );
+  String? get errorStatusCode => maybeWhen(
+    orElse: () {
+      return null;
+    },
+    error: (error) {
+      return error.statusCode;
+    },
+  );
 }
 
 """,
@@ -106,7 +115,7 @@ class ResultBuilder<T> extends StatelessWidget {
     super.key,
     required this.success,
     this.loading,
-    this.onError,
+    required this.onError,
     this.init,
     required this.result,
   });
@@ -114,28 +123,58 @@ class ResultBuilder<T> extends StatelessWidget {
   final Result<T> result;
   Widget Function()? loading;
   final Widget Function(T data) success;
-  final Function()? onError;
+  final Future<void> Function()? onError;
   Widget Function()? init;
 
   @override
   Widget build(BuildContext context) {
     Widget? next;
 
-    loading ??= () => const Center(
-          child: CircularProgressIndicator(),
-        );
+    loading ??= () => const LoadingProgress();
     init ??= () => const SizedBox();
     result.when(
-      init: () => next = const SizedBox(),
+      init: () => next = RefreshIndicator(
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(children: [Container(height: MediaQuery.of(context).size.height)]),
+        ),
+        onRefresh: onError ?? () async {},
+      ),
       loading: () => next = loading!(),
       loaded: (data) => next = success(data),
       error: (message) => onError != null
           ? {
-              next = const SizedBox(),
+              next = FailureWidget(
+                onRetry: onError!,
+                message: message.message,
+              ),
             }
           : const SizedBox.shrink(),
     );
     return next ?? const SizedBox();
+  }
+}
+
+class FailureWidget extends StatelessWidget {
+  const FailureWidget(
+      {super.key, required this.onRetry, required this.message});
+  final Future<void> Function()? onRetry;
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder(); //TODO: Implement the failure widget
+  }
+}
+
+class LoadingProgress extends StatelessWidget {
+  const LoadingProgress({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
   }
 }
 """);
@@ -171,7 +210,9 @@ part of 'result.dart';
 T _\$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    '''It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models''');
+  '''It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.
+Please check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models''',
+);
 
 /// @nodoc
 mixin _\$Result<T> {
@@ -180,42 +221,37 @@ mixin _\$Result<T> {
     required TResult Function() init,
     required TResult Function() loading,
     required TResult Function(T data) loaded,
-    required TResult Function(String error) error,
-  }) =>
-      throw _privateConstructorUsedError;
+    required TResult Function(Failure error) error,
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? init,
     TResult? Function()? loading,
     TResult? Function(T data)? loaded,
-    TResult? Function(String error)? error,
-  }) =>
-      throw _privateConstructorUsedError;
+    TResult? Function(Failure error)? error,
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? init,
     TResult Function()? loading,
     TResult Function(T data)? loaded,
-    TResult Function(String error)? error,
+    TResult Function(Failure error)? error,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(_init<T> value) init,
     required TResult Function(_Lodaing<T> value) loading,
     required TResult Function(_Loaded<T> value) loaded,
     required TResult Function(_Error<T> value) error,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(_init<T> value)? init,
     TResult? Function(_Lodaing<T> value)? loading,
     TResult? Function(_Loaded<T> value)? loaded,
     TResult? Function(_Error<T> value)? error,
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(_init<T> value)? init,
@@ -223,19 +259,18 @@ mixin _\$Result<T> {
     TResult Function(_Loaded<T> value)? loaded,
     TResult Function(_Error<T> value)? error,
     required TResult orElse(),
-  }) =>
-      throw _privateConstructorUsedError;
+  }) => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class \$ResultCopyWith<T, \$Res> {
-  factory \$ResultCopyWith(Result<T> value, \$Res Function(Result<T>) then) =
+abstract class _\$ResultCopyWith<T, \$Res> {
+  factory _\$ResultCopyWith(Result<T> value, \$Res Function(Result<T>) then) =
       _\$ResultCopyWithImpl<T, \$Res, Result<T>>;
 }
 
 /// @nodoc
 class _\$ResultCopyWithImpl<T, \$Res, \$Val extends Result<T>>
-    implements \$ResultCopyWith<T, \$Res> {
+    implements _\$ResultCopyWith<T, \$Res> {
   _\$ResultCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
@@ -248,19 +283,21 @@ class _\$ResultCopyWithImpl<T, \$Res, \$Val extends Result<T>>
 }
 
 /// @nodoc
-abstract class _\$\$initImplCopyWith<T, \$Res> {
-  factory _\$\$initImplCopyWith(
-          _\$initImpl<T> value, \$Res Function(_\$initImpl<T>) then) =
-      __\$\$initImplCopyWithImpl<T, \$Res>;
+abstract class _\$initImplCopyWith<T, \$Res> {
+  factory _\$initImplCopyWith(
+    _\$initImpl<T> value,
+    \$Res Function(_\$initImpl<T>) then,
+  ) = _\$initImplCopyWithImpl<T, \$Res>;
 }
 
 /// @nodoc
-class __\$\$initImplCopyWithImpl<T, \$Res>
+class _\$initImplCopyWithImpl<T, \$Res>
     extends _\$ResultCopyWithImpl<T, \$Res, _\$initImpl<T>>
-    implements _\$\$initImplCopyWith<T, \$Res> {
-  __\$\$initImplCopyWithImpl(
-      _\$initImpl<T> _value, \$Res Function(_\$initImpl<T>) _then)
-      : super(_value, _then);
+    implements _\$initImplCopyWith<T, \$Res> {
+  _\$initImplCopyWithImpl(
+    _\$initImpl<T> _value,
+    \$Res Function(_\$initImpl<T>) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Result
   /// with the given fields replaced by the non-null parameter values.
@@ -291,7 +328,7 @@ class _\$initImpl<T> implements _init<T> {
     required TResult Function() init,
     required TResult Function() loading,
     required TResult Function(T data) loaded,
-    required TResult Function(String error) error,
+    required TResult Function(Failure error) error,
   }) {
     return init();
   }
@@ -302,7 +339,7 @@ class _\$initImpl<T> implements _init<T> {
     TResult? Function()? init,
     TResult? Function()? loading,
     TResult? Function(T data)? loaded,
-    TResult? Function(String error)? error,
+    TResult? Function(Failure error)? error,
   }) {
     return init?.call();
   }
@@ -313,7 +350,7 @@ class _\$initImpl<T> implements _init<T> {
     TResult Function()? init,
     TResult Function()? loading,
     TResult Function(T data)? loaded,
-    TResult Function(String error)? error,
+    TResult Function(Failure error)? error,
     required TResult orElse(),
   }) {
     if (init != null) {
@@ -365,19 +402,21 @@ abstract class _init<T> implements Result<T> {
 }
 
 /// @nodoc
-abstract class _\$\$LodaingImplCopyWith<T, \$Res> {
-  factory _\$\$LodaingImplCopyWith(
-          _\$LodaingImpl<T> value, \$Res Function(_\$LodaingImpl<T>) then) =
-      __\$\$LodaingImplCopyWithImpl<T, \$Res>;
+abstract class _\$LodaingImplCopyWith<T, \$Res> {
+  factory _\$LodaingImplCopyWith(
+    _\$LodaingImpl<T> value,
+    \$Res Function(_\$LodaingImpl<T>) then,
+  ) = _\$LodaingImplCopyWithImpl<T, \$Res>;
 }
 
 /// @nodoc
-class __\$\$LodaingImplCopyWithImpl<T, \$Res>
+class _\$LodaingImplCopyWithImpl<T, \$Res>
     extends _\$ResultCopyWithImpl<T, \$Res, _\$LodaingImpl<T>>
-    implements _\$\$LodaingImplCopyWith<T, \$Res> {
-  __\$\$LodaingImplCopyWithImpl(
-      _\$LodaingImpl<T> _value, \$Res Function(_\$LodaingImpl<T>) _then)
-      : super(_value, _then);
+    implements _\$LodaingImplCopyWith<T, \$Res> {
+  _\$LodaingImplCopyWithImpl(
+    _\$LodaingImpl<T> _value,
+    \$Res Function(_\$LodaingImpl<T>) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Result
   /// with the given fields replaced by the non-null parameter values.
@@ -408,7 +447,7 @@ class _\$LodaingImpl<T> implements _Lodaing<T> {
     required TResult Function() init,
     required TResult Function() loading,
     required TResult Function(T data) loaded,
-    required TResult Function(String error) error,
+    required TResult Function(Failure error) error,
   }) {
     return loading();
   }
@@ -419,7 +458,7 @@ class _\$LodaingImpl<T> implements _Lodaing<T> {
     TResult? Function()? init,
     TResult? Function()? loading,
     TResult? Function(T data)? loaded,
-    TResult? Function(String error)? error,
+    TResult? Function(Failure error)? error,
   }) {
     return loading?.call();
   }
@@ -430,7 +469,7 @@ class _\$LodaingImpl<T> implements _Lodaing<T> {
     TResult Function()? init,
     TResult Function()? loading,
     TResult Function(T data)? loaded,
-    TResult Function(String error)? error,
+    TResult Function(Failure error)? error,
     required TResult orElse(),
   }) {
     if (loading != null) {
@@ -482,35 +521,37 @@ abstract class _Lodaing<T> implements Result<T> {
 }
 
 /// @nodoc
-abstract class _\$\$LoadedImplCopyWith<T, \$Res> {
-  factory _\$\$LoadedImplCopyWith(
-          _\$LoadedImpl<T> value, \$Res Function(_\$LoadedImpl<T>) then) =
-      __\$\$LoadedImplCopyWithImpl<T, \$Res>;
+abstract class _\$LoadedImplCopyWith<T, \$Res> {
+  factory _\$LoadedImplCopyWith(
+    _\$LoadedImpl<T> value,
+    \$Res Function(_\$LoadedImpl<T>) then,
+  ) = _\$LoadedImplCopyWithImpl<T, \$Res>;
   @useResult
   \$Res call({T data});
 }
 
 /// @nodoc
-class __\$\$LoadedImplCopyWithImpl<T, \$Res>
+class _\$LoadedImplCopyWithImpl<T, \$Res>
     extends _\$ResultCopyWithImpl<T, \$Res, _\$LoadedImpl<T>>
-    implements _\$\$LoadedImplCopyWith<T, \$Res> {
-  __\$\$LoadedImplCopyWithImpl(
-      _\$LoadedImpl<T> _value, \$Res Function(_\$LoadedImpl<T>) _then)
-      : super(_value, _then);
+    implements _\$LoadedImplCopyWith<T, \$Res> {
+  _\$LoadedImplCopyWithImpl(
+    _\$LoadedImpl<T> _value,
+    \$Res Function(_\$LoadedImpl<T>) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Result
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  \$Res call({
-    Object? data = freezed,
-  }) {
-    return _then(_\$LoadedImpl<T>(
-      data: freezed == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as T,
-    ));
+  \$Res call({Object? data = freezed}) {
+    return _then(
+      _\$LoadedImpl<T>(
+        data: freezed == data
+            ? _value.data
+            : data // ignore: cast_nullable_to_non_nullable
+                  as T,
+      ),
+    );
   }
 }
 
@@ -544,8 +585,8 @@ class _\$LoadedImpl<T> implements _Loaded<T> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _\$\$LoadedImplCopyWith<T, _\$LoadedImpl<T>> get copyWith =>
-      __\$\$LoadedImplCopyWithImpl<T, _\$LoadedImpl<T>>(this, _\$identity);
+  _\$LoadedImplCopyWith<T, _\$LoadedImpl<T>> get copyWith =>
+      _\$LoadedImplCopyWithImpl<T, _\$LoadedImpl<T>>(this, _\$identity);
 
   @override
   @optionalTypeArgs
@@ -553,7 +594,7 @@ class _\$LoadedImpl<T> implements _Loaded<T> {
     required TResult Function() init,
     required TResult Function() loading,
     required TResult Function(T data) loaded,
-    required TResult Function(String error) error,
+    required TResult Function(Failure error) error,
   }) {
     return loaded(data);
   }
@@ -564,7 +605,7 @@ class _\$LoadedImpl<T> implements _Loaded<T> {
     TResult? Function()? init,
     TResult? Function()? loading,
     TResult? Function(T data)? loaded,
-    TResult? Function(String error)? error,
+    TResult? Function(Failure error)? error,
   }) {
     return loaded?.call(data);
   }
@@ -575,7 +616,7 @@ class _\$LoadedImpl<T> implements _Loaded<T> {
     TResult Function()? init,
     TResult Function()? loading,
     TResult Function(T data)? loaded,
-    TResult Function(String error)? error,
+    TResult Function(Failure error)? error,
     required TResult orElse(),
   }) {
     if (loaded != null) {
@@ -630,40 +671,41 @@ abstract class _Loaded<T> implements Result<T> {
   /// Create a copy of Result
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _\$\$LoadedImplCopyWith<T, _\$LoadedImpl<T>> get copyWith =>
+  _\$LoadedImplCopyWith<T, _\$LoadedImpl<T>> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class _\$\$ErrorImplCopyWith<T, \$Res> {
-  factory _\$\$ErrorImplCopyWith(
-          _\$ErrorImpl<T> value, \$Res Function(_\$ErrorImpl<T>) then) =
-      __\$\$ErrorImplCopyWithImpl<T, \$Res>;
+abstract class _\$ErrorImplCopyWith<T, \$Res> {
+  factory _\$ErrorImplCopyWith(
+    _\$ErrorImpl<T> value,
+    \$Res Function(_\$ErrorImpl<T>) then,
+  ) = _\$ErrorImplCopyWithImpl<T, \$Res>;
   @useResult
-  \$Res call({String error});
+  \$Res call({Failure error});
 }
 
 /// @nodoc
-class __\$\$ErrorImplCopyWithImpl<T, \$Res>
+class _\$ErrorImplCopyWithImpl<T, \$Res>
     extends _\$ResultCopyWithImpl<T, \$Res, _\$ErrorImpl<T>>
-    implements _\$\$ErrorImplCopyWith<T, \$Res> {
-  __\$\$ErrorImplCopyWithImpl(
-      _\$ErrorImpl<T> _value, \$Res Function(_\$ErrorImpl<T>) _then)
-      : super(_value, _then);
+    implements _\$ErrorImplCopyWith<T, \$Res> {
+  _\$ErrorImplCopyWithImpl(
+    _\$ErrorImpl<T> _value,
+    \$Res Function(_\$ErrorImpl<T>) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Result
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  \$Res call({
-    Object? error = null,
-  }) {
-    return _then(_\$ErrorImpl<T>(
-      error: null == error
-          ? _value.error
-          : error // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+  \$Res call({Object? error = null}) {
+    return _then(
+      _\$ErrorImpl<T>(
+        error: null == error
+            ? _value.error
+            : error as Failure, // ignore: cast_nullable_to_non_nullable
+      ),
+    );
   }
 }
 
@@ -673,7 +715,7 @@ class _\$ErrorImpl<T> implements _Error<T> {
   const _\$ErrorImpl({required this.error});
 
   @override
-  final String error;
+  final Failure error;
 
   @override
   String toString() {
@@ -696,8 +738,8 @@ class _\$ErrorImpl<T> implements _Error<T> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _\$\$ErrorImplCopyWith<T, _\$ErrorImpl<T>> get copyWith =>
-      __\$\$ErrorImplCopyWithImpl<T, _\$ErrorImpl<T>>(this, _\$identity);
+  _\$ErrorImplCopyWith<T, _\$ErrorImpl<T>> get copyWith =>
+      _\$ErrorImplCopyWithImpl<T, _\$ErrorImpl<T>>(this, _\$identity);
 
   @override
   @optionalTypeArgs
@@ -705,7 +747,7 @@ class _\$ErrorImpl<T> implements _Error<T> {
     required TResult Function() init,
     required TResult Function() loading,
     required TResult Function(T data) loaded,
-    required TResult Function(String error) error,
+    required TResult Function(Failure error) error,
   }) {
     return error(this.error);
   }
@@ -716,7 +758,7 @@ class _\$ErrorImpl<T> implements _Error<T> {
     TResult? Function()? init,
     TResult? Function()? loading,
     TResult? Function(T data)? loaded,
-    TResult? Function(String error)? error,
+    TResult? Function(Failure error)? error,
   }) {
     return error?.call(this.error);
   }
@@ -727,7 +769,7 @@ class _\$ErrorImpl<T> implements _Error<T> {
     TResult Function()? init,
     TResult Function()? loading,
     TResult Function(T data)? loaded,
-    TResult Function(String error)? error,
+    TResult Function(Failure error)? error,
     required TResult orElse(),
   }) {
     if (error != null) {
@@ -775,14 +817,14 @@ class _\$ErrorImpl<T> implements _Error<T> {
 }
 
 abstract class _Error<T> implements Result<T> {
-  const factory _Error({required final String error}) = _\$ErrorImpl<T>;
+  const factory _Error({required final Failure error}) = _\$ErrorImpl<T>;
 
-  String get error;
+  Failure get error;
 
   /// Create a copy of Result
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _\$\$ErrorImplCopyWith<T, _\$ErrorImpl<T>> get copyWith =>
+  _\$ErrorImplCopyWith<T, _\$ErrorImpl<T>> get copyWith =>
       throw _privateConstructorUsedError;
 }
 """);

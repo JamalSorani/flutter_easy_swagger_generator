@@ -18,6 +18,7 @@ class NetworkGenerator {
   void generateNetwork() {
     _generateErrorHandler();
     _generateAppException();
+    _generateFailure();
   }
 
   /// Generates `error_handler.dart`.
@@ -34,17 +35,18 @@ class NetworkGenerator {
     buffer.writeln("""
 import 'dart:async';
 import 'dart:developer';
-import 'package:either_dart/either.dart';
+import 'package:dartz/dartz.dart';
+import '../../../common/network/failure.dart';
 import 'package:dio/dio.dart';
 import 'app_exception.dart';
 
 /// Wraps a call and converts [AppException] into a [Left] value
 /// while returning successful results as [Right].
-Future<Either<String, U>> throwAppException<U>(FutureOr Function() call) async {
+Future<Either<Failure, U>> throwAppException<U>(FutureOr Function() call) async {
   try {
     return Right(await call());
   } on AppException catch (e) {
-    return Left(e.message);
+    return Left(e.failure);
   } catch (e, s) {
     log(e.toString(), stackTrace: s);
     throw AppException.unknown();
@@ -78,26 +80,50 @@ Future<T> throwDioException<T>(FutureOr<T> Function() call) async {
     final buffer = StringBuffer();
 
     buffer.writeln("""
+import '../failure.dart';
+
 /// Custom exception class used throughout the network layer.
 class AppException implements Exception {
   /// Error message describing the exception.
-  final String message;
+  final Failure failure;
 
   /// The inner exception causing this [AppException].
   final Exception innerException;
 
   /// Creates an [AppException] with a message and inner exception.
-  AppException(this.message, this.innerException);
+  AppException(this.failure, this.innerException);
 
   /// Factory for an unknown exception with a default message.
-  factory AppException.unknown() => AppException('try again', Exception());
+  factory AppException.unknown() => AppException(
+      Failure(message: 'try again', statusCode: '500'), Exception());
 
   /// Factory for a known exception with a custom message.
-  factory AppException.known(message) => AppException(message, Exception());
+  factory AppException.known(message, statusCode) => AppException(
+      Failure(message: message, statusCode: statusCode), Exception());
 
   @override
-  String toString() => "message : \$message, innerException: \$innerException";
-}""");
+  String toString() => "failure : \$failure, innerException: \$innerException";
+}
+""");
+
+    file.writeAsStringSync(buffer.toString());
+  }
+
+  void _generateFailure() {
+    String filePath =
+        "${mainPath.contains("example") ? "example/" : ""}lib/common/network/failure.dart";
+    final file = File(filePath);
+    file.parent.createSync(recursive: true);
+    final buffer = StringBuffer();
+
+    buffer.writeln("""
+class Failure {
+  final String message;
+  final String statusCode;
+
+  Failure({required this.message, required this.statusCode});
+}
+""");
 
     file.writeAsStringSync(buffer.toString());
   }

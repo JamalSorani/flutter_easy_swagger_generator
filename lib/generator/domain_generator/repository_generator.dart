@@ -22,7 +22,7 @@ class RepositoryGenerator {
   /// Creates a file at:
   /// `lib/{category}/domain/repository/{category}_repository.dart`.
   /// Each API path with a 200 response will have a corresponding method:
-  /// - Method returns `Future<Either<String, Model>>`
+  /// - Method returns `Future<Either<Failure, Model>>`
   /// - Takes a required `{Action}Param` parameter.
   void generateRepositoryForCategory(
     String category,
@@ -38,7 +38,8 @@ class RepositoryGenerator {
     file.parent.createSync(recursive: true);
     final buffer = StringBuffer();
 
-    buffer.writeln("import 'package:either_dart/either.dart';");
+    buffer.writeln("import 'package:dartz/dartz.dart';");
+    buffer.writeln("import '../../../../common/network/failure.dart';");
 
     // Import models for API responses
     for (var path in categoryPaths) {
@@ -76,7 +77,7 @@ class RepositoryGenerator {
       String methodName = actionName[0].toLowerCase() + actionName.substring(1);
       buffer.writeln(
         """
-  Future<Either<String, ${actionName}Model>> $methodName({
+  Future<Either<Failure, ${actionName}Model>> $methodName({
     required ${actionName}Param ${methodName}Param,
   });""",
       );

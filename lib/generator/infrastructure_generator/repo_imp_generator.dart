@@ -28,7 +28,7 @@ class RepoImpGenerator {
   /// - Implements the repository interface.
   /// - Registers methods corresponding to API endpoints.
   /// - Each method calls the remote API and wraps the response
-  ///   in an `Either<String, Model>`.
+  ///   in an `Either<Failure, Model>`.
   void generateRepositoryForCategory(
     String category,
   ) {
@@ -45,7 +45,8 @@ class RepoImpGenerator {
     final buffer = StringBuffer();
 
     // Imports
-    buffer.writeln("import 'package:either_dart/either.dart';");
+    buffer.writeln("import 'package:dartz/dartz.dart';");
+    buffer.writeln("import '../../../../common/network/failure.dart';");
     if (isMVVM) {
       buffer.writeln("import '${snakeCaseCategory}_repository.dart';");
       buffer.writeln("import '../remote/${snakeCaseCategory}_remote.dart';");
@@ -104,7 +105,7 @@ class RepoImpGenerator {
 
       buffer.writeln("  @override");
       buffer.writeln("""
-  Future<Either<String, ${actionName}Model>> $methodName({
+  Future<Either<Failure, ${actionName}Model>> $methodName({
     required ${actionName}Param ${methodName}Param,
   }) {
     return throwAppException(() async {
