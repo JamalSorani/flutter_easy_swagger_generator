@@ -36,14 +36,20 @@ class NetworkGenerator {
 import 'dart:async';
 import 'dart:developer';
 import 'package:dartz/dartz.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../../../common/network/failure.dart';
 import 'package:dio/dio.dart';
 import 'app_exception.dart';
+
+final _internetConnectionChecker = InternetConnectionChecker.createInstance();
 
 /// Wraps a call and converts [AppException] into a [Left] value
 /// while returning successful results as [Right].
 Future<Either<Failure, U>> throwAppException<U>(FutureOr Function() call) async {
   try {
+   if (!(await _internetConnectionChecker.hasConnection)) {
+      return Left(Failure(message: "No Internet Connection", statusCode: ""));
+    }
     return Right(await call());
   } on AppException catch (e) {
     return Left(e.failure);

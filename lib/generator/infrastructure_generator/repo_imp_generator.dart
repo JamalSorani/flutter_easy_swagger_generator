@@ -113,9 +113,6 @@ class RepoImpGenerator {
     required ${actionName}Param ${methodName}Param,
   }) {
     return throwAppException(() async {
-      if (!(await internetConnectionChecker.hasConnection)) {
-        return Left(Failure(message: "No Internet Connection", statusCode: ""));
-      }
       final response = await _remote.$methodName(
         ${methodName}Param: ${methodName}Param,
       );
