@@ -46,6 +46,8 @@ class RepoImpGenerator {
 
     // Imports
     buffer.writeln("import 'package:dartz/dartz.dart';");
+    buffer.writeln(
+        "import 'package:internet_connection_checker/internet_connection_checker.dart';");
     buffer.writeln("import '../../../../common/network/failure.dart';");
     if (isMVVM) {
       buffer.writeln("import '${snakeCaseCategory}_repository.dart';");
@@ -94,6 +96,8 @@ class RepoImpGenerator {
     buffer.writeln("  final ${className}Remote _remote;");
     buffer.writeln(
         "  ${className}RepoImp({required ${className}Remote remote}) : _remote = remote;");
+    buffer.writeln(
+        "  final internetConnectionChecker = InternetConnectionChecker.createInstance();");
 
     // Methods for each endpoint
     for (var path in categoryPaths) {
@@ -109,6 +113,9 @@ class RepoImpGenerator {
     required ${actionName}Param ${methodName}Param,
   }) {
     return throwAppException(() async {
+      if (!(await internetConnectionChecker.hasConnection)) {
+        return Left(Failure(message: "No Internet Connection", statusCode: ""));
+      }
       final response = await _remote.$methodName(
         ${methodName}Param: ${methodName}Param,
       );
